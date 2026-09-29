@@ -116,6 +116,8 @@ def preparer_dataframe_modele(nom_onglet: str, dataframe: pd.DataFrame) -> pd.Da
             "Grands quartiers": "Quartiers SIG (Grands quartiers)",
             "Mairies de quartiers": "Mairies de qartiers",
         })
+        colonnes_ages = [f"Age : {age}" for age in range(18) if f"Age : {age}" in resultat.columns]
+        resultat["TOTAL 0-17"] = resultat[colonnes_ages].sum(axis=1)
         resultat["Crèches"] = ""
     if "IRIS" in resultat.columns:
         resultat = resultat.drop(columns="IRIS")

@@ -178,7 +178,7 @@ def calculer_repartition_enfants(blocs_individus) -> dict:
             agrege = pd.concat(groupes[nom_table], ignore_index=True)
             agrege = agrege.groupby(["IRIS", colonne_age], as_index=False)["IPONDI"].sum()
             tableau = agrege.pivot(index="IRIS", columns=colonne_age, values="IPONDI")
-            tableau = tableau.reindex(columns=range(18), fill_value=0)
+            tableau = tableau.reindex(columns=range(18), fill_value=0).fillna(0)
             tableau.columns = [f"Age : {age}" for age in tableau.columns]
             tableau = tableau.reset_index()
         else:
