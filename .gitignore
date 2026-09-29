@@ -1,0 +1,22 @@
+# Environnements et fichiers temporaires Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+
+# Données brutes lourdes ou microdonnées : conserver les sources localement
+data/*.CSV
+data/*.csv
+!data/Périmètres_MAS.csv
+!data/perimetres_mas.csv
+
+# Résultats régénérables
+exports_sig/
+TAB_BDDMAS_INSEE2022_Tout_perimetre.xlsx
+
+# Fichiers temporaires, secrets et journaux
+~$*.xlsx
+.env
+.env.*
+!.env.example
+*.log
