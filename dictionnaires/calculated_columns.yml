@@ -1,0 +1,629 @@
+## Onglet Activité des résidents : ACT RES 2021
+
+#Atention ici c'est une colonne d'un autre onglet donc dans l'expression on met le nom de la colonne de l'onglet qu'on souhaite aller chercher l'information
+#Soit ici "POP 2021"
+Population (ACT RES) :
+  df: ACT RES 2022
+  var1: Population
+  var2: 
+  var3:
+  var4:
+  expression: files["POP 2022"][var1] 
+
+Part de la population en âge de travailler (%) : 
+  df: ACT RES 2022
+  var1: Pop 15-64 ans
+  var2: Population (ACT RES)
+  var3:
+  var4:
+  expression: files[df][var1] * 100 / files[df][var2]
+
+Part de la population active dans la population en âge de travailler (%) :
+  df: ACT RES 2022
+  var1: Actifs 15-64 ans
+  var2: Pop 15-64 ans
+  var3:
+  var4:
+  expression: files[df][var1] * 100 / files[df][var2]
+  
+Part des actifs 15-24 ans (%) :
+  df: ACT RES 2022
+  var1: Actifs 15-24 ans
+  var2: Pop 15-24 ans
+  var3:
+  var4:
+  expression: files[df][var1] * 100 / files[df][var2]
+  
+Taux d’emploi des 15-64 ans (%) :
+  df: ACT RES 2022
+  var1: Actifs occupés 15-64 ans
+  var2: Pop 15-64 ans
+  var3:
+  var4:
+  expression: files[df][var1] * 100 / files[df][var2]
+  
+Taux d’emploi des 15-24 ans (%) :
+  df: ACT RES 2022
+  var1: Actifs occupés 15-24 ans
+  var2: Pop 15-24 ans
+  var3:
+  var4:
+  expression: files[df][var1] * 100 / files[df][var2]
+
+Taux de chômage dans la pop active (%) :
+  df: ACT RES 2022
+  var1: Chômeurs 15-64 ans
+  var2: Actifs 15-64 ans
+  var3:
+  var4:
+  expression: files[df][var1] * 100 / files[df][var2]
+  
+Taux de chômage chez les 15-24 ans dans la pop active (%) :
+  df: ACT RES 2022
+  var1: Chômeurs 15-24 ans
+  var2: Actifs 15-24 ans
+  var3:
+  var4:
+  expression: files[df][var1] * 100 / files[df][var2]
+  
+Part salariés chez les actifs occupés (%) :
+  df: ACT RES 2022
+  var1: Salariés 15 ans ou plus
+  var2: Actifs occupés 15 ans ou plus
+  var3:
+  var4:
+  expression: files[df][var1] * 100 / files[df][var2]
+  
+Part des femmes chez les salariés de 15 ans et plus (%) :
+  df: ACT RES 2022
+  var1: Salariés 15 ans ou plus Femmes
+  var2: Salariés 15 ans ou plus
+  var3:
+  var4:
+  expression: files[df][var1] * 100 / files[df][var2]
+  
+Part des actifs occupés salariés en CDI ou fonction publique (%) :
+  df: ACT RES 2022
+  var1: Salariés 15 ans ou plus Fonct publ, CDI
+  var2: Salariés 15 ans ou plus
+  var3:
+  var4:
+  expression: files[df][var1] * 100 / files[df][var2]
+  
+Part des actifs occupés travaillant dans la commune de résidence (%) :
+  df: ACT RES 2022
+  var1: Actif occ 15 ans ou plus travaille commune résidence
+  var2: Salariés 15 ans ou plus
+  var3:
+  var4:
+  expression: files[df][var1] * 100 / files[df][var2]
+
+
+## Onglet Couples - Familles - Ménages : COU FAM 2021
+
+Part des ménages avec famille(s) (%) :
+  df: COU FAM 2022
+  var1: Ménages avec famille(s)
+  var2: Ménages
+  var3:
+  var4:
+  expression: files[df][var1] * 100 / files[df][var2]
+
+Part des ménages famille couple avec enfant(s) (%) :
+  df: COU FAM 2022
+  var1: Mén fam princ Couple avec enfant(s)
+  var2: Ménages
+  var3:
+  var4:
+  expression: files[df][var1] * 100 / files[df][var2]
+
+Part des familles couple avec enfant(s) (%) :
+  df: COU FAM 2022
+  var1: Fam Couple avec enfant(s)
+  var2: Familles
+  var3:
+  var4:
+  expression: files[df][var1] * 100 / files[df][var2]
+
+Part de familles monoparentales (%) :
+  df: COU FAM 2022
+  var1: Fam Monoparentales
+  var2: Familles
+  var3:
+  var4:
+  expression: files[df][var1] * 100 / files[df][var2]
+
+Nombre de familles nombreuses :
+  df: COU FAM 2022
+  var1: Fam 3 enfants moins 25 ans
+  var2: Fam 4 enfants ou plus moins 25 ans
+  var3:
+  var4:
+  expression: files[df][var1] + files[df][var2]
+
+Part de familles nombreuses (%) :
+  df: COU FAM 2022
+  var1: Nombre de familles nombreuses
+  var2: Familles
+  var3:
+  var4:
+  expression: files[df][var1] * 100 / files[df][var2]
+
+
+## Onglet Diplômes - Formation : DIP FORMATION 2021
+
+Part pop 15 ans et plus non scol sans dip ou CEP max (%) :
+  df: DIP FORMATION 2022
+  var1: Pop 15 ans ou plus non scol. Sans diplôme ou CEP
+  var2: Pop 15 ans ou plus non scolarisée
+  var3:
+  var4:
+  expression: files[df][var1] * 100 / files[df][var2]
+
+Pop 15 ans ou plus non scol dipl Ens Sup :
+  df: DIP FORMATION 2022
+  var1: Pop 15 ans ou plus non scol. Enseignement sup de niveau bac + 2
+  var2: Pop 15 ans ou plus non scol. Enseignement sup de niveau bac + 3 ou 4
+  var3: Pop 15 ans ou plus non scol. Enseignement sup de niveau bac + 5 ou plus
+  var4:
+  expression: files[df][var1] + files[df][var2] + files[df][var3]
+
+Part pop 15 ans et plus non scol dipl Ens Sup (%) :
+  df: DIP FORMATION 2022
+  var1: Pop 15 ans ou plus non scol dipl Ens Sup
+  var2: Pop 15 ans ou plus non scolarisée
+  var3:
+  var4:
+  expression: files[df][var1] * 100 / files[df][var2]
+
+
+## Onglet Population : POP 2021
+
+Superficie en hectares (POP):
+  df: POP 2022
+  var1: Superficie en km²
+  var2: 
+  var3:
+  var4:
+  expression: files[df][var1] * 100
+
+Densité de population en hab/km² :
+  df: POP 2022
+  var1: Population
+  var2: Superficie en km²
+  var3:
+  var4:
+  expression: files[df][var1] / files[df][var2]
+
+Part de la population de l’IRIS dans la population totale (%) : 
+  df: POP 2022
+  var1: Population
+  var2: 
+  var3:
+  var4:
+  expression: files[df][var1] * 100 / files[df][var1].sum()
+
+Densité d’habitants à l’hectare:
+  df: POP 2022
+  var1: Population
+  var2: Superficie en hectares (POP)
+  var3:
+  var4:
+  expression: files[df][var1] / files[df][var2]
+
+Population de plus de 60 ans :
+  df: POP 2022
+  var1: Pop 60-74 ans
+  var2: Pop 75 ans ou plus
+  var3:
+  var4:
+  expression: files[df][var1] + files[df][var2]
+
+Part de la population de plus de 60 ans (%) parmi la population iris : 
+  df: POP 2022
+  var1: Population
+  var2: Population de plus de 60 ans
+  var3:
+  var4:
+  expression: files[df][var2] * 100 / files[df][var1]
+  
+Part de la population de moins de 20 ans (%) parmi la population iris : 
+  df: POP 2022
+  var1: Pop 0-19 ans
+  var2: Population
+  var3:
+  var4:
+  expression: files[df][var1] * 100 / files[df][var2]
+
+Indice de jeunesse :
+  df: POP 2022
+  var1: Pop 60-74 ans
+  var2: Pop 75 ans ou plus
+  var3: Pop 0-19 ans
+  var4:
+  expression: files[df][var3] / ( files[df][var1] + files[df][var2] )
+
+Indice de vieillissement :
+  df: POP 2022
+  var1: Pop 65 ans ou plus
+  var2: Pop 0-19 ans
+  var3:
+  var4:
+  expression: files[df][var1] / files[df][var2]
+
+Part de la population étrangère parmi la population iris (%) :
+  df: POP 2022
+  var1: Population
+  var2: Pop Etrangers
+  var3:
+  var4:
+  expression: files[df][var2] * 100 / files[df][var1]
+
+Part de la population immigrée parmi la population iris (%) :
+  df: POP 2022
+  var1: Population
+  var2: Pop Immigrés
+  var3:
+  var4:
+  expression: files[df][var2] * 100 / files[df][var1]
+
+
+## Onglet Logements : LOG 2021
+
+Superficie en hectares (LOG):
+  df: LOG 2022
+  var1: Superficie en km²
+  var2: 
+  var3:
+  var4:
+  expression: files[df][var1] * 100
+
+Densité de logements au km² :
+  df: LOG 2022
+  var1: Logements
+  var2: Superficie en km²
+  var3:
+  var4:
+  expression: files[df][var1] / files[df][var2]
+
+Densité de logements par hectare :
+  df: LOG 2022
+  var1: Logements
+  var2: Superficie en hectares (LOG)
+  var3:
+  var4:
+  expression: files[df][var1] / files[df][var2]
+
+Part des logements vacants (%) :
+  df: LOG 2022
+  var1: Logements vacants
+  var2: Logements
+  var3:
+  var4:
+  expression: files[df][var1] * 100 / files[df][var2]
+
+Part des logements individuels (%) :
+  df: LOG 2022
+  var1: Maisons
+  var2: Logements
+  var3:
+  var4:
+  expression: files[df][var1] * 100 / files[df][var2]
+
+Nombre de RP de petite typologie :
+  df: LOG 2022
+  var1: Rés princ 1 pièce
+  var2: Rés princ 2 pièces
+  var3:
+  var4:
+  expression: files[df][var1] + files[df][var2]
+
+Part des RP de petite typologie (%) :
+  df: LOG 2022
+  var1: Nombre de RP de petite typologie
+  var2: Résidences principales
+  var3:
+  var4:
+  expression: files[df][var1] * 100 / files[df][var2]
+
+Nombre de RP de grande typologie :
+  df: LOG 2022
+  var1: Rés princ 3 pièces
+  var2: Rés princ 4 pièces
+  var3: Rés princ 5 pièces ou plus
+  var4:
+  expression: files[df][var1] + files[df][var2] + files[df][var3]
+
+Part des RP de grande typologie (%) :
+  df: LOG 2022
+  var1: Nombre de RP de grande typologie
+  var2: Résidences principales
+  var3:
+  var4:
+  expression: files[df][var1] * 100 / files[df][var2]
+
+Part des ménages emménagés depuis moins de 2 ans (%) :
+  df: LOG 2022
+  var1: Ménages emménagés moins 2 ans
+  var2: Ménages
+  var3:
+  var4:
+  expression: files[df][var1] * 100 / files[df][var2]
+
+Ménages emménagés moins 10 ans :
+  df: LOG 2022
+  var1: Ménages
+  var2: Ménages emménagés depuis 10 ans ou plus
+  var3:
+  var4:
+  expression: files[df][var1] - files[df][var2]
+
+Part des ménages emménagés depuis moins de 10 ans (%) :
+  df: LOG 2022
+  var1: Ménages emménagés moins 10 ans
+  var2: Ménages
+  var3:
+  var4:
+  expression: files[df][var1] * 100 / files[df][var2]
+
+Taille moyenne des ménages :
+  df: LOG 2022
+  var1: Pop Ménages
+  var2: Ménages
+  var3:
+  var4:
+  expression: files[df][var1] / files[df][var2]
+
+Nombre de RP parc privé :
+  df: LOG 2022
+  var1: Résidences principales
+  var2: Rés princ HLM louée vide
+  var3:
+  var4:
+  expression: files[df][var1] - files[df][var2]
+  
+Part propriétaire dans les RP parc privé (%) :
+  df: LOG 2022
+  var1: Rés princ occupées Propriétaires
+  var2: Nombre de RP parc privé
+  var3:
+  var4:
+  expression: files[df][var1] * 100 / files[df][var2]
+  
+Part propriétaire dans le parc de RP total (%) :
+  df: LOG 2022
+  var1: Rés princ occupées Propriétaires
+  var2: Résidences principales
+  var3:
+  var4:
+  expression: files[df][var1] * 100 / files[df][var2]
+  
+Part HLM dans RP totale (%) :
+  df: LOG 2022
+  var1: Rés princ HLM louée vide
+  var2: Résidences principales
+  var3:
+  var4:
+  expression: files[df][var1] * 100 / files[df][var2]
+
+Part HLM dans les RP locataires (%) :
+  df: LOG 2022
+  var1: Rés princ HLM louée vide
+  var2: Rés princ occupées Locataires
+  var3:
+  var4:
+  expression: files[df][var1] * 100 / files[df][var2]
+
+Part des ménages avec parking (%) :
+  df: LOG 2022
+  var1: Ménages au moins un parking
+  var2: Ménages
+  var3:
+  var4:
+  expression: files[df][var1] * 100 / files[df][var2]
+
+Part des ménages avec au moins une voiture (%) :
+  df: LOG 2022
+  var1: Ménages au moins une voiture
+  var2: Ménages
+  var3:
+  var4:
+  expression: files[df][var1] * 100 / files[df][var2]
+
+
+## Onglet CAF : CAF 2024
+
+#Atention ici c'est une colonne d'un autre onglet donc dans l'expression on met le nom de la colonne de l'onglet qu'on souhaite aller chercher l'information
+#Soit ici "POP 2021"
+
+Population (CAF) :
+  df: CAF 2024
+  var1: Population
+  var2: 
+  var3:
+  var4:
+  expression: files["POP 2022"][var1] 
+
+Part de la population couverte par une allocation CAF (%) :
+  df: CAF 2024
+  var1: Personnes couvertes
+  var2: Population (CAF)
+  var3:
+  var4:
+  expression: files[df][var1] * 100 / files[df][var2]
+
+Part des allocataires mono-parent (%) :
+  df: CAF 2024
+  var1: Allocataires mono-parent
+  var2: Nombre total d'allocataires
+  var3:
+  var4:
+  expression: files[df][var1] * 100 / files[df][var2]
+
+Part des allocataires percevant l’APL (%) :
+  df: CAF 2024
+  var1: Allocataires percevant l’Aide Personnalisée au Logement (Métropole)
+  var2: Nombre total d'allocataires
+  var3:
+  var4:
+  expression: files[df][var1] * 100 / files[df][var2]
+
+Part des allocataires percevant l’AAH (%) :
+  df: CAF 2024
+  var1: Allocataires percevant l’Allocation Adulte Handicapé
+  var2: Nombre total d'allocataires
+  var3:
+  var4:
+  expression: files[df][var1] * 100 / files[df][var2]
+
+Part des allocataires bénéficiant du RSA socle (%) :
+  df: CAF 2024
+  var1: Allocataires percevant le RSA socle
+  var2: Nombre total d'allocataires
+  var3:
+  var4:
+  expression: files[df][var1] * 100 / files[df][var2]
+
+
+## Onglet CNAM : CNAM 2024
+
+Part de la population couverte bénéficiaire de la C2S non participative (%) :
+  df: CNAM 2024
+  var1: Population couverte bénéficiaire de la C2S non participative
+  var2: Population couverte
+  var3:
+  var4:
+  expression: files[df][var1] * 100 / files[df][var2]
+
+Part des bénéficiaires de la C2S non participative de moins de 18 ans (%) :
+  df: CNAM 2024
+  var1: Bénéficiaires de la C2S non participative de moins de 18 ans
+  var2: Population couverte bénéficiaire de la C2S non participative
+  var3:
+  var4:
+  expression: files[df][var1] * 100 / files[df][var2]
+
+Part des moins de 18 ans bénéficiaires de la C2S non participative(%) :
+  df: CNAM 2024
+  var1: Bénéficiaires de la C2S non participative de moins de 18 ans
+  var2: Moins de 18 ans
+  var3:
+  var4:
+  expression: files[df][var1] * 100 / files[df][var2]
+
+Part de la population couverte bénéficiaire de la C2S participative (%) :
+  df: CNAM 2024
+  var1: Population couverte bénéficiaire de la C2S participative
+  var2: Population couverte
+  var3:
+  var4:
+  expression: files[df][var1] * 100 / files[df][var2]
+
+Part des bénéficiaires de la C2S participative de moins de 18 ans (%) :
+  df: CNAM 2024
+  var1: Bénéficiaires de la C2S participative de moins de 18 ans
+  var2: Population couverte bénéficiaire de la C2S participative
+  var3:
+  var4:
+  expression: files[df][var1] * 100 / files[df][var2]
+
+Part des moins de 18 ans bénéficiaires de la C2S participative (%) :
+  df: CNAM 2024
+  var1: Bénéficiaires de la C2S participative de moins de 18 ans
+  var2: Moins de 18 ans
+  var3:
+  var4:
+  expression: files[df][var1] * 100 / files[df][var2]
+
+## Onglet DEFM : DEFM 2022
+
+#Atention ici c'est une colonne d'un autre onglet donc dans l'expression on met le nom de la colonne de l'onglet qu'on souhaite aller chercher l'information
+#Soit ici "POP 2021"
+Population (DEFM) :
+  df: DEFM 2024
+  var1: Population
+  var2: 
+  var3:
+  var4:
+  expression: files["POP 2022"][var1] 
+
+Part des DEFM dans la population totale (%) :
+  df: DEFM 2024
+  var1: DEFM
+  var2: Population (DEFM)
+  var3:
+  var4:
+  expression: files[df][var1] * 100 / files[df][var2]
+
+Part des DEFM hommes (%) :
+  df: DEFM 2024
+  var1: DEFM hommes
+  var2: Population (DEFM)
+  var3:
+  var4:
+  expression: files[df][var1] * 100 / files[df][var2]
+
+Part des DEFM femmes (%) :
+  df: DEFM 2024
+  var1: DEFM femmes
+  var2: Population (DEFM)
+  var3:
+  var4:
+  expression: files[df][var1] * 100 / files[df][var2]
+
+Part des DEFM catégorie ABC (tenus de faire une recherche d'emploi active) :
+  df: DEFM 2024
+  var1: DEFM catégories ABC
+  var2: DEFM
+  var3:
+  var4:
+  expression: files[df][var1] * 100 / files[df][var2]
+
+Part des DEFM ABC de moins de 26 ans (%) :
+  df: DEFM 2024
+  var1: DEFM catégories ABC moins de 26 ans
+  var2: DEFM catégories ABC
+  var3:
+  var4:
+  expression: files[df][var1] * 100 / files[df][var2]
+
+Part des DEFM ABC de niveau ≤ au BAC dans les DEFM ABC (%) :
+  df: DEFM 2024
+  var1: DEFM catégories ABC de niveau de formation inférieur au CAP-BEP
+  var2: DEFM catégories ABC de niveau de formation CAP-BEP
+  var3: DEFM catégories ABC de niveau de formation BAC
+  var4: DEFM catégories ABC
+  expression: (files[df][var1] + files[df][var2] + files[df][var3]) / files[df][var4]
+
+Part des DEFM ABC au chômage depuis plus de 2 ans parmi les DEFM ABC (%) :
+  df: DEFM 2024
+  var1: DEFM catégories ABC d'ancienneté au chômage d'au moins 2 ans
+  var2: DEFM catégories ABC
+  var3:
+  var4:
+  expression: files[df][var1] * 100 / files[df][var2]
+
+Part des DEFM ABC au chômage depuis plus de 2 ans dans l'ensemble des chômeurs inscrits à PE (%) :
+  df: DEFM 2024
+  var1: DEFM catégories ABC d'ancienneté au chômage d'au moins 2 ans
+  var2: DEFM
+  var3:
+  var4:
+  expression: files[df][var1] * 100 / files[df][var2]
+
+Part des DEFM ABC bénéficiaires du RSA parmi les DEFM ABC (%) :
+  df: DEFM 2024
+  var1: DEFM catégories ABC bénéficiaires du RSA
+  var2: DEFM catégories ABC
+  var3:
+  var4:
+  expression: files[df][var1] * 100 / files[df][var2]
+
+Part des DEFM ABC bénéficiaires du RSA parmi l'ensemble des inscrits à PE (%) :
+  df: DEFM 2024
+  var1: DEFM catégories ABC bénéficiaires du RSA
+  var2: DEFM
+  var3:
+  var4:
+  expression: files[df][var1] * 100 / files[df][var2]
+

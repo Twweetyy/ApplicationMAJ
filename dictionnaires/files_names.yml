@@ -1,0 +1,12 @@
+base-ic-activite-residents: ACT RES
+base-ic-couples-familles-menages: COU FAM
+base-ic-diplomes-formation: DIP FORMATION
+base-ic-evol-struct-pop: POP
+base-ic-logement: LOG
+BASE_TD_FILO_IRIS_DEC: REV DEC
+BASE_TD_FILO_IRIS_DISP: REV DISP
+data_CAF: CAF
+data_CNAM: CNAM
+data_DEFM: DEFM
+data_RPLS: RPLS
+#Fichier petite enfance à rajouter

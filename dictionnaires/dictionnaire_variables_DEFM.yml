@@ -1,0 +1,74 @@
+---
+CODGEO: Code géographique
+NOTE: Note de diffusion
+ABCDE: DEFM
+ABCDE_H: DEFM hommes
+ABCDE_F: DEFM femmes
+ABC: DEFM catégories ABC
+ABC_H: DEFM hommes catégories ABC
+ABC_F: DEFM femmes catégories ABC
+A__1: DEFM catégorie A
+A_H: DEFM hommes catégorie A
+A_F: DEFM femmes catégorie A
+ABC_25: DEFM catégories ABC moins de 26 ans
+ABC_25_H: DEFM hommes catégories ABC moins de 26 ans
+ABC_25_F: DEFM femmes catégories ABC moins de 26 ans
+ABC_2649: DEFM catégories ABC de 26 ans à moins de 50 ans
+ABC_2649_H: DEFM hommes catégories ABC de 26 ans à moins de 50 ans
+ABC_2649_F: DEFM femmes catégories ABC de 26 ans à moins de 50 ans
+ABC_50: DEFM catégories ABC de 50 ans et plus
+ABC_50_H: DEFM hommes catégories ABC de 50 ans et plus
+ABC_50_F: DEFM femmes catégories ABC de 50 ans et plus
+ABC_FR: DEFM catégories ABC nationalité française
+ABC_E: DEFM catégories ABC nationalité étrangère
+ABC_INFCAPBEP: DEFM catégories ABC de niveau de formation inférieur au CAP-BEP
+ABC_INFCAPBEP_H: DEFM hommes catégories ABC de niveau de formation inférieur au CAP-BEP
+ABC_INFCAPBEP_F: DEFM femmes catégories ABC de niveau de formation inférieur au CAP-BEP
+ABC_CAPBEP: DEFM catégories ABC de niveau de formation CAP-BEP
+ABC_CAPBEP_H: DEFM hommes catégories ABC de niveau de formation CAP-BEP
+ABC_CAPBEP_F: DEFM femmes catégories ABC de niveau de formation CAP-BEP
+ABC_BAC: DEFM catégories ABC de niveau de formation BAC
+ABC_BAC_H: DEFM hommes catégories ABC de niveau de formation BAC
+ABC_BAC_F: DEFM femmes catégories ABC de niveau de formation BAC
+ABC_SUPBAC: DEFM catégories ABC de niveau de formation supérieur au BAC
+ABC_SUPBAC_H: DEFM hommes catégories ABC de niveau de formation supérieur au BAC
+ABC_SUPBAC_F: DEFM femmes catégories ABC de niveau de formation supérieur au BAC
+ABC_DUR1 : DEFM catégories ABC d'ancienneté au chômage de moins de 6 mois
+ABC_DUR1_H : DEFM hommes catégories ABC d'ancienneté au chômage de moins de 6 mois
+ABC_DUR1_F : DEFM femmes catégories ABC d'ancienneté au chômage de moins de 6 mois
+ABC_DUR2 : DEFM catégories ABC d'ancienneté au chômage de 6 mois à moins d'1 an
+ABC_DUR2_H : DEFM hommes catégories ABC d'ancienneté au chômage de 6 mois à moins d'1 an
+ABC_DUR2_F : DEFM femmes catégories ABC d'ancienneté au chômage de 6 mois à moins d'1 an
+ABC_DUR3 : DEFM catégories ABC d'ancienneté au chômage de 1 an à moins de 2 ans
+ABC_DUR3_H : DEFM hommes catégories ABC d'ancienneté au chômage de 1 an à moins de 2 ans
+ABC_DUR3_F : DEFM femmes catégories ABC d'ancienneté au chômage de 1 an à moins de 2 ans
+ABC_DUR4 : DEFM catégories ABC d'ancienneté au chômage d'au moins 2 ans
+ABC_DUR4_H : DEFM hommes catégories ABC d'ancienneté au chômage d'au moins 2 ans
+ABC_DUR4_F : DEFM femmes catégories ABC d'ancienneté au chômage d'au moins 2 ans
+ABC_INS1 : DEFM catégories ABC dont motif d'inscription est une 1ère entrée sur marché du travail
+ABC_INS2 : DEFM catégories ABC dont motif d'inscription est un licenciement
+ABC_INS3 : DEFM catégories ABC dont motif d'inscription est une fin de Contrat à Durée Déterminée
+ABC_INS4 : DEFM catégories ABC dont motif d'inscription est une fin de mission d'intérim
+ABC_INS5 : DEFM catégories ABC dont motif d'inscription est autre
+ABC_Dur1: DEFM catégories ABC d'ancienneté au chômage de moins de 6 mois
+ABC_Dur1_H: DEFM hommes catégories ABC d'ancienneté au chômage de moins de 6 mois
+ABC_Dur1_F: DEFM femmes catégories ABC d'ancienneté au chômage de moins de 6 mois
+ABC_Dur2: DEFM catégories ABC d'ancienneté au chômage de 6 mois à moins d'1 an
+ABC_Dur2_H: DEFM hommes catégories ABC d'ancienneté au chômage de 6 mois à moins d'1 an
+ABC_Dur2_F: DEFM femmes catégories ABC d'ancienneté au chômage de 6 mois à moins d'1 an
+ABC_Dur3: DEFM catégories ABC d'ancienneté au chômage de 1 an à moins de 2 ans
+ABC_Dur3_H: DEFM hommes catégories ABC d'ancienneté au chômage de 1 an à moins de 2 ans
+ABC_Dur3_F: DEFM femmes catégories ABC d'ancienneté au chômage de 1 an à moins de 2 ans
+ABC_Dur4: DEFM catégories ABC d'ancienneté au chômage d'au moins 2 ans
+ABC_Dur4_H: DEFM hommes catégories ABC d'ancienneté au chômage d'au moins 2 ans
+ABC_Dur4_F: DEFM femmes catégories ABC d'ancienneté au chômage d'au moins 2 ans
+ABC_Ins1: DEFM catégories ABC dont le motif d'inscription est une 1ère entrée sur le marché du travail
+ABC_Ins2: DEFM catégories ABC dont le motif d'inscription est un licenciement
+ABC_Ins3: DEFM catégories ABC dont le motif d'inscription est une fin de CDD
+ABC_Ins4: DEFM catégories ABC dont le motif d'inscription est une fin de mission d'intérim
+ABC_Ins5: DEFM catégories ABC dont le motif d'inscription est autre
+ABC_RSA: DEFM catégories ABC bénéficiaires du RSA
+ABC_RSA_H: DEFM hommes catégories ABC bénéficiaires du RSA
+ABC_RSA_F: DEFM femmes catégories ABC bénéficiaires du RSA
+LIBIRIS: Libellé de l'IRIS
+COM: Commune ou ARM

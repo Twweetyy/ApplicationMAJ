@@ -1,0 +1,101 @@
+---
+COM: Commune ou ARM
+TYP_IRIS: Type d'IRIS
+LAB_IRIS: Label de l'IRIS
+POP: Population
+POP0002: Pop 0-2 ans
+POP0305: Pop 3-5 ans
+POP0610: Pop 6-10 ans
+POP1117: Pop 11-17 ans
+POP1824: Pop 18-24 ans
+POP2539: Pop 25-39 ans
+POP4054: Pop 40-54 ans
+POP5564: Pop 55-64 ans
+POP6579: Pop 65-79 ans
+POP80P: Pop 80 ans ou plus
+POP0014: Pop 0-14 ans
+POP1529: Pop 15-29 ans
+POP3044: Pop 30-44 ans
+POP4559: Pop 45-59 ans
+POP6074: Pop 60-74 ans
+POP75P: Pop 75 ans ou plus
+POP0019: Pop 0-19 ans
+POP2064: Pop 20-64 ans
+POP65P: Pop 65 ans ou plus
+POPH: Pop Hommes
+H0014: Pop Hommes 0-14 ans
+H1529: Pop Hommes 15-29 ans
+H3044: Pop Hommes 30-44 ans
+H4559: Pop Hommes 45-59 ans
+H6074: Pop Hommes 60-74 ans
+H75P: Pop Hommes 75 ans ou plus
+H0019: Pop Hommes 0-19 ans
+H2064: Pop Hommes 20-64 ans
+H65P: Pop Hommes 65 ans ou plus
+POPF: Pop Femmes
+F0014: Pop Femmes 0-14 ans
+F1529: Pop Femmes 15-29 ans
+F3044: Pop Femmes 30-44 ans
+F4559: Pop Femmes 45-59 ans
+F6074: Pop Femmes 60-74 ans
+F75P: Pop Femmes 75 ans ou plus
+F0019: Pop Femmes 0-19 ans
+F2064: Pop Femmes 20-64 ans
+F65P: Pop Femmes 65 ans ou plus
+POP15P: Pop 15 ans ou plus
+CS1: Pop 15 ans ou plus Agriculteurs exploitants
+GSEC11: Pop 15 ans ou plus Agriculteurs exploitants
+CS2: Pop 15 ans ou plus Artisans, Comm., Chefs entr.
+GSEC12: Pop 15 ans ou plus Artisans, Comm., Chefs entr.
+CS3: Pop 15 ans ou plus Cadres, Prof. intel. sup.
+GSEC13: Pop 15 ans ou plus Cadres, Prof. intel. sup.
+CS4: Pop 15 ans ou plus Prof. intermédiaires
+GSEC14: Pop 15 ans ou plus Prof. intermédiaires
+CS5: Pop 15 ans ou plus Employés
+GSEC15: Pop 15 ans ou plus Employés
+CS6: Pop 15 ans ou plus Ouvriers
+GSEC16: Pop 15 ans ou plus Ouvriers
+CS7: Pop 15 ans ou plus Retraités
+GSEC32: Pop 15 ans ou plus Retraités
+CS8: Pop 15 ans ou plus Autres
+GSEC40: Pop 15 ans ou plus Autres
+H15P: Pop 15 ans ou plus Hommes
+CS1 1: Pop 15 ans ou plus Hommes Agriculteurs exploitants
+GSEC11 1: Pop 15 ans ou plus Hommes Agriculteurs exploitants
+CS2 1: Pop 15 ans ou plus Hommes Artisans, Comm., Chefs entr.
+GSEC12 1: Pop 15 ans ou plus Hommes Artisans, Comm., Chefs entr.
+CS3 1: Pop 15 ans ou plus Hommes Cadres, Prof. intel. sup.
+GSEC13 1: Pop 15 ans ou plus Hommes Cadres, Prof. intel. sup.
+CS4 1: Pop 15 ans ou plus Hommes Prof. intermédiaires
+GSEC14 1: Pop 15 ans ou plus Hommes Prof. intermédiaires
+CS5 1: Pop 15 ans ou plus Hommes Employés
+GSEC15 1: Pop 15 ans ou plus Hommes Employés
+CS6 1: Pop 15 ans ou plus Hommes Ouvriers
+GSEC16 1: Pop 15 ans ou plus Hommes Ouvriers
+CS7 1: Pop 15 ans ou plus Hommes Retraités
+GSEC32 1: Pop 15 ans ou plus Hommes Retraités
+CS8 1: Pop 15 ans ou plus Hommes Autres
+GSEC40 1: Pop 15 ans ou plus Hommes Autres
+F15P: Pop 15 ans ou plus Femmes
+CS1 2: Pop 15 ans ou plus Femmes Agriculteurs exploitants
+GSEC11 2: Pop 15 ans ou plus Femmes Agriculteurs exploitants
+CS2 2: Pop 15 ans ou plus Femmes Artisans, Comm., Chefs entr.
+GSEC12 2: Pop 15 ans ou plus Femmes Artisans, Comm., Chefs entr.
+CS3 2: Pop 15 ans ou plus Femmes Cadres, Prof. intel. sup.
+GSEC13 2: Pop 15 ans ou plus Femmes Cadres, Prof. intel. sup.
+CS4 2: Pop 15 ans ou plus Femmes Prof. intermédiaires
+GSEC14 2: Pop 15 ans ou plus Femmes Prof. intermédiaires
+CS5 2: Pop 15 ans ou plus Femmes Employés
+GSEC15 2: Pop 15 ans ou plus Femmes Employés
+CS6 2: Pop 15 ans ou plus Femmes Ouvriers
+GSEC16 2: Pop 15 ans ou plus Femmes Ouvriers
+CS7 2: Pop 15 ans ou plus Femmes Retraités
+GSEC32 2: Pop 15 ans ou plus Femmes Retraités
+CS8 2: Pop 15 ans ou plus Femmes Autres
+GSEC40 2: Pop 15 ans ou plus Femmes Autres
+FR: Pop Français
+ETR: Pop Etrangers
+IMM: Pop Immigrés
+PMEN: Pop ménages
+PHORMEN: Pop hors ménages
+LIBIRIS: Libellé de l'IRIS

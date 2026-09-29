@@ -1,0 +1,43 @@
+---
+COM: Commune ou ARM
+TYP_IRIS: Type d'IRIS
+LAB_IRIS: Label de l'IRIS
+POP0205: Pop 2-5 ans
+POP0610: Pop 6-10 ans
+POP1114: Pop 11-14 ans
+POP1517: Pop 15-17 ans
+POP1824: Pop 18-24 ans
+POP2529: Pop 25-29 ans
+POP30P: Pop 30 ans ou plus
+SCOL0205: Pop scolarisée 2-5 ans
+SCOL0610: Pop scolarisée 6-10 ans
+SCOL1114: Pop scolarisée 11-14 ans
+SCOL1517: Pop scolarisée 15-17 ans
+SCOL1824: Pop scolarisée 18-24 ans
+SCOL2529: Pop scolarisée 25-29 ans
+SCOL30P: Pop scolarisée 30 ans ou plus
+NSCOL15P: Pop 15 ans ou plus non scolarisée
+DIPLMIN: Pop 15 ans ou plus non scol. Sans diplôme ou CEP
+BEPC: Pop 15 ans ou plus non scol. BEPC, brevet des collèges, DNB
+CAPBEP: Pop 15 ans ou plus non scol. CAP-BEP ou équiv.
+BAC: Pop 15 ans ou plus non scol. Bac, brevet pro. ou équiv.
+SUP2: Pop 15 ans ou plus non scol. Enseignement sup de niveau bac + 2
+SUP34: Pop 15 ans ou plus non scol. Enseignement sup de niveau bac + 3 ou 4
+SUP5: Pop 15 ans ou plus non scol. Enseignement sup de niveau bac + 5 ou plus
+HNSCOL15P: Hommes 15 ans ou plus non scolarisée
+DIPLMIN 1: Hommes 15 ans ou plus non scol. Sans diplôme ou CEP
+BEPC 1: Hommes 15 ans ou plus non scol. BEPC, brevet des collèges, DNB
+CAPBEP 1: Hommes 15 ans ou plus non scol. CAP-BEP ou équiv.
+BAC 1: Hommes 15 ans ou plus non scol. Bac, brevet pro. ou équiv.
+SUP2 1: Hommes 15 ans ou plus non scol. Enseignement sup de niveau bac + 2
+SUP34 1: Hommes 15 ans ou plus non scol. Enseignement sup de niveau bac + 3 ou 4
+SUP5 1: Hommes 15 ans ou plus non scol. Enseignement sup de niveau bac + 5 ou plus
+FNSCOL15P: Femmes 15 ans ou plus non scolarisée
+DIPLMIN 2: Femmes 15 ans ou plus non scol. Sans diplôme ou CEP
+BEPC 2: Femmes 15 ans ou plus non scol. BEPC, brevet des collèges, DNB
+CAPBEP 2: Femmes 15 ans ou plus non scol. CAP-BEP ou équiv.
+BAC 2: Femmes 15 ans ou plus non scol. Bac, brevet pro. ou équiv.
+SUP2 2: Femmes 15 ans ou plus non scol. Enseignement sup de niveau bac + 2
+SUP34 2: Femmes 15 ans ou plus non scol. Enseignement sup de niveau bac + 3 ou 4
+SUP5 2: Femmes 15 ans ou plus non scol. Enseignement sup de niveau bac + 5 ou plus
+LIBIRIS: Libellé de l'IRIS

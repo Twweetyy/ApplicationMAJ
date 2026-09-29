@@ -1,0 +1,1164 @@
+#Attention ligne 1142 variable txLsAut n'exise plus + lignes 136 variable MODIF_IRIS indispo + DepCom lignes 6 pas dispo dans certain fichier
+#lignes 7 variables LibCom pas dispo 
+---
+CODGEO: Code géographique
+LIBGEO: Libellé géographique
+DEPCOM: Code commune
+LIBCOM: Libellé de la commune
+EPCI: Code EPCI
+UU2021: Code de l'unité urbaine
+REG: Code région
+NOTE: Note de diffusion
+C : Population couverte
+C_H: Hommes
+C_F: Femmes
+C_17: Moins de 18 ans
+C_1824: de 18 ans à moins de 25 ans
+C_2549: de 25 ans à moins de 50 ans
+C_5059: de 50 ans à moins de 60 ans
+C_6074: de 60 ans à moins de 75 ans
+C_75: 75 ans ou plus
+C_C2SNP: Population couverte bénéficiaire de la C2S non participative
+C_H_C2SNP: Hommes bénéficiaires de la C2S non participative
+C_F_C2SNP: Femmes bénéficiaires de la C2S non participative
+C_17_C2SNP: Bénéficiaires de la C2S non participative de moins de 18 ans
+C_1824_C2SNP: Bénéficiaires de la C2S non participative de 18 ans à moins de 25 ans
+C_2549_C2SNP: Bénéficiaires de la C2S non participative de 25 ans à moins de 50 ans
+C_5059_C2SNP: Bénéficiaires de la C2S non participative de 50 ans à moins de 60 ans
+C_60_C2SNP: Bénéficiaires de la C2S non participative de 60 ans ou plus
+C_C2SP: Population couverte bénéficiaire de la C2S participative
+C_H_C2SP: Hommes bénéficiaires de la C2S participative
+C_F_C2SP: Femmes bénéficiaires de la C2S participative
+C_17_C2SP: Bénéficiaires de la C2S participative de moins de 18 ans
+C_1824_C2SP: Bénéficiaires de la C2S participative de 18 ans à moins de 25 ans
+C_2549_C2SP: Bénéficiaires de la C2S participative de 25 ans à moins de 50 ans
+C_5059_C2SP: Bénéficiaires de la C2S participative de 50 ans à moins de 60 ans
+C_60_C2SP: Bénéficiaires de la C2S participative de 60 ans ou plus
+CODGEO__1: Code géographique
+LIBGEO__1: Libellé géographique
+DEPCOM__1: Code commune
+LIBCOM__1: Libellé de la commune
+EPCI__1: Code EPCI
+UU2020: Code de l'unité urbaine
+REG__1: Code région
+NOTE__1: Note de diffusion
+A : Nombre total d'allocataires
+PERCOU: Personnes couvertes
+AI: Allocataires isolés sans enfant
+AM: Allocataires mono-parent
+ACSSENF: Allocataires couples sans enfant
+ACAVENF: Allocataires couples avec enfant(s)
+AC3ENF: Allocataires couples avec au moins 3 enfants à charge
+ENF: Enfants couverts par au moins une prestation Caf
+ENF_2: Enfants de moins de 3 ans
+ENF_3_5: Enfants de 3 à moins de 6 ans
+ENF_6_10: Enfants de 6 à moins de 11 ans
+ENF_11_14: Enfants de 11 à moins de 15 ans
+ENF_15_17: Enfants de 15 à moins de 18 ans
+ENF_18_24: Enfants de 18 à moins de 25 ans
+A_ETUD: Allocataires étudiants
+A_NETUD_24: Allocataires de moins de 25 ans non étudiants
+AAL: Allocataires percevant une aide au logement
+AAPL: Allocataires percevant l’Aide Personnalisée au Logement (Métropole)
+AAAH: Allocataires percevant l’Allocation Adulte Handicapé
+APPA: Allocataires percevant la prime d'activité
+ARSAS: Allocataires percevant le RSA socle
+CODGEO__2: Code géographique
+LIBGEO__2: Libellé géographique
+DEPCOM__2: Code commune
+LIBCOM__2: Libellé de la commune
+EPCI__2: Code EPCI
+UU: Code de l'unité urbaine
+REG__2: Code région
+NOTE__2: Note de diffusion
+ABCDE: DEFM
+ABCDE_H: DEFM hommes
+ABCDE_F: DEFM femmes
+ABC: DEFM catégories ABC
+ABC_H: DEFM hommes catégories ABC
+ABC_F: DEFM femmes catégories ABC
+A__1: DEFM catégorie A
+A_H: DEFM hommes catégorie A
+A_F: DEFM femmes catégorie A
+ABC_25: DEFM catégories ABC moins de 26 ans
+ABC_25_H: DEFM hommes catégories ABC moins de 26 ans
+ABC_25_F: DEFM femmes catégories ABC moins de 26 ans
+ABC_2649: DEFM catégories ABC de 26 ans à moins de 50 ans
+ABC_2649_H: DEFM hommes catégories ABC de 26 ans à moins de 50 ans
+ABC_2649_F: DEFM femmes catégories ABC de 26 ans à moins de 50 ans
+ABC_50: DEFM catégories ABC de 50 ans et plus
+ABC_50_H: DEFM hommes catégories ABC de 50 ans et plus
+ABC_50_F: DEFM femmes catégories ABC de 50 ans et plus
+ABC_FR: DEFM catégories ABC nationalité française
+ABC_E: DEFM catégories ABC nationalité étrangère
+ABC_INFCAPBEP: DEFM catégories ABC de niveau de formation inférieur au CAP-BEP
+ABC_INFCAPBEP_H: DEFM hommes catégories ABC de niveau de formation inférieur au CAP-BEP
+ABC_INFCAPBEP_F: DEFM femmes catégories ABC de niveau de formation inférieur au CAP-BEP
+ABC_CAPBEP: DEFM catégories ABC de niveau de formation CAP-BEP
+ABC_CAPBEP_H: DEFM hommes catégories ABC de niveau de formation CAP-BEP
+ABC_CAPBEP_F: DEFM femmes catégories ABC de niveau de formation CAP-BEP
+ABC_BAC: DEFM catégories ABC de niveau de formation BAC
+ABC_BAC_H: DEFM hommes catégories ABC de niveau de formation BAC
+ABC_BAC_F: DEFM femmes catégories ABC de niveau de formation BAC
+ABC_SUPBAC: DEFM catégories ABC de niveau de formation supérieur au BAC
+ABC_SUPBAC_H: DEFM hommes catégories ABC de niveau de formation supérieur au BAC
+ABC_SUPBAC_F: DEFM femmes catégories ABC de niveau de formation supérieur au BAC
+ABC_DUR1 : DEFM catégories ABC d'ancienneté au chômage de moins de 6 mois
+ABC_DUR1_H : DEFM hommes catégories ABC d'ancienneté au chômage de moins de 6 mois
+ABC_DUR1_F : DEFM femmes catégories ABC d'ancienneté au chômage de moins de 6 mois
+ABC_DUR2 : DEFM catégories ABC d'ancienneté au chômage de 6 mois à moins d'1 an
+ABC_DUR2_H : DEFM hommes catégories ABC d'ancienneté au chômage de 6 mois à moins d'1 an
+ABC_DUR2_F : DEFM femmes catégories ABC d'ancienneté au chômage de 6 mois à moins d'1 an
+ABC_DUR3 : DEFM catégories ABC d'ancienneté au chômage de 1 an à moins de 2 ans
+ABC_DUR3_H : DEFM hommes catégories ABC d'ancienneté au chômage de 1 an à moins de 2 ans
+ABC_DUR3_F : DEFM femmes catégories ABC d'ancienneté au chômage de 1 an à moins de 2 ans
+ABC_DUR4 : DEFM catégories ABC d'ancienneté au chômage d'au moins 2 ans
+ABC_DUR4_H : DEFM hommes catégories ABC d'ancienneté au chômage d'au moins 2 ans
+ABC_DUR4_F : DEFM femmes catégories ABC d'ancienneté au chômage d'au moins 2 ans
+ABC_INS1 : DEFM catégories ABC dont motif d'inscription est une 1ère entrée sur marché du travail
+ABC_INS2 : DEFM catégories ABC dont motif d'inscription est un licenciement
+ABC_INS3 : DEFM catégories ABC dont motif d'inscription est une fin de Contrat à Durée Déterminée
+ABC_INS4 : DEFM catégories ABC dont motif d'inscription est une fin de mission d'intérim
+ABC_INS5 : DEFM catégories ABC dont motif d'inscription est autre
+ABC_Dur1: DEFM catégories ABC d'ancienneté au chômage de moins de 6 mois
+ABC_Dur1_H: DEFM hommes catégories ABC d'ancienneté au chômage de moins de 6 mois
+ABC_Dur1_F: DEFM femmes catégories ABC d'ancienneté au chômage de moins de 6 mois
+ABC_Dur2: DEFM catégories ABC d'ancienneté au chômage de 6 mois à moins d'1 an
+ABC_Dur2_H: DEFM hommes catégories ABC d'ancienneté au chômage de 6 mois à moins d'1 an
+ABC_Dur2_F: DEFM femmes catégories ABC d'ancienneté au chômage de 6 mois à moins d'1 an
+ABC_Dur3: DEFM catégories ABC d'ancienneté au chômage de 1 an à moins de 2 ans
+ABC_Dur3_H: DEFM hommes catégories ABC d'ancienneté au chômage de 1 an à moins de 2 ans
+ABC_Dur3_F: DEFM femmes catégories ABC d'ancienneté au chômage de 1 an à moins de 2 ans
+ABC_Dur4: DEFM catégories ABC d'ancienneté au chômage d'au moins 2 ans
+ABC_Dur4_H: DEFM hommes catégories ABC d'ancienneté au chômage d'au moins 2 ans
+ABC_Dur4_F: DEFM femmes catégories ABC d'ancienneté au chômage d'au moins 2 ans
+ABC_Ins1: DEFM catégories ABC dont le motif d'inscription est une 1ère entrée sur le marché du travail
+ABC_Ins2: DEFM catégories ABC dont le motif d'inscription est un licenciement
+ABC_Ins3: DEFM catégories ABC dont le motif d'inscription est une fin de CDD
+ABC_Ins4: DEFM catégories ABC dont le motif d'inscription est une fin de mission d'intérim
+ABC_Ins5: DEFM catégories ABC dont le motif d'inscription est autre
+ABC_RSA: DEFM catégories ABC bénéficiaires du RSA
+ABC_RSA_H: DEFM hommes catégories ABC bénéficiaires du RSA
+ABC_RSA_F: DEFM femmes catégories ABC bénéficiaires du RSA
+IRIS: IRIS
+REG__3: Région
+DEP: Département
+UU2020__1: Unité urbaine
+COM: Commune ou ARM
+LIBCOM__3: Libellé commune ou ARM
+TRIRIS: TRIRIS
+GRD_QUART: Grand quartier
+LIBIRIS: Libellé de l'IRIS
+TYP_IRIS: Type d'IRIS
+MODIF_IRIS: Modification de l'IRIS  #variable plus dispo
+LAB_IRIS: Label de l'IRIS
+POP1564: Pop 15-64 ans
+POP1524: Pop 15-24 ans
+POP2554: Pop 25-54 ans
+POP5564: Pop 55-64 ans
+H1564: Pop 15-64 ans Hommes
+H1524: Pop 15-24 ans Hommes
+H2554: Pop 25-54 ans Hommes
+H5564: Pop 55-64 ans Hommes
+F1564: Pop 15-64 ans Femmes
+F1524: Pop 15-24 ans Femmes
+F2554: Pop 25-54 ans Femmes
+F5564: Pop 55-64 ans Femmes
+ACT1564: Actifs 15-64 ans
+ACT1524: Actifs 15-24 ans
+ACT2554: Actifs 25-54 ans
+ACT5564: Actifs 55-64 ans
+HACT1564: Actifs 15-64 ans Hommes
+HACT1524: Actifs 15-24 ans Hommes
+HACT2554: Actifs 25-54 ans Hommes
+HACT5564: Actifs 55-64 ans Hommes
+FACT1564: Actifs 15-64 ans Femmes
+FACT1524: Actifs 15-24 ans Femmes
+FACT2554: Actifs 25-54 ans Femmes
+FACT5564: Actifs 55-64 ans Femmes
+ACTOCC1564: Actifs occupés 15-64 ans
+ACTOCC1524: Actifs occupés 15-24 ans
+ACTOCC2554: Actifs occupés 25-54 ans
+ACTOCC5564: Actifs occupés 55-64 ans
+HACTOCC1564: Actifs occupés 15-64 ans Hommes
+HACTOCC1524: Actifs occupés 15-24 ans Hommes
+HACTOCC2554: Actifs occupés 25-54 ans Hommes
+HACTOCC5564: Actifs occupés 55-64 ans Hommes
+FACTOCC1564: Actifs occupés 15-64 ans Femmes
+FACTOCC1524: Actifs occupés 15-24 ans Femmes
+FACTOCC2554: Actifs occupés 25-54 ans Femmes
+FACTOCC5564: Actifs occupés 55-64 ans Femmes
+CHOM1564: Chômeurs 15-64 ans
+CHOM1524: Chômeurs 15-24 ans
+CHOM2554: Chômeurs 25-54 ans
+CHOM5564: Chômeurs 55-64 ans
+HCHOM1564: Chômeurs 15-64 ans Hommes
+FCHOM1564: Chômeurs 15-64 ans Femmes
+DIPLMIN 1: Chômeurs Sans diplôme ou CEP 
+CHOM_BEPC: Chômeurs BEPC, brevet des collèges, DNB 
+CHOM_CAPBEP: Chômeurs CAP-BEP ou équiv.
+CHOM_BAC: Chômeurs Bac, brevet pro. ou équiv.
+CHOM_SUP2: Chômeurs Enseignement sup de niveau bac + 2
+CHOM_SUP34: Chômeurs Enseignement sup de niveau bac + 3 ou 4
+CHOM_SUP5: Chômeurs Enseignement sup de niveau bac + 5 ou plus
+ACT_DIPLMIN: Actifs Sans diplôme ou CEP
+ACT_BEPC: Actifs BEPC, brevet des collèges, DNB
+ACT_CAPBEP: Actifs CAP-BEP ou équiv.
+ACT_BAC: Actifs Bac, brevet pro. ou équiv.
+ACT_SUP2: Actifs Enseignement sup de niveau bac + 2
+ACT_SUP34: Actifs Enseignement sup de niveau bac + 3 ou 4
+ACT_SUP5: Actifs Enseignement sup de niveau bac + 5 ou plus
+INACT1564: Inactifs 15-64 ans
+HINACT1564: Inactifs 15-64 ans Hommes
+FINACT1564: Inactifs 15-64 ans Femmes
+ETUD1564: Elèv. Etud. Stag. non rémunérés 15-64 ans
+HETUD1564: Elèv. Etud. Stag. non rémunérés 15-64 ans Hommes
+FETUD1564: Elèv. Etud. Stag. non rémunérés 15-64 ans Femmes
+RETR1564: Retraités Préretraités 15-64 ans
+HRETR1564: Retraités Préretraités 15-64 ans Hommes
+FRETR1564: Retraités Préretraités 15-64 ans Femmes
+AINACT1564: Autres inactifs 15-64 ans
+HAINACT1564: Autres inactifs 15-64 ans Hommes
+FAINACT1564: Autres inactifs 15-64 ans Femmes
+ACT1564__1: Actifs 15-64 ans
+ACT1564_CS1: Actifs 15-64 ans Agriculteurs exploitants
+ACT1564_CS2: Actifs 15-64 ans Artisans, Comm., Chefs entr.
+ACT1564_CS3: Actifs 15-64 ans Cadres, Prof. intel. sup.
+ACT1564_CS4: Actifs 15-64 ans Prof. intermédiaires
+ACT1564_CS5: Actifs 15-64 ans Employés
+ACT1564_CS6: Actifs 15-64 ans Ouvriers
+ACTOCC1564__1: Actifs occupés 15-64 ans
+ACTOCC1564_CS1: Actifs occ 15-64 ans Agriculteurs exploitants
+ACTOCC1564_CS2: Actifs occ 15-64 ans Artisans, Comm., Chefs entr.
+ACTOCC1564_CS3: Actifs occ 15-64 ans Cadres Prof. intel. sup.
+ACTOCC1564_CS4: Actifs occ 15-64 ans Prof. intermédiaires
+ACTOCC1564_CS5: Actifs occupés 15-64 ans Employés
+ACTOCC1564_CS6: Actifs occupés 15-64 ans Ouvriers
+ACTOCC15P: Actifs occupés 15 ans ou plus
+HACTOCC15P: Actifs occupés 15 ans ou plus Hommes
+FACTOCC15P: Actifs occupés 15 ans ou plus Femmes
+SAL15P: Salariés 15 ans ou plus
+HSAL15P: Salariés 15 ans ou plus Hommes
+FSAL15P: Salariés 15 ans ou plus Femmes
+NSAL15P: Non-salariés 15 ans ou plus
+HNSAL15P: Non-salariés 15 ans ou plus Hommes
+FNSAL15P: Non-salariés 15 ans ou plus Femmes
+ACTOCC15P_TP: Actifs occ 15 ans ou plus TP
+SAL15P_TP: Salariés 15 ans ou plus TP
+HSAL15P_TP: Salariés 15 ans ou plus TP Hommes
+FSAL15P_TP: Salariés 15 ans ou plus TP Femmes
+NSAL15P_TP: Non-salariés 15 ans ou plus TP
+SAL15P_CDI: Salariés 15 ans ou plus Fonct publ, CDI
+SAL15P_CDD: Salariés 15 ans ou plus CDD
+SAL15P_INTERIM: Salariés 15 ans ou plus Intérim
+SAL15P_EMPAID: Salariés 15 ans ou plus Emplois aidés
+SAL15P_APPR: Salariés 15 ans ou plus Apprentissage - Stage
+NSAL15P_INDEP: Non-salariés 15 ans ou plus Indépendants
+NSAL15P_EMPLOY: Non-salariés 15 ans ou plus Employeurs
+NSAL15P_AIDFAM: Non-salariés 15 ans ou plus Aides familiaux
+ACTOCC15P_ILT1: Actif occ 15 ans ou plus travaille commune résidence
+ACTOCC15P_ILT2P: Actif occ 15 ans ou plus travaille autre commune que commune résidence
+ACTOCC15P_ILT2: Actif occ 15 ans ou plus travaille autre commune même dépt résidence
+ACTOCC15P_ILT3: Actif occ 15 ans ou plus travaille autre dépt même région résidence
+ACTOCC15P_ILT4: Actif occ 15 ans ou plus travaille autre région en métropole
+ACTOCC15P_ILT5: Actif occ 15 ans ou plus travaille autre région hors métropole
+ACTOCC15P__1: Actif occ 15 ans ou plus
+ACTOCC15P_PAS: Actifs occ 15 ans ou plus pas de transport pour travail
+ACTOCC15P_MAR: Actifs occ 15 ans ou plus marche à pied pour travail
+ACTOCC15P_VELO: Actifs occ 15 ans ou plus vélo
+ACTOCC15P_2ROUESMOT: Actifs occ 15 ans ou plus deux-roues motorisé
+ACTOCC15P_VOIT: Actifs occ 15 ans ou plus voiture
+ACTOCC15P_TCOM: Actifs occ 15 ans ou plus transport en commun
+IRIS__1: IRIS
+REG__4: Région
+DEP__1: Département
+UU2020__2: Unité urbaine
+COM__1: Commune ou ARM
+LIBCOM__4: Libellé commune ou ARM
+TRIRIS__1: TRIRIS
+GRD_QUART__1: Grand quartier
+LIBIRIS__1: Libellé de l'IRIS
+TYP_IRIS__1: Type d'IRIS
+MODIF_IRIS__1: Modification de l'IRIS
+LAB_IRIS__1: Label de l'IRIS
+MEN: Ménages
+MENPSEUL: Ménages 1 personne
+MENHSEUL: Ménages Hommes seuls
+MENFSEUL: Ménages Femmes seules
+MENSFAM: Ménages Autres sans famille
+MENFAM: Ménages avec famille(s)
+MENCOUPSENF: Mén fam princ Couple sans enfant
+MENCOUPAENF: Mén fam princ Couple avec enfant(s)
+MENFAMMONO: Mén fam princ Famille mono
+PMEN: Pop Ménages
+PMEN_MENPSEUL: Pop mén Personnes seules
+PMEN_MENHSEUL: Pop mén Hommes seuls
+PMEN_MENFSEUL: Pop mén Femmes seules
+PMEN_MENSFAM: Pop mén Autres sans famille
+PMEN_MENFAM: Pop mén avec famille(s)
+PMEN_MENCOUPSENF: Pop mén fam princ Couple sans enfant
+PMEN_MENCOUPAENF: Pop mén fam princ Couple avec enfant(s)
+PMEN_MENFAMMONO: Pop mén fam princ Famille mono
+POP15P: Pop 15 ans ou plus
+POP1524__1: Pop 15-24 ans
+POP2554__1: Pop 25-54 ans
+POP5579: Pop 55-79 ans
+POP80P: Pop 80 ans ou plus
+POPMEN15P: Pop mén 15 ans ou plus
+POPMEN1524: Pop mén 15-24 ans
+POPMEN2554: Pop mén 25-54 ans
+POPMEN5579: Pop mén 55-79 ans
+POPMEN80P: Pop mén 80 ans ou plus
+POP15P_PSEUL: Pop 15 ans ou plus ans vivant seule
+POP1524_PSEUL: Pop 15-24 ans vivant seule
+POP2554_PSEUL: Pop 25-54 ans vivant seule
+POP5579_PSEUL: Pop 55-79 ans vivant seule
+POP80P_PSEUL: Pop 80 ans ou plus vivant seule
+POP15P_MARIEE: Pop 15 ans ou plus mariée
+POP15P_PACSEE: Pop 15 ans ou plus pacsée
+POP15P_CONCUB_UNION_LIBRE: Pop 15 ans ou plus en concubinage ou union libre
+POP15P_VEUFS: Pop 15 ans ou plus veuves ou veufs
+POP15P_DIVORCEE: Pop 15 ans ou plus divorcée
+POP15P_CELIBATAIRE: Pop 15 ans ou plus célibataire
+MEN_CS1: Ménages Pers Réf Agri. expl.
+MEN_CS2: Ménages Pers Réf Art. Comm. Chef entr.
+MEN_CS3: Ménages Pers Réf Cadre Prof int sup
+MEN_CS4: Ménages Pers Réf Prof intermédiaire
+MEN_CS5: Ménages Pers Réf Employé
+MEN_CS6: Ménages Pers Réf Ouvrier
+MEN_CS7: Ménages Pers Réf Retraité
+MEN_CS8: Ménages Pers Réf Autre
+PMEN_CS1: Pop mén Pers Réf Agri. expl.
+PMEN_CS2: Pop mén Pers Réf Art Com Chef entr.
+PMEN_CS3: Pop mén Pers Réf Cadre Prof int sup
+PMEN_CS4: Pop mén Pers Réf Prof intermédiaire
+PMEN_CS5: Pop mén Pers Réf Employé
+PMEN_CS6: Pop mén Pers Réf Ouvrier
+PMEN_CS7: Pop mén Pers Réf Retraité
+PMEN_CS8: Pop mén Pers Réf Autre
+FAM: Familles
+COUPAENF: Fam Couple avec enfant(s)
+FAMMONO: Fam Monoparentales
+COUPSENF: Fam Couple sans enfant
+NE24F0: Fam 0 enfant moins 25 ans
+NE24F1: Fam 1 enfant moins 25 ans
+NE24F2: Fam 2 enfants moins 25 ans
+NE24F3: Fam 3 enfants moins 25 ans
+NE24F4P: Fam 4 enfants ou plus moins 25 ans
+IRIS__2: IRIS
+REG__5: Région
+DEP__2: Département
+UU2020__3: Unité urbaine
+COM__2: Commune ou ARM
+LIBCOM__5: Libellé commune ou ARM
+TRIRIS__2: TRIRIS
+GRD_QUART__2: Grand quartier
+LIBIRIS__2: Libellé de l'IRIS
+TYP_IRIS__2: Type d'IRIS
+MODIF_IRIS__2: Modification de l'IRIS
+LAB_IRIS__2: Label de l'IRIS
+POP0205: Pop 2-5 ans
+POP0610: Pop 6-10 ans
+POP1114: Pop 11-14 ans
+POP1517: Pop 15-17 ans
+POP1824: Pop 18-24 ans
+POP2529: Pop 25-29 ans
+POP30P: Pop 30 ans ou plus
+SCOL0205: Pop scolarisée 2-5 ans
+SCOL0610: Pop scolarisée 6-10 ans
+SCOL1114: Pop scolarisée 11-14 ans
+SCOL1517: Pop scolarisée 15-17 ans
+SCOL1824: Pop scolarisée 18-24 ans
+SCOL2529: Pop scolarisée 25-29 ans
+SCOL30P: Pop scolarisée 30 ans ou plus
+NSCOL15P: Pop 15 ans ou plus non scolarisée
+NSCOL15P_DIPLMIN: Pop 15 ans ou plus non scol. Sans diplôme ou CEP
+NSCOL15P_BEPC: Pop 15 ans ou plus non scol. BEPC, brevet des collèges, DNB
+NSCOL15P_CAPBEP: Pop 15 ans ou plus non scol. CAP-BEP ou équiv.
+NSCOL15P_BAC: Pop 15 ans ou plus non scol. Bac, brevet pro. ou équiv.
+NSCOL15P_SUP2: Pop 15 ans ou plus non scol. Enseignement sup de niveau bac + 2
+NSCOL15P_SUP34: Pop 15 ans ou plus non scol. Enseignement sup de niveau bac + 3 ou 4
+NSCOL15P_SUP5: Pop 15 ans ou plus non scol. Enseignement sup de niveau bac + 5 ou plus
+HNSCOL15P: Hommes 15 ans ou plus non scolarisée
+HNSCOL15P_DIPLMIN: Hommes 15 ans ou plus non scol. Sans diplôme ou CEP
+HNSCOL15P_BEPC: Hommes 15 ans ou plus non scol. BEPC, brevet des collèges, DNB
+HNSCOL15P_CAPBEP: Hommes 15 ans ou plus non scol. CAP-BEP ou équiv.
+HNSCOL15P_BAC: Hommes 15 ans ou plus non scol. Bac, brevet pro. ou équiv.
+HNSCOL15P_SUP2: Hommes 15 ans ou plus non scol. Enseignement sup de niveau bac + 2
+LIB_IRIS: Libellé IRIS
+HNSCOL15P_SUP34: Hommes 15 ans ou plus non scol. Enseignement sup de niveau bac + 3 ou 4
+HNSCOL15P_SUP5: Hommes 15 ans ou plus non scol. Enseignement sup de niveau bac + 5 ou plus
+FNSCOL15P: Femmes 15 ans ou plus non scolarisée
+FNSCOL15P_DIPLMIN: Femmes 15 ans ou plus non scol. Sans diplôme ou CEP
+FNSCOL15P_BEPC: Femmes 15 ans ou plus non scol. BEPC, brevet des collèges, DNB
+FNSCOL15P_CAPBEP: Femmes 15 ans ou plus non scol. CAP-BEP ou équiv.
+FNSCOL15P_BAC: Femmes 15 ans ou plus non scol. Bac, brevet pro. ou équiv.
+FNSCOL15P_SUP2: Femmes 15 ans ou plus non scol. Enseignement sup de niveau bac + 2
+FNSCOL15P_SUP34: Femmes 15 ans ou plus non scol. Enseignement sup de niveau bac + 3 ou 4
+FNSCOL15P_SUP5: Femmes 15 ans ou plus non scol. Enseignement sup de niveau bac + 5 ou plus
+IRIS__3: IRIS
+REG__6: Région
+DEP__3: Département
+UU2020__4: Unité urbaine
+COM__3: Commune ou ARM
+LIBCOM__6: Libellé commune ou ARM
+TRIRIS__3: TRIRIS
+GRD_QUART__3: Grand quartier
+LIBIRIS__3: Libellé de l'IRIS
+TYP_IRIS__3: Type d'IRIS
+MODIF_IRIS__3: Modification de l'IRIS
+LAB_IRIS__3: Label de l'IRIS
+LOG: Logements
+RP: Résidences principales
+RSECOCC: Rés secondaires et logts occasionnels
+LOGVAC: Logements vacants
+MAISON: Maisons
+APPART: Appartements
+RP_1P: Rés princ 1 pièce
+RP_2P: Rés princ 2 pièces
+RP_3P: Rés princ 3 pièces
+RP_4P: Rés princ 4 pièces
+RP_5PP: Rés princ 5 pièces ou plus
+NBPI_RP: Pièces rés princ
+RPMAISON: Rés princ type maison
+NBPI_RPMAISON: Pièces rés princ type maison
+RPAPPART: Rés princ type appartement
+NBPI_RPAPPART: Pièces rés princ type appartement
+RP_M30M2: Rés princ de moins de 30 m2
+RP_3040M2: Rés princ de 30 à moins de 40 m2
+RP_4060M2: Rés princ de 40 à moins de 60 m2
+RP_6080M2: Rés princ de 60 à moins de 80 m2
+RP_80100M2: Rés princ de 80 à moins de 100 m2
+RP_100120M2: Rés princ de 100 à moins de 120 m2
+RP_120M2P: Rés princ de 120 m2 ou plus
+RP_ACHTOT: Rés princ avt 2016
+RP_ACH19: Rés princ avt 1919
+RP_ACH45: Rés princ 1919 à 1945
+RP_ACH70: Rés princ 1946 à 1970
+RP_ACH90: Rés princ 1971 à 1990
+RP_ACH05: Rés princ 1991 à 2005
+RP_ACH15: Rés princ 2006 à 2015
+RPMAISON_ACHTOT: Rés princ Type maison avt 2016
+RPMAISON_ACH19: Rés princ Type maison avt 1919
+RPMAISON_ACH45: Rés princ Type maison 1919 à 1945
+RPMAISON_ACH70: Rés princ Type maison 1946 à 1970
+RPMAISON_ACH90: Rés princ Type maison 1971 à 1990
+RPMAISON_ACH05: Rés princ Type maison 1991 à 2005
+RPMAISON_ACH15: Rés princ Type maison 2006 à 2015
+RPAPPART_ACHTOT: Rés princ Type appart avt 2016
+RPAPPART_ACH19: Rés princ Type appart avt 1919
+RPAPPART_ACH45: Rés princ Type appart 1919 à 1945
+RPAPPART_ACH70: Rés princ Type appart 1946 à 1970
+RPAPPART_ACH90: Rés princ Type appart 1971 à 1990
+RPAPPART_ACH05: Rés princ Type appart 1991 à 2005
+RPAPPART_ACH15: Rés princ Type appart 2006 à 2015
+MEN__1: Ménages
+MEN_ANEM0002: Ménages emménagés moins 2 ans
+MEN_ANEM0204: Ménages emménagés entre 2-4 ans
+MEN_ANEM0509: Ménages emménagés entre 5-9 ans
+MEN_ANEM10P: Ménages emménagés depuis 10 ans ou plus
+PMEN__1: Pop ménages
+PMEN_ANEM0002: Pop mén emménagés moins 2 ans
+PMEN_ANEM0204: Pop mén emménagés entre 2-4 ans
+PMEN_ANEM0509: Pop mén emménagés entre 5-9 ans
+PMEN_ANEM10P: Pop mén emménagés depuis 10 ans ou plus
+NBPI_RP_ANEM0002: Pièces Rés princ Mén. emménagés moins 2 ans
+NBPI_RP_ANEM0204: Pièces Rés princ Mén. emménagés entre 2-4 ans
+NBPI_RP_ANEM0509: Pièces Rés princ Mén. emménagés entre 5-9 ans
+NBPI_RP_ANEM10P: Pièces Rés princ Mén. emménagés depuis 10 ans ou plus
+RP_PROP: Rés princ occupées Propriétaires
+RP_LOC: Rés princ occupées Locataires
+RP_LOCHLMV: Rés princ HLM louée vide
+RP_GRAT: Rés princ logé gratuit
+NPER_RP: Personnes Rés princ
+NPER_RP_PROP: Pers Rés princ occupées Propriétaires
+NPER_RP_LOC: Pers Rés princ occupées Locataires
+NPER_RP_LOCHLMV: Pers Rés princ HLM louées vides
+NPER_RP_GRAT: Pers Rés princ occupées gratuit
+ANEM_RP: Anc tot Emméngt Rés princ (années)
+ANEM_RP_PROP: Anc tot Emméngt Rés princ occ par Propriétaires (années)
+ANEM_RP_LOC: Anc tot Emméngt Rés princ occ par Locataires (années)
+ANEM_RP_LOCHLMV: Anc tot Emméngt Rés princ HLM louées vides (années)
+ANEM_RP_GRAT: Anc tot Emméngt Rés princ occ gratuit (années)
+RP_SDB: Rés princ SDB baignoire douche (MET)
+RP_CCCOLL: Rés princ Chauffage Central Collectif (MET)
+RP_CCIND: Rés princ Chauffage Central Individuel (MET)
+RP_CINDELEC: Rés princ Chauffage Individuel Electrique (MET)
+RP_ELEC: Rés princ avec électricité (DOM)
+RP_EAUCH: Rés princ avec eau chaude (DOM)
+RP_BDWC: Rés princ avec Bain/Douche WC (DOM)
+RP_CHOS: Rés princ avec chauffe-eau solaire (DOM)
+RP_CLIM: Rés princ avec pièce climatisée (DOM)
+RP_TTEGOU: Rés princ avec tout à l'égout (DOM)
+RP_GARL: Ménages au moins un parking
+RP_VOIT1P: Ménages au moins une voiture
+RP_VOIT1: Ménages une voiture
+RP_VOIT2P: Ménages deux voitures ou plus
+RP_HABFOR: Habitations de fortune (DOM)
+RP_CASE: Cases traditionnelles (DOM)
+RP_MIBOIS: Maisons ou Immeubles en bois (DOM)
+RP_MIDUR: Maisons ou Immeubles en dur (DOM)
+RP_HSTU1P: Rés princ hors studio de 1 personne
+RP_HSTU1P_SUROCC: Rés princ hors studio de 1 personne en suroccupation
+IRIS__4: IRIS
+LIBIRIS__4: Libellé de l'IRIS
+COM__4: Commune ou ARM
+LIBCOM__7: Libellé commune ou ARM
+DISP_0: Taux de pauvreté au seuil de 60 % (%)
+DISP_1: Incertitude sur le taux de pauvreté
+DISP_2: 1er quartile (€)
+DISP_3: Médiane (€)
+DISP_4: 3e quartile (€)
+DISP_5: Écart inter-quartile rapporté à la médiane
+DISP_6: 1er décile (€)
+DISP_7: 2e décile (€)
+DISP_8: 3e décile (€)
+DISP_9: 4e décile (€)
+DISP_10: 6e décile (€)
+DISP_11: 7e décile (€)
+DISP_12: 8e décile (€)
+DISP_13: 9e décile (€)
+DISP_14: Rapport interdécile D9/D1
+DISP_15: S80/S20
+DISP_16: Indice de Gini
+DISP_17: Part des revenus d’activité (%)
+DISP_18: dont part des salaires et traitements (%)
+DISP_19: dont part des indemnités de chômage (%)
+DISP_20: dont part des revenus des activités non salariées (%)
+DISP_21: Part des pensions, retraites et rentes (%)
+DISP_22: Part des revenus du patrimoine et autres revenus (%)
+DISP_23: Part de l'ensemble des prestations sociales (%)
+DISP_24: dont part des prestations familiales (%)
+DISP_25: dont part des minima sociaux (%)
+DISP_26: dont part des prestations logement (%)
+DISP_27: Part des impôts (%)
+DISP_28: Note de précaution (voir onglet seuils)
+IRIS__5: IRIS
+LIBIRIS__5: Libellé de l'IRIS
+COM__5: Commune ou ARM
+LIBCOM__8: Libellé commune ou ARM
+DEC_0: Part des ménages fiscaux imposés (%)
+DEC_1: Taux de bas revenus déclarés au seuil de 60 % (%)
+DEC_2: Incertitude sur le taux de bas revenus et la part des ménages imposés
+DEC_3: 1er quartile (€)
+DEC_4: Médiane (€)
+DEC_5: 3e quartile (€)
+DEC_6: Écart inter-quartile rapporté à la médiane
+DEC_7: 1er décile (€)
+DEC_8: 2e décile (€)
+DEC_9: 3e décile (€)
+DEC_10: 4e décile (€)
+DEC_11: 6e décile (€)
+DEC_12: 7e décile (€)
+DEC_13: 8e décile (€)
+DEC_14: 9e décile (€)
+DEC_15: Rapport interdécile D9/D1
+DEC_16: S80/S20
+DEC_17: Indice de Gini
+DEC_18: Part des revenus d’activité (%)
+DEC_19: dont part des salaires et traitements (%)
+DEC_20: dont part des indemnités de chômage (%)
+DEC_21: dont part des revenus des activités non salariées (%)
+DEC_22: Part des pensions, retraites et rentes (%)
+DEC_23: Part des autres revenus (%)
+DEC_24: Note de précaution (voir onglet seuils)
+IRIS__6: Code IRIS
+COM__6: Code commune
+LIB_COM: Libellé commune ou ARM
+REG__7: Région
+DEP__4: Département
+NB_D401: 'Personnes âgées : hébergement'
+NB_D402: 'Personnes âgées : soins à domicile'
+NB_D403: 'Personnes âgées : services d''aide'
+NB_D404: 'Personnes âgées : foyer restaurant'
+NB_D502: Crèches
+NB_D601: 'Enfants handicapés : hébergement'
+NB_D602: 'Enfants handicapés : services à domicile ou ambulatoires'
+NB_D603: 'Adultes handicapés : accueil/hébergement'
+NB_D604: 'Adultes handicapés : services d''aides'
+NB_D605: Travail protégé
+NB_D606: 'Adultes handicapés : services de soins à domicile'
+NB_D701: 'Aide sociale à l''enfance : hébergement'
+NB_D702: 'Aide sociale à l''enfance : action éducative'
+NB_D703: Centre d'hébergement et de réinsertion sociale
+NB_D704: Centre provisoire d'hébergement
+NB_D705: Centre accueil demandeur d'asile
+NB_D709: Autres établissements pour adultes et familles en difficulté
+IRIS__7: Code IRIS
+LIB_IRIS__1: Libellé IRIS
+COM__7: COM
+LIB_COM__1: Libellé commune ou ARM
+REG__8: Région
+DEP__5: Département
+NB_B101: Hypermarché
+NB_B102: Supermarché
+NB_B103: Grande surface de bricolage
+NB_B201: Supérette
+NB_B202: Épicerie
+NB_B203: Boulangerie
+NB_B204: Boucherie charcuterie
+NB_B205: Produits surgelés
+NB_B206: Poissonnerie
+NB_B301: Librairie, papeterie, journaux
+NB_B302: Magasin de vêtements
+NB_B303: Magasin d'équipements du foyer
+NB_B304: Magasin de chaussures
+NB_B305: Magasin d'électroménager et de matériel audio-vidéo
+NB_B306: Magasin de meubles
+NB_B307: Magasin d'articles de sports et de loisirs
+NB_B308: Magasin de revêtements murs et sols
+NB_B309: Droguerie quincaillerie bricolage
+NB_B310: Parfumerie - Cosmétique
+NB_B311: Horlogerie-Bijouterie
+NB_B312: Fleuriste - Jardinerie - Animalerie
+NB_B313: Magasin d'optique
+NB_B315: Magasin de matériel médical et orthopédique
+NB_B316: Station-service
+IRIS__8: Code IRIS
+LIB_IRIS__2: Libellé IRIS
+COM__8: Code commune
+LIB_COM__2: Libellé commune ou ARM
+REG__9: Région
+DEP__6: Département
+NB_C101: École maternelle
+NB_C101_NB_CANT: École maternelle avec cantine
+NB_C101_NB_EP: École maternelle appartenant à un EP
+NB_C101_NB_RPIC: École maternelle en RPI concentré
+NB_C102: École maternelle de RPI dispersé
+NB_C102_NB_CANT: École maternelle de RPI dispersé avec cantine
+NB_C102_NB_EP: École maternelle en RPI dispersé appartenant à un EP
+NB_C104: École élémentaire
+NB_C104_NB_CANT: École élémentaire avec cantine
+NB_C104_NB_PELEM: École élémentaire avec classe pré-élémentaire
+NB_C104_NB_EP: École élémentaire appartenant à un EP
+NB_C104_NB_RPIC: École élémentaire en RPI concentré
+NB_C105: École élémentaire de RPI dispersé
+NB_C105_NB_CANT: École élémentaire de RPI dispersé avec cantine
+NB_C105_NB_PELEM: École élémentaire de RPI dispersé avec classe pré-élémentaire
+NB_C105_NB_EP: École élémentaire de RPI dispersé appartenant à un EP
+IRIS__9: Code IRIS
+LIB_IRIS__3: Libellé IRIS
+COM__9: Code commune
+LIB_COM__3: Libellé commune ou ARM
+REG__10: Région
+DEP__7: Département
+NB_C201: Collège
+NB_C201_NB_CANT: Collège avec cantine
+NB_C201_NB_EP: Collège appartenant à un EP
+NB_C201_NB_INT: Collège avec internat
+NB_C301: Lycée d'enseignement général et/ou technologique
+NB_C301_NB_CANT: Lycée d'enseignement général et/ou technologique avec cantine
+NB_C301_NB_PGE: Lycée d'enseignement général et/ou technologique avec présence de classe préparatoires aux grandes écoles
+NB_C301_NB_EP: Lycée d'enseignement général et/ou technologique appartenant à un EP
+NB_C301_NB_INT: Lycée d'enseignement général et/ou technologique avec internat
+NB_C302: Lycée d'enseignement professionnel
+NB_C302_NB_CANT: Lycée d'enseignement professionnel avec cantine
+NB_C302_NB_PGE: Lycée d'enseignement professionnel avec présence de CPGE
+NB_C302_NB_EP: Lycée d'enseignement professionnel appartenant à un EP
+NB_C302_NB_INT: Lycée d'enseignement professionnel avec internat
+NB_C303: Lycée technique ou/et professionnel agricole
+NB_C303_NB_CANT: Lycée technique ou/et professionnel agricole avec cantine
+NB_C303_NB_PGE: Lycée technique ou/et professionnel agricole avec présence de CPGE
+NB_C303_NB_INT: Lycée technique ou/et professionnel agricole avec internat
+NB_C304: SGT
+NB_C304_NB_CANT: SGT avec cantine
+NB_C304_NB_INT: SGT avec internat
+NB_C305: SEP
+NB_C305_NB_CANT: SEP avec cantine
+NB_C305_NB_INT: SEP avec internat
+IRIS__10: Code IRIS
+LIB_IRIS__4: Libellé IRIS
+COM__10: Code commune
+LIB_COM__4: Libellé commune ou ARM
+REG__11: Région
+DEP__8: Département
+NB_C401: STS, CPGE
+NB_C402: Formation santé
+NB_C403: Formation commerce
+NB_C409: Autre formation post bac non universitaire
+NB_C501: UFR
+NB_C502: Institut universitaire
+NB_C503: École d'ingénieurs
+NB_C504: Enseignement général supérieur privé
+NB_C505: École d'enseignement supérieur agricole
+NB_C505_NB_INT: École d'enseignement supérieur agricole avec internat
+NB_C509: Autre enseignement supérieur
+NB_C601: Centre de formation d'apprentis hors agriculture
+NB_C602: GRETA
+NB_C603: Centre dispensant de la formation continue agricole
+NB_C604: Formation aux métiers du sport
+NB_C605: Centre dispensant des formations d'apprentissage agricole
+NB_C605_NB_INT: Centre dispensant des formations d'apprentissage agricole avec internat
+NB_C609: Autre formation continue
+NB_C701: Résidence universitaire
+NB_C702: Restaurant universitaire
+IRIS__11: Code IRIS
+LIB_IRIS__5: Libellé IRIS
+COM__11: Code commune
+LIB_COM__5: Libellé commune ou ARM
+REG__12: Région
+DEP__9: Département
+NB_D201: Médecin généraliste
+NB_D202: Spécialiste en cardiologie
+NB_D203: Spécialiste en dermatologie vénéréologie
+NB_D206: Spécialiste en gastro-entérologie hépatologie
+NB_D207: Spécialiste en psychiatrie
+NB_D208: Spécialiste en ophtalmologie
+NB_D209: Spécialiste en oto-rhino-laryngologie
+NB_D210: Spécialiste en pédiatrie
+NB_D211: Spécialiste en pneumologie
+NB_D212: Spécialiste en radiodiagnostic et imagerie médicale
+NB_D213: Spécialiste en stomatologie
+NB_D214: Spécialiste en gynécologie
+NB_D221: Chirurgien dentiste
+NB_D231: Sage-femme
+NB_D232: Infirmier
+NB_D233: Masseur kinésithérapeute
+NB_D235: Orthophoniste
+NB_D236: Orthoptiste
+NB_D237: Pédicure-podologue
+NB_D238: Audio prothésiste
+NB_D239: Ergothérapeute
+NB_D240: Psychomotricien
+NB_D242: Diététicien
+NB_D243: Psychologue
+IRIS__12: Code IRIS
+LIB_IRIS__6: Libellé IRIS
+COM__12: Code commune
+LIB_COM__6: Libellé commune ou ARM
+REG__13: Région
+DEP__10: Département
+NB_A101: Police
+NB_A104: Gendarmerie
+NB_A105: Cour d'appel
+NB_A106: Tribunal de grande instance
+NB_A107: Tribunal d'instance
+NB_A108: Conseil des prud'hommes
+NB_A109: Tribunal de commerce
+NB_A120: DRFiP (Direction régionale  des finances publiques)
+NB_A121: DDFiP (Direction départementale des finances publiques)
+NB_A122: Réseau de proximité pôle emploi
+NB_A123: Réseau partenarial pôle emploi
+NB_A124: Maison de justice et du droit
+NB_A125: Antenne de justice
+NB_A126: Conseil départemental d’accès au droit
+NB_A128: Implantations France services
+NB_A129: Mairie
+NB_A130: Bureau d'aide juridictionnelle
+NB_A131: Tribunal judiciaire
+NB_A132: Tribunal de proximité
+NB_A203: Banques, caisses d'épargne
+NB_A205: Services funéraires
+NB_A206: Bureau de poste
+NB_A207: Relais poste
+NB_A208: Agence postale
+NB_A301: Réparation auto et de matériel agricole
+NB_A302: Contrôle technique auto
+NB_A303: Location auto-utilitaires légers
+NB_A304: École de conduite
+NB_A401: Maçon
+NB_A402: Plâtrier, peintre
+NB_A403: Menuisier, charpentier, serrurier
+NB_A404: Plombier, couvreur, chauffagiste
+NB_A405: Électricien
+NB_A406: Entreprise générale du bâtiment
+NB_A501: Coiffure
+NB_A502: Vétérinaire
+NB_A503: Agence de travail temporaire
+NB_A504: Restaurant – Restauration rapide
+NB_A505: Agence immobilière
+NB_A506: Pressing – Laverie automatique
+NB_A507: Institut de beauté – Onglerie
+IRIS__13: Code IRIS
+LIB_IRIS__7: Libellé IRIS
+COM__13: Code commune
+LIB_COM__7: Libellé commune ou ARM
+REG__14: Région
+DEP__11: Département
+NB_F101: Bassin de natation
+NB_F101_NB_AIREJEU: Bassin de natation - nombre de bassins de natation, sportive et/ou ludique
+NB_F101_NB_COU: Bassin de natation avec au moins un bassin couvert
+NB_F101_NB_ECL: Bassin de natation avec au moins un bassin éclairé
+NB_F102: Boulodrome
+NB_F102_NB_AIREJEU: Boulodrome - nombre de terrains
+NB_F102_NB_COU: Boulodrome avec au moins un terrain couvert
+NB_F102_NB_ECL: Boulodrome avec au moins un terrain éclairé
+NB_F103: Tennis
+NB_F103_NB_AIREJEU: Tennis - nombre de courts
+NB_F103_NB_COU: Tennis avec au moins un court couvert
+NB_F103_NB_ECL: Tennis avec au moins un court éclairé
+NB_F104: Équipement de cyclisme
+NB_F104_NB_AIREJEU: Équipement de cyclisme - nombre de pistes
+NB_F104_NB_COU: Équipement de cyclisme avec au moins une piste couverte
+NB_F104_NB_ECL: Équipement de cyclisme avec au moins une piste éclairée
+NB_F105: Domaine skiable
+NB_F105_NB_AIREJEU: Domaine skiable - nombre de pistes
+NB_F105_NB_COU: Domaine skiable avec au moins une piste couverte
+NB_F105_NB_ECL: Domaine skiable avec au moins une piste éclairée
+NB_F106: Centre équestre
+NB_F106_NB_AIREJEU: Centre équestre - nombre de carrières, manèges
+NB_F106_NB_COU: Centre équestre avec au moins un équipement couvert
+NB_F106_NB_ECL: Centre équestre avec au moins un équipement éclairé
+NB_F107: Athlétisme
+NB_F107_NB_AIREJEU: Athlétisme - nombre d'aires de pratique
+NB_F107_NB_COU: Athlétisme avec au moins une aire de pratique couverte
+NB_F107_NB_ECL: Athlétisme avec au moins une aire de pratique éclairée
+NB_F108: Terrain de golf
+NB_F108_NB_AIREJEU: Terrain de golf - nombre d'aires de pratique
+NB_F108_NB_COU: Terrain de golf avec au moins une aire de pratique couverte
+NB_F108_NB_ECL: Terrain de golf avec au moins une aire de pratique éclairée
+NB_F109: Parcours sportif/santé
+NB_F109_NB_AIREJEU: Parcours sportif/santé - nombre de parcours
+NB_F109_NB_COU: Parcours sportif/santé avec au moins un parcours couvert
+NB_F109_NB_ECL: Parcours sportif/santé avec au moins un parcours éclairé
+NB_F110: Sports de glace
+NB_F110_NB_AIREJEU: Sports de glace - nombre d'aires de pratique
+NB_F110_NB_COU: Sports de glace avec au moins une aire de pratique couverte
+NB_F110_NB_ECL: Sports de glace avec au moins une aire de pratique éclairée
+NB_F111: Plateaux et terrains de jeux extérieurs
+NB_F111_NB_AIREJEU: Plateaux et terrains de jeux extérieurs - nombre d'aires de pratique
+NB_F111_NB_COU: Plateaux et terrains de jeux extérieurs avec au moins une aire de pratique couverte
+NB_F111_NB_ECL: Plateaux et terrains de jeux extérieurs avec au moins une aire de pratique éclairée
+NB_F112: Salles spécialisées
+NB_F112_NB_AIREJEU: Salles spécialisées - nombre d'aires de pratique
+NB_F112_NB_COU: Salles spécialisées avec au moins une aire de pratique couverte
+NB_F112_NB_ECL: Salles spécialisées avec au moins une aire de pratique éclairée
+NB_F113: Terrains de grands jeux
+NB_F113_NB_AIREJEU: Terrains de grands jeux - nombre de terrains
+NB_F113_NB_COU: Terrains de grands jeux avec au moins un terrain couvert
+NB_F113_NB_ECL: Terrains de grands jeux avec au moins un terrain éclairé
+NB_F114: Salles de combat
+NB_F114_NB_AIREJEU: Salles de combat - nombre d'aires de pratique
+NB_F114_NB_COU: Salles de combat avec au moins une aire de pratique couverte
+NB_F114_NB_ECL: Salles de combat avec au moins une aire de pratique éclairée
+NB_F116: Salles non spécialisées
+NB_F116_NB_AIREJEU: Salles non spécialisées - nombre d'équipements où s'exerce au moins une activité physique et/ou sportive
+NB_F116_NB_COU: Salles non spécialisées avec au moins un équipement couvert
+NB_F116_NB_ECL: Salles non spécialisées avec au moins un équipement éclairé
+NB_F117: Roller-Skate-Vélo bicross ou freestyle
+NB_F117_NB_AIREJEU: Roller-Skate-Vélo bicross ou freestyle - nombre de pistes
+NB_F117_NB_COU: Roller-Skate-Vélo bicross ou freestyle avec au moins un équipement couvert
+NB_F117_NB_ECL: Roller-Skate-Vélo bicross ou freestyle avec au moins un équipement éclairé
+NB_F118: Sports nautiques
+NB_F118_NB_AIREJEU: Sports nautiques - nombre d'aires de pratique
+NB_F118_NB_COU: Sports nautiques avec au moins une aire de pratique couverte
+NB_F118_NB_ECL: Sports nautiques avec au moins une aire de pratique éclairée
+NB_F119: Bowling
+NB_F119_NB_AIREJEU: Bowling - nombre d'aires de jeu
+NB_F119_NB_COU: Bowling avec au moins une aire de jeu couverte
+NB_F119_NB_ECL: Bowling avec au moins une aire de jeu éclairée
+NB_F120: Salles de remise en forme
+NB_F120_NB_AIREJEU: Salles de remise en forme - nombre d'aires de pratique
+NB_F120_NB_COU: Salles de remise en forme avec au moins une aire de pratique couverte
+NB_F120_NB_ECL: Salles de remise en forme avec au moins une aire de pratique éclairée
+NB_F121: Salles multisports (gymnase)
+NB_F121_NB_AIREJEU: Salles multisports (gymnase) - nombre d'aires de pratique
+NB_F121_NB_COU: Salles multisports (gymnase) avec au moins une aire de pratique couverte
+NB_F121_NB_ECL: Salles multisports (gymnase) avec au moins une aire de pratique éclairée
+NB_F201: Baignade aménagée
+NB_F201_NB_AIREJEU: Baignade aménagée - nombre d'aires de pratique
+NB_F202: Port de plaisance - Mouillage
+NB_F202_NB_AIREJEU: Port de plaisance - Mouillage - nombre de ports, de zones
+NB_F203: Boucle de randonnée
+NB_F203_NB_AIREJEU: Boucle de randonnée - nombre de circuits
+NB_F303: Cinéma
+NB_F303_NB_SALLES: Nombre de salles dans le cinéma
+NB_F305: Conservatoire
+NB_F306: Théâtre-Arts de la rue-Pôle Cirque
+NB_F306_NB_SALLES: Nombre de salles dans la structure culturelle
+NB_F307: Bibliothèque
+NB_F311: Livres et presse
+NB_F312: Exposition et mÃ©diation culturelle
+NB_F313: Espace remarquable et patrimoine
+NB_F314: Archives
+NB_F315: Arts du spectacle
+NB_F315_NB_SALLES: Arts du spectacle nombre de salles
+IRIS__14: Code IRIS
+LIB_IRIS__8: Libellé IRIS
+COM__14: Code commune
+LIB_COM__8: Libellé commune ou ARM
+REG__15: Région
+DEP__12: Département
+NB_E101: Taxi - VTC
+NB_E102: Aéroport
+NB_E107: Gare voyageurs d’intérêt national
+NB_E108: Gare  voyageurs d’intérêt régional
+NB_E109: Gare  voyageurs d’intérêt local
+NB_G101: Agence de voyage
+NB_G102: Hôtel
+NB_G103: Camping
+NB_G104: Information Touristique
+NPNRU_operationnel: Périmètre NPNRU
+IRIS__15: IRIS
+LIBIRIS__6: IRIS
+LIB_IRIS__9: IRIS
+LIBGEO__3: IRIS
+POP: Population
+POP0002: Pop 0-2 ans
+POP0305: Pop 3-5 ans
+POP0610__1: Pop 6-10 ans
+POP1117: Pop 11-17 ans
+POP1824__1: Pop 18-24 ans
+POP2539: Pop 25-39 ans
+POP4054: Pop 40-54 ans
+POP5564__1: Pop 55-64 ans
+POP6579: Pop 65-79 ans
+POP80P__1: Pop 80 ans ou plus
+POP0014: Pop 0-14 ans
+POP1529: Pop 15-29 ans
+POP3044: Pop 30-44 ans
+POP4559: Pop 45-59 ans
+POP6074: Pop 60-74 ans
+POP75P: Pop 75 ans ou plus
+POP0019: Pop 0-19 ans
+POP2064: Pop 20-64 ans
+POP65P: Pop 65 ans ou plus
+POPH: Pop Hommes
+H0014: Pop Hommes 0-14 ans
+H1529: Pop Hommes 15-29 ans
+H3044: Pop Hommes 30-44 ans
+H4559: Pop Hommes 45-59 ans
+H6074: Pop Hommes 60-74 ans
+H75P: Pop Hommes 75 ans ou plus
+H0019: Pop Hommes 0-19 ans
+H2064: Pop Hommes 20-64 ans
+H65P: Pop Hommes 65 ans ou plus
+POPF: Pop Femmes
+F0014: Pop Femmes 0-14 ans
+F1529: Pop Femmes 15-29 ans
+F3044: Pop Femmes 30-44 ans
+F4559: Pop Femmes 45-59 ans
+F6074: Pop Femmes 60-74 ans
+F75P: Pop Femmes 75 ans ou plus
+F0019: Pop Femmes 0-19 ans
+F2064: Pop Femmes 20-64 ans
+F65P: Pop Femmes 65 ans ou plus
+POP15P__1: Pop 15 ans ou plus
+POP15P_CS1: Pop 15 ans ou plus Agriculteurs exploitants
+POP15P_CS2: Pop 15 ans ou plus Artisans, Comm., Chefs entr.
+POP15P_CS3: Pop 15 ans ou plus Cadres, Prof. intel. sup.
+POP15P_CS4: Pop 15 ans ou plus Prof. intermédiaires
+POP15P_CS5: Pop 15 ans ou plus Employés
+POP15P_CS6: Pop 15 ans ou plus Ouvriers
+POP15P_CS7: Pop 15 ans ou plus Retraités
+POP15P_CS8: Pop 15 ans ou plus Autres
+H15P: Pop 15 ans ou plus Hommes
+H15P_CS1: Pop 15 ans ou plus Hommes Agriculteurs exploitants
+H15P_CS2: Pop 15 ans ou plus Hommes Artisans, Comm., Chefs entr.
+H15P_CS3: Pop 15 ans ou plus Hommes Cadres, Prof. intel. sup.
+H15P_CS4: Pop 15 ans ou plus Hommes Prof. intermédiaires
+H15P_CS5: Pop 15 ans ou plus Hommes Employés
+H15P_CS6: Pop 15 ans ou plus Hommes Ouvriers
+H15P_CS7: Pop 15 ans ou plus Hommes Retraités
+H15P_CS8: Pop 15 ans ou plus Hommes Autres
+F15P: Pop 15 ans ou plus Femmes
+F15P_CS1: Pop 15 ans ou plus Femmes Agriculteurs exploitants
+F15P_CS2: Pop 15 ans ou plus Femmes Artisans, Comm., Chefs entr.
+F15P_CS3: Pop 15 ans ou plus Femmes Cadres, Prof. intel. sup.
+F15P_CS4: Pop 15 ans ou plus Femmes Prof. intermédiaires
+F15P_CS5: Pop 15 ans ou plus Femmes Employés
+F15P_CS6: Pop 15 ans ou plus Femmes Ouvriers
+F15P_CS7: Pop 15 ans ou plus Femmes Retraités
+F15P_CS8: Pop 15 ans ou plus Femmes Autres
+POP_FR: Pop Français
+POP_ETR: Pop Etrangers
+POP_IMM: Pop Immigrés
+PMEN__2: Pop ménages
+PHORMEN: Pop hors ménages
+NB_C101PR: École maternelle - privé
+NB_C101PR_NB_CANT: École maternelle avec cantine - privé
+NB_C101PR_NB_EP: École maternelle appartenant à un EP - privé
+NB_C101PR_NB_RPIC: École maternelle en RPIC - privé
+NB_C102PR: École maternelle de RPI dispersé - privé
+NB_C102PR_NB_CANT: École maternelle de RPI dispersé cant - privé
+NB_C102PR_NB_EP: École maternelle en RPI appartenant à un EP - privé
+NB_C104PR: École élémentaire - privé
+NB_C104PR_NB_CANT: École élémentaire avec cantine - privé
+NB_C104PR_NB_PELEM: École élémentaire avec classe pélém - privé
+NB_C104PR_NB_EP: École élémentaire appartenant à un EP - privé
+NB_C104PR_NB_RPIC: École élémentaire en RPIC - privé
+NB_C105PR: École élémentaire de RPI dispersé - privé
+NB_C105PR_NB_CANT: École élémentaire de RPI dispersé cant - privé
+NB_C105PR_NB_PELEM: École élémentaire de RPI dispersé avec classe pélém - privé
+NB_C105PR_NB_EP: École élémentaire de RPI dispersé appartenant à un EP - privé
+NB_C101PU: École maternelle – public
+NB_C101PU_NB_CANT: École maternelle avec cantine – public
+NB_C101PU_NB_EP: École maternelle appartenant à un EP – public
+NB_C101PU_NB_RPIC: École maternelle en RPIC – public
+NB_C102PU: École maternelle de RPI dispersé – public
+NB_C102PU_NB_CANT: École maternelle de RPI dispersé cant – public
+NB_C102PU_NB_EP: École maternelle en RPI appartenant à un EP – public
+NB_C104PU: École élémentaire – public
+NB_C104PU_NB_CANT: École élémentaire avec cantine – public
+NB_C104PU_NB_PELEM: École élémentaire avec classe pélém – public
+NB_C104PU_NB_EP: École élémentaire appartenant à un EP – public
+NB_C104PU_NB_RPIC: École élémentaire en RPIC – public
+NB_C105PU: École élémentaire de RPI dispersé – public
+NB_C105PU_NB_CANT: École élémentaire de RPI dispersé cant – public
+NB_C105PU_NB_PELEM: École élémentaire de RPI dispersé avec classe pélém – public
+NB_C105PU_NB_EP: École élémentaire de RPI dispersé appartenant à un EP – public
+NB_C201PR: Collège – privé
+NB_C201PR_NB_CANT: Collège avec cantine – privé
+NB_C201PR_NB_EP: Collège appartenant à un EP – privé
+NB_C201PR_NB_INT: Collège avec internat – privé
+NB_C301PR: Lycée d'enseignement général et/ou technologique – privé
+NB_C301PR_NB_CANT: Lycée d'enseignement général et/ou technologique avec cantine – privé
+NB_C301PR_NB_PGE: Lycée d'enseignement général et/ou technologique avec présence de CPGE – privé
+NB_C301PR_NB_EP: Lycée d'enseignement général et/ou technologique appartenant à un EP – privé
+NB_C301PR_NB_INT: Lycée d'enseignement général et/ou technologique avec internat – privé
+NB_C302PR: Lycée d'enseignement professionnel – privé
+NB_C302PR_NB_CANT: Lycée d'enseignement professionnel avec cantine – privé
+NB_C302PR_NB_PGE: Lycée d'enseignement professionnel avec présence de CPGE – privé
+NB_C302PR_NB_EP: Lycée d'enseignement professionnel appartenant à un EP – privé
+NB_C302PR_NB_INT: Lycée d'enseignement professionnel avec internat – privé
+NB_C303PR: Lycée technique ou/et professionnel agricole  – privé
+NB_C303PR_NB_CANT: Lycée technique ou/et professionnel agricole avec cantine – privé
+NB_C303PR_NB_PGE: Lycée technique ou/et professionnel agricole avec présence de CPGE – privé
+NB_C303PR_NB_INT: Lycée technique ou/et professionnel agricole avec internat – privé
+NB_C304PR: SGT – privé
+NB_C304PR_NB_CANT: SGT avec cantine – privé
+NB_C304PR_NB_INT: SGT avec internat – privé
+NB_C305PR: SEP – privé
+NB_C305PR_NB_CANT: SEP avec cantine – privé
+NB_C305PR_NB_INT: SEP avec internat – privé
+NB_C201PU: Collège – public
+NB_C201PU_NB_CANT: Collège avec cantine – public
+NB_C201PU_NB_EP: Collège appartenant à un EP – public
+NB_C201PU_NB_INT: Collège avec internat – public
+NB_C301PU: Lycée d'enseignement général et/ou technologique – public
+NB_C301PU_NB_CANT: Lycée d'enseignement général et/ou technologique avec cantine – public
+NB_C301PU_NB_PGE: Lycée d'enseignement général et/ou technologique avec présence de CPGE – public
+NB_C301PU_NB_EP: Lycée d'enseignement général et/ou technologique appartenant à un EP – public
+NB_C301PU_NB_INT: Lycée d'enseignement général et/ou technologique avec internat – public
+NB_C302PU: Lycée d'enseignement professionnel – public
+NB_C302PU_NB_CANT: Lycée d'enseignement professionnel avec cantine – public
+NB_C302PU_NB_PGE: Lycée d'enseignement professionnel avec présence de CPGE – public
+NB_C302PU_NB_EP: Lycée d'enseignement professionnel appartenant à un EP – public
+NB_C302PU_NB_INT: Lycée d'enseignement professionnel avec internat – public
+NB_C303PU: Lycée technique ou/et professionnel agricole – public
+NB_C303PU_NB_CANT: Lycée technique ou/et professionnel agricole avec cantine – public
+NB_C303PU_NB_PGE: Lycée technique ou/et professionnel agricole avec présence de CPGE – public
+NB_C303PU_NB_INT: Lycée technique ou/et professionnel agricole avec internat – public
+NB_C304PU: SGT – public
+NB_C304PU_NB_CANT: SGT avec cantine – public
+NB_C304PU_NB_INT: SGT avec internat – public
+NB_C305PU: SEP – public
+NB_C305PU_NB_CANT: SEP avec cantine – public
+NB_C305PU_NB_INT: SEP avec internat – public
+NB_C401: STS, CPGE
+NB_C402: Formation santé
+NB_C403: Formation commerce
+NB_C409: Autre formation post bac non universitaire
+NB_C501: UFR
+NB_C502: Institut universitaire
+NB_C503: École d'ingénieurs
+NB_C504: Enseignement général supérieur privé
+NB_C505: École d'enseignement supérieur agricole
+NB_C505_NB_INT: École d'enseignement supérieur agricole avec internat
+NB_C509: Autre enseignement supérieur
+NB_C601: Centre de formation d'apprentis hors agriculture
+NB_C602: GRETA
+NB_C603: Centre dispensant de la formation continue agricole
+NB_C604: Formation aux métiers du sport
+NB_C605: Centre dispensant des formations d'apprentissage agricole
+NB_C605_NB_INT: Centre dispensant des formations d'apprentissage agricole avec internat
+NB_C609: Autre formation continue
+NB_C701: Résidence universitaire
+NB_C702: Restaurant universitaire
+NB_C401PR: STS, CPGE – privé
+NB_C402PR: Formation santé – privé
+NB_C403PR: Formation commerce – privé
+NB_C409PR: Autre formation post bac non universitaire – privé
+NB_C501PR: UFR – privé
+NB_C502PR: Institut universitaire – privé
+NB_C503PR: École d'ingénieurs – privé
+NB_C504PR: Enseignement général supérieur privé – privé
+NB_C505PR: École d'enseignement supérieur agricole – privé
+NB_C505PR_NB_INT: École d'enseignement supérieur agricole avec internat – privé
+NB_C509PR: Autre enseignement supérieur – privé
+NB_C601PR: Centre de formation d'apprentis hors agriculture – privé
+NB_C602PR: GRETA – privé
+NB_C603PR: Centre dispensant de la formation continue agricole – privé
+NB_C604PR: Formation aux métiers du sport – privé
+NB_C605PR: Centre dispensant des formations d'apprentissage agricole – privé
+NB_C605PR_NB_INT: Centre dispensant des formations d'apprentissage agricole avec internat – privé
+NB_C609PR: Autre formation continue – privé
+NB_C701PR: Résidence universitaire – privé
+NB_C702PR: Restaurant universitaire – privé
+NB_C401PU: STS, CPGE - public
+NB_C402PU: Formation santé – public
+NB_C403PU: Formation commerce – public
+NB_C409PU: Autre formation post bac non universitaire – public
+NB_C501PU: UFR – public
+NB_C502PU: Institut universitaire – public
+NB_C503PU: École d'ingénieurs – public
+NB_C505PU: École d'enseignement supérieur agricole – public
+NB_C505PU_NB_INT: École d'enseignement supérieur agricole avec internat – public
+NB_C509PU: Autre enseignement supérieur – public
+NB_C601PU: Centre de formation d'apprentis hors agriculture – public
+NB_C602PU: GRETA – public
+NB_C603PU: Centre dispensant de la formation continue agricole – public
+NB_C604PU: Formation aux métiers du sport – public
+NB_C605PU: Centre dispensant des formations d'apprentissage agricole – public
+NB_C605PU_NB_INT: Centre dispensant des formations d'apprentissage agricole avec internat – public
+NB_C609PU: Autre formation continue – public
+NB_C701PU: Résidence universitaire – public
+NB_C702PU: Restaurant universitaire – public
+NB_D101: Etablissement santé court séjour
+NB_D102: Etablissement santé moyen séjour
+NB_D103: Etablissement santé long séjour
+NB_D104: Etablissement psychiatrique
+NB_D105: Centre lutte cancer
+NB_D106: Urgences
+NB_D107: Maternité
+NB_D108: Centre de santé
+NB_D109: Structures psychiatriques en ambulatoire
+NB_D110: Centre médecine préventive
+NB_D111: Dialyse
+NB_D112: Hospitalisation à domicile
+NB_D113: Maison de santé pluridisciplinaires
+NB_D302: Laboratoire d'analyses et de biologie médicales
+NB_D303: Ambulance
+NB_D304: Transfusion sanguine
+NB_D305: Établissement thermal
+NB_D307: Pharmacie
+LIBCOM_26: Libellé de la commune
+LIBCOM_30: Libellé de la commune
+CODGEO: Code géographique
+DEPCOM: Code commune
+LIBCOM: Libellé de la commune
+NOTE: Note de diffusion
+NBLSPLS : Nombre de logements du Parc Locatif Social
+NBLSMES : Nombre de logements sociaux mis en service dans l’année
+TXVAC : Taux de vacance des logements sociaux
+TXVAC3M : Taux de vacance de plus de 3 mois des logements sociaux
+TXROT : Taux de rotation des logements sociaux
+TXLSCOL : Part des logements sociaux collectifs
+TXLSIND : Part des logements sociaux individuels
+TXLS1P : Part des logements sociaux d’une pièce
+TXLS2P : Part des logements sociaux de deux pièces
+TXLS3P : Part des logements sociaux de trois pièces
+TXLS4P : Part des logements sociaux de quatre pièces
+TXLS5PP : Part des logements sociaux de 5 pièces ou plus
+TXLSM30 : Part des logements sociaux de moins de 30 m²
+TXLS30A40 : Part des logements sociaux de 30 m² à moins de 40 m²
+TXLS40A60 : Part des logements sociaux de 40 m² à moins de 60 m²
+TXLS60A80 : Part des logements sociaux de 60 m² à moins de 80 m²
+TXLS80A100 : Part des logements sociaux de 80 m² à moins de 100 m²
+TXLS100A120 : Part des logements sociaux de 100 m² à moins de 120 m²
+TXLS120P : Part des logements sociaux de plus de 120 m²
+TXLSAV49 : Part des logements sociaux construits avant 1949
+TXLS49A75 : Part des logements sociaux construits entre 1949 et 1975
+TXLS76A88 : Part des logements sociaux construits entre 1976 et 1988
+TXLS89A00 : Part des logements sociaux construits entre 1989 et 2000
+TXLS01A13 : Part des logements sociaux construits entre 2001 et 2013
+TXLSAP13 : Part des logements sociaux construits après 2013
+TXLSPLAI : Part des logements sociaux financés en PLAI
+TXLSPLUSAV77 : Part des logements sociaux financés en PLUS (avant 1977)
+TXLSPLUSAP77 : Part des logements sociaux financés en PLUS (après 1977)
+TXLSPLS : Part des logements sociaux financés en PLS
+TXLSPLI : Part des logements sociaux financés en PLI
+MOYLOY : Loyer par m² des logements sociaux - Moyenne
+Q1LOY : Loyer par m² des logements sociaux - 1er quartile
+MEDLOY : Loyer par m² des logements sociaux - Médiane
+Q3LOY : Loyer par m² des logements sociaux - 3ème quartile

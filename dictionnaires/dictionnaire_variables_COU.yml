@@ -1,0 +1,95 @@
+---
+MEN: Ménages
+MENPSEUL: Ménages 1 personne
+MENHSEUL: Ménages Hommes seuls
+MENFSEUL: Ménages Femmes seules
+MENSFAM: Ménages Autres sans famille
+MENFAM: Ménages avec famille(s)
+MENCOUPSENF: Mén fam princ Couple sans enfant
+MENCOUPAENF: Mén fam princ Couple avec enfant(s)
+MENFAMMONO: Mén fam princ Famille mono
+MEN-FAM : Ménages 1 famille
+MEN1FCOUPSENF : Mén fam formée Couple sans enfant
+MEN1FCOUPUNIQENFCOUP : Mén fam formée Couple avec enfant(s)
+MEN1FCOUPENF1ADUL : Mén fam formée Couple avec uniq enfant(s) Couple
+MEN1FMONO : Ménages Famille mono
+PMEN: Pop Ménages
+MENPSEUL 1: Pop mén Personnes seules
+MENHSEUL 1: Pop mén Hommes seuls
+MENFSEUL 1: Pop mén Femmes seules
+MENSFAM 1: Pop mén Autres sans famille
+MENFAM 1: Pop mén avec famille(s)
+MENCOUPSENF 1: Pop mén fam princ Couple sans enfant
+MENCOUPAENF 1: Pop mén fam princ Couple avec enfant(s)
+MENFAMMONO 1: Pop mén fam princ Famille mono
+PMENFAM : Pop mén famille
+PMEN1FCOUPSENF : Pop mén fam formée Couple sans enfant
+PMEN1FCOUPUNIQENFCOUP : Pop mén fam formée Couple avec uniq enfant(s) Couple
+PMEN1FCOUPENF1ADUL : Pop mén fam formée Couple avec mini 1 enfant 1 des 2 Couple
+PMEN1FMONO : Pop Ménages Famille mono
+POP15P: Pop 15 ans ou plus
+POP1524__1: Pop 15-24 ans
+POP2554__1: Pop 25-54 ans
+POP5579: Pop 55-79 ans
+POP80P: Pop 80 ans ou plus
+POPMEN15P: Pop mén 15 ans ou plus
+POPMEN1524: Pop mén 15-24 ans
+POPMEN2554: Pop mén 25-54 ans
+POPMEN5579: Pop mén 55-79 ans
+POPMEN80P: Pop mén 80 ans ou plus
+PSEUL: Pop 15 ans ou plus ans vivant seule
+PSEUL 1: Pop 15-24 ans vivant seule
+PSEUL 2: Pop 25-54 ans vivant seule
+PSEUL 3: Pop 55-79 ans vivant seule
+PSEUL 3: Pop 15 ans ou plus vivant seule
+PSEUL 4: Pop 80 ans ou plus vivant seule
+MARIEE: Pop 15 ans ou plus mariée
+PACSEE: Pop 15 ans ou plus pacsée
+LIBRE: Pop 15 ans ou plus en concubinage ou union libre
+VEUFS: Pop 15 ans ou plus veuves ou veufs
+DIVORCEE: Pop 15 ans ou plus divorcée
+CELIBATAIRE: Pop 15 ans ou plus célibataire
+CS1: Ménages Pers Réf Agri. expl.
+GSEC11: Ménages Pers Réf Agri. expl.
+CS2: Ménages Pers Réf Art. Comm. Chef entr.
+GSEC12: Ménages Pers Réf Art. Comm. Chef entr.
+CS3: Ménages Pers Réf Cadre Prof int sup
+GSEC13: Ménages Pers Réf Cadre Prof int sup
+CS4: Ménages Pers Réf Prof intermédiaire
+GSEC14: Ménages Pers Réf Prof intermédiaire
+CS5: Ménages Pers Réf Employé
+GSEC15: Ménages Pers Réf Employé
+CS6: Ménages Pers Réf Ouvrier
+GSEC16: Ménages Pers Réf Ouvrier
+CS7: Ménages Pers Réf Retraité
+GSEC32: Ménages Pers Réf Retraité
+CS8: Ménages Pers Réf Autre
+GSEC40: Ménages Pers Réf Autre
+CS1 1: Pop mén Pers Réf Agri. expl.
+GSEC11 1: Pop mén Pers Réf Agri. expl.
+CS2 1: Pop mén Pers Réf Art Com Chef entr.
+GSEC12 1: Pop mén Pers Réf Art Com Chef entr.
+CS3 1: Pop mén Pers Réf Cadre Prof int sup
+GSEC13 1: Pop mén Pers Réf Cadre Prof int sup
+CS4 1: Pop mén Pers Réf Prof intermédiaire
+GSEC14 1: Pop mén Pers Réf Prof intermédiaire
+CS5 1: Pop mén Pers Réf Employé
+GSEC15 1: Pop mén Pers Réf Employé
+CS6 1: Pop mén Pers Réf Ouvrier
+GSEC16 1: Pop mén Pers Réf Ouvrier
+CS7 1: Pop mén Pers Réf Retraité
+GSEC32 1: Pop mén Pers Réf Retraité
+CS8 1: Pop mén Pers Réf Autre
+GSEC40 1: Pop mén Pers Réf Autre
+FAM: Familles
+COUPAENF: Fam Couple avec enfant(s)
+FAMMONO: Fam Monoparentales
+COUPSENF: Fam Couple sans enfant
+NE24F0: Fam 0 enfant moins 25 ans
+NE24F1: Fam 1 enfant moins 25 ans
+NE24F2: Fam 2 enfants moins 25 ans
+NE24F3: Fam 3 enfants moins 25 ans
+NE24F4P: Fam 4 enfants ou plus moins 25 ans
+FAMTRAD : Fam Couple avec uniq enfant(s) Couple
+FAMRECOMP : Fam Couple avec mini 1 enfant 1 des 2 Couple
+LIBIRIS: Libellé de l'IRIS

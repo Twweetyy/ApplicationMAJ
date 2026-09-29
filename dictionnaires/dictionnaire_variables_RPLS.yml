@@ -1,0 +1,39 @@
+---
+CODGEO: Code géographique
+NOTE: Note de diffusion
+NBLSPLS : Nombre de logements du Parc Locatif Social
+NBLSMES : Nombre de logements sociaux mis en service dans l’année
+TXVAC : Taux de vacance des logements sociaux
+TXVAC3M : Taux de vacance de plus de 3 mois des logements sociaux
+TXROT : Taux de rotation des logements sociaux
+TXLSCOL : Part des logements sociaux collectifs
+TXLSIND : Part des logements sociaux individuels
+TXLS1P : Part des logements sociaux d’une pièce
+TXLS2P : Part des logements sociaux de deux pièces
+TXLS3P : Part des logements sociaux de trois pièces
+TXLS4P : Part des logements sociaux de quatre pièces
+TXLS5PP : Part des logements sociaux de 5 pièces ou plus
+TXLSM30 : Part des logements sociaux de moins de 30 m²
+TXLS30A40 : Part des logements sociaux de 30 m² à moins de 40 m²
+TXLS40A60 : Part des logements sociaux de 40 m² à moins de 60 m²
+TXLS60A80 : Part des logements sociaux de 60 m² à moins de 80 m²
+TXLS80A100 : Part des logements sociaux de 80 m² à moins de 100 m²
+TXLS100A120 : Part des logements sociaux de 100 m² à moins de 120 m²
+TXLS120P : Part des logements sociaux de plus de 120 m²
+TXLSAV49 : Part des logements sociaux construits avant 1949
+TXLS49A75 : Part des logements sociaux construits entre 1949 et 1975
+TXLS76A88 : Part des logements sociaux construits entre 1976 et 1988
+TXLS89A00 : Part des logements sociaux construits entre 1989 et 2000
+TXLS01A13 : Part des logements sociaux construits entre 2001 et 2013
+TXLSAP13 : Part des logements sociaux construits après 2013
+TXLSPLAI : Part des logements sociaux financés en PLAI
+TXLSPLUSAV77 : Part des logements sociaux financés en PLUS (avant 1977)
+TXLSPLUSAP77 : Part des logements sociaux financés en PLUS (après 1977)
+TXLSPLS : Part des logements sociaux financés en PLS
+TXLSPLI : Part des logements sociaux financés en PLI
+MOYLOY : Loyer par m² des logements sociaux - Moyenne
+Q1LOY : Loyer par m² des logements sociaux - 1er quartile
+MEDLOY : Loyer par m² des logements sociaux - Médiane
+Q3LOY : Loyer par m² des logements sociaux - 3ème quartile
+LIBIRIS: Libellé de l'IRIS
+COM 1: Commune ou ARM

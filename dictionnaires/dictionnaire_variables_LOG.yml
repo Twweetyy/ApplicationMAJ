@@ -1,0 +1,108 @@
+---
+COM: Commune ou ARM
+TYP_IRIS: Type d'IRIS
+LAB_IRIS: Label de l'IRIS
+LOG: Logements
+RP: Résidences principales
+RSECOCC: Rés secondaires et logts occasionnels
+LOGVAC: Logements vacants
+MAISON: Maisons
+APPART: Appartements
+1P: Rés princ 1 pièce
+2P: Rés princ 2 pièces
+3P: Rés princ 3 pièces
+4P: Rés princ 4 pièces
+5PP: Rés princ 5 pièces ou plus
+RP 1: Pièces rés princ
+RPMAISON: Rés princ type maison
+RPMAISON 1: Pièces rés princ type maison
+RPAPPART: Rés princ type appartement
+RPAPPART 1: Pièces rés princ type appartement
+M30M2: Rés princ de moins de 30 m2
+3040M2: Rés princ de 30 à moins de 40 m2
+4060M2: Rés princ de 40 à moins de 60 m2
+6080M2: Rés princ de 60 à moins de 80 m2
+80100M2: Rés princ de 80 à moins de 100 m2
+100120M2: Rés princ de 100 à moins de 120 m2
+120M2P: Rés princ de 120 m2 ou plus
+ACHTOT: Rés princ avt 2020
+ACH1919: Rés princ avt 1919
+ACH1945: Rés princ 1919 à 1945
+ACH1970: Rés princ 1946 à 1970
+ACH1990: Rés princ 1971 à 1990
+ACH2005: Rés princ 1991 à 2005
+ACH2019: Rés princ 2006 à 2019
+ACHTOT 1: Rés princ Type maison avt 2020
+ACH1919 1: Rés princ Type maison avt 1919
+ACH1945 1: Rés princ Type maison 1919 à 1945
+ACH1970 1: Rés princ Type maison 1946 à 1970
+ACH1990 1: Rés princ Type maison 1971 à 1990
+ACH2005 1: Rés princ Type maison 1991 à 2005
+ACH2019 1: Rés princ Type maison 2006 à 2019
+ACHTOT 2: Rés princ Type appart avt 2020
+ACH1919 2: Rés princ Type appart avt 1919
+ACH1945 2: Rés princ Type appart 1919 à 1945
+ACH1970 2: Rés princ Type appart 1946 à 1970
+ACH1990 2: Rés princ Type appart 1971 à 1990
+ACH2005 2: Rés princ Type appart 1991 à 2005
+ACH2019 2: Rés princ Type appart 2006 à 2019
+MEN: Ménages
+ANEM0002: Ménages emménagés moins 2 ans
+ANEM0204: Ménages emménagés entre 2-4 ans
+ANEM0509: Ménages emménagés entre 5-9 ans
+ANEM10P: Ménages emménagés depuis 10 ans ou plus
+PMEN: Pop Ménages
+ANEM0002 1: Pop mén emménagés moins 2 ans
+ANEM0204 1: Pop mén emménagés entre 2-4 ans
+ANEM0509 1: Pop mén emménagés entre 5-9 ans
+ANEM10P 1: Pop mén emménagés depuis 10 ans ou plus
+ANEM0002 2: Pièces Rés princ Mén. emménagés moins 2 ans
+ANEM0204 2: Pièces Rés princ Mén. emménagés entre 2-4 ans
+ANEM0509 2: Pièces Rés princ Mén. emménagés entre 5-9 ans
+ANEM10P 2: Pièces Rés princ Mén. emménagés depuis 10 ans ou plus
+PROP: Rés princ occupées Propriétaires
+LOC: Rés princ occupées Locataires
+LOCHLMV: Rés princ HLM louée vide
+GRAT: Rés princ logé gratuit
+RP 2: Personnes Rés princ
+PROP 1: Pers Rés princ occupées Propriétaires
+LOC 1: Pers Rés princ occupées Locataires
+LOCHLMV 1: Pers Rés princ HLM louées vides
+GRAT 1: Pers Rés princ occupées gratuit
+RP 3: Anc tot Emméngt Rés princ (années)
+PROP 2: Anc tot Emméngt Rés princ occ par Propriétaires (années)
+LOC 2: Anc tot Emméngt Rés princ occ par Locataires (années)
+LOCHLMV 2: Anc tot Emméngt Rés princ HLM louées vides (années)
+GRAT 2: Anc tot Emméngt Rés princ occ gratuit (années)
+SDB: Rés princ SDB baignoire douche (MET)
+CCCOLL: Rés princ Chauffage Central Collectif (MET)
+CCIND: Rés princ Chauffage Central Individuel (MET)
+CINDELEC: Rés princ Chauffage Individuel Electrique (MET)
+ELEC: Rés princ avec électricité (DOM)
+EAUCH: Rés princ avec eau chaude (DOM)
+BDWC: Rés princ avec Bain/Douche WC (DOM)
+CHOS: Rés princ avec chauffe-eau solaire (DOM)
+CLIM: Rés princ avec pièce climatisée (DOM)
+TTEGOU: Rés princ avec tout à l'égout (DOM)
+GARL: Ménages au moins un parking
+VOIT1P: Ménages au moins une voiture
+VOIT1: Ménages une voiture
+VOIT2P: Ménages deux voitures ou plus
+HABFOR: Habitations de fortune (DOM)
+CASE: Cases traditionnelles (DOM)
+MIBOIS: Maisons ou Immeubles en bois (DOM)
+MIDUR: Maisons ou Immeubles en dur (DOM)
+HSTU1P: Rés princ hors studio de 1 personne
+SUROCC: Rés princ hors studio de 1 personne en suroccupation
+LIBIRIS: Libellé de l'IRIS
+NORME: résidences principales en occupation dans la norm
+MOD: résidences principales en sous-occupation modérée
+ACC: résidences principales en sous-occupation accentuée
+TACC: résidences principales en sous-occupation très accentuée
+MOD 1: résidences principales en suroccupation modérée
+ACC 1: résidences principales en suroccupation accentuée
+CGAZV: nombre de résidences principales avec combustible principal de chauffage gaz de ville - réseau de chaleur
+CFIOUL: nombre de résidences principales avec combustible principal de chauffage fioul
+CELEC: nombre de résidences principales avec combustible principal de chauffage électricité
+CGAZB: nombre de résidences principales avec combustible principal de chauffage gaz en bouteilles ou citerne
+CAUT: nombre de résidences principales avec combustible principal de chauffage autres
