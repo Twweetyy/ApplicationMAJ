@@ -30,17 +30,42 @@ python main_bddmas.py
 
 Le classeur `TAB_BDDMAS_INSEE2022_Tout_perimetre.xlsx` est généré à la racine à partir de `TAB_BDDMAS_INSEE2022_MODELE.xlsx`. Le modèle d'origine n'est pas modifié. Les onglets de données du modèle sont vidés avant d'y écrire les sources présentes, afin que les anciennes lignes d'exemple ne soient pas prises pour des résultats.
 
+## Utilisation depuis une application
+
+Le traitement est aussi exposé par `executer_pipeline`. Une application web peut fournir un dossier de dépôt et un chemin de résultat sans modifier les constantes du lanceur local :
+
+```python
+from main_bddmas import ErreurPrecontrole, executer_pipeline
+
+try:
+	resultat = executer_pipeline(
+		dossier_data="job/data",
+		dossier_dicos="dictionnaires",
+		chemin_sortie="job/TAB_BDDMAS_Tout_perimetre.xlsx",
+		chemin_modele="TAB_BDDMAS_INSEE2022_MODELE.xlsx",
+		dossier_export_sig=None,
+		persister_sql=False,
+		afficher_progression=False,
+	)
+except ErreurPrecontrole as erreur:
+	rapport = erreur.rapport
+```
+
+Le rapport de pré-contrôle est également renvoyé dans `resultat["precontrole"]`. `dossier_export_sig=None` et `persister_sql=False` désactivent ces sorties, ce qui convient à une génération web isolée. Le périmètre est fourni dans `dossier_data`; les chemins du modèle, des superficies, des calculs et des titres peuvent être surchargés si besoin.
+
 Pendant l'exécution, `tqdm` affiche la progression des étapes du pipeline, la lecture du recensement et l'écriture des lignes Excel. Pour le recensement, le nombre de lignes et le temps restant sont estimés à partir des 2 premiers Mo du fichier; cette estimation est indicative et s'affine au fur et à mesure de la lecture.
 
 ## Fichiers d'entrée
 
 - `data/Périmètres_MAS.csv` est le référentiel géographique requis. Il doit contenir au minimum `IRIS` et les colonnes de périmètre utilisées par `modules/socle_geo.py`.
-- Les CSV thématiques INSEE, CAF, CNAM, DEFM et RPLS sont déposés dans `data/`. Le nom du fichier doit correspondre à une entrée de `dictionnaires/files_names.yml`; les fichiers non mappés et les fichiers `meta_` sont ignorés. Les noms de variables sont traduits avec le dictionnaire thématique correspondant.
-- Les sources thématiques actuellement présentes sont POP 2022 et LOG 2022. Les onglets des autres thèmes restent dans le modèle mais ne sont pas alimentés tant que leurs sources correspondantes ne sont pas déposées dans `data/`.
-- `data/FD_INDCVI_2022.csv` est la source individuelle du recensement (plusieurs Go). Elle doit être séparée par des points-virgules et contenir `IRIS`, `AGEREV`, `AGED` et `IPONDI`. Seules ces colonnes sont lues, par blocs.
+- Les CSV thématiques INSEE, FILO, CAF, CNAM, DEFM et RPLS sont déposés dans `data/`. Le nom du fichier doit correspondre à une entrée de `dictionnaires/files_names.yml`; les fichiers non mappés sont signalés par le pré-contrôle.
+- Les métadonnées `meta_*.csv` sont placées dans `dictionnaires/meta/` et appariées par nom normalisé. Les colonnes `COD_VAR` et `LIB_VAR` fournissent les libellés; les modalités textuelles sont traduites à partir de `COD_MOD` et `LIB_MOD` lorsqu'elles existent. Les dictionnaires YAML restent utilisés en complément ou en repli.
+- Le fichier individuel du recensement commence par `FD_INDCVI_` et doit contenir `IRIS`, `AGEREV`, `AGED` et `IPONDI`. La méta `varmod_indcvi_2022.csv` documente ces champs. Seules les colonnes requises sont lues, par blocs.
 - `dictionnaires/superficies_iris_roubaix.yml` fournit les superficies par code IRIS, utilisées pour les densités et superficies calculées.
 
 ## Étapes du pipeline
+
+Avant les étapes ci-dessous, `analyser_fichiers_entree` vérifie les sources, les métadonnées, les clés géographiques et les doublons de millésime. Le résultat structuré est disponible pour une interface; les erreurs bloquantes arrêtent `main` avant les calculs.
 
 1. `modules/ingestion.py` identifie d'abord les seuls CSV thématiques mappés, les nettoie, filtre Roubaix lorsque la source possède une colonne `IRIS` ou `COM`, puis traduit les variables.
 2. Le recensement enfants est lu par blocs. `modules/indicateurs.py` filtre les codes IRIS commençant par `59512`, sélectionne les âges inférieurs à 18 ans et additionne le poids `IPONDI` par IRIS et par âge.
