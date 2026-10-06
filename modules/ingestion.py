@@ -14,6 +14,45 @@ def load_mapping(chemin_fichier: str) -> dict:
         print(f"Attention : Le fichier {chemin_fichier} est introuvable.")
         return {}
 
+
+def _normaliser_identifiant(nom: str) -> str:
+    return str(nom).strip().casefold()
+
+
+def _normaliser_nom_fichier(nom: str) -> str:
+    sans_annee = re.sub(r"\d{4}", "", str(nom).casefold())
+    return re.sub(r"[^a-z0-9]", "", sans_annee)
+
+
+def _charger_libelles_metadonnees(fichier: str, dossiers: list[str]) -> dict:
+    nom_base = os.path.splitext(os.path.basename(fichier))[0]
+    if nom_base.casefold().startswith("data_"):
+        nom_base = nom_base[5:]
+    noms_possibles = {f"meta_{nom_base}.csv", f"meta_{nom_base}.CSV"}
+
+    for dossier in dossiers:
+        if not os.path.isdir(dossier):
+            continue
+        noms_existants = {nom.casefold(): nom for nom in os.listdir(dossier)}
+        for nom in noms_possibles:
+            chemin = os.path.join(dossier, noms_existants.get(nom.casefold(), ""))
+            if not os.path.isfile(chemin):
+                continue
+            try:
+                metadonnees = pd.read_csv(chemin, sep=";", dtype=str, encoding="utf-8-sig")
+            except (OSError, pd.errors.ParserError, UnicodeError):
+                continue
+            if not {"COD_VAR", "LIB_VAR"}.issubset(metadonnees.columns):
+                continue
+            metadonnees = metadonnees[["COD_VAR", "LIB_VAR"]].dropna()
+            return {
+                _normaliser_identifiant(code.strip()): libelle.strip()
+                for code, libelle in zip(metadonnees["COD_VAR"], metadonnees["LIB_VAR"])
+                if code.strip() and libelle.strip()
+            }
+    return {}
+
+
 def nettoyage_valeurs_insee(df: pd.DataFrame) -> pd.DataFrame:
     """
     Nettoie les DataFrames Insee :
@@ -38,12 +77,19 @@ def nettoyage_valeurs_insee(df: pd.DataFrame) -> pd.DataFrame:
                 
     return df
 
-def preparer_colonnes_thematiques(df: pd.DataFrame, theme: str, dict_vars: dict) -> pd.DataFrame:
+def preparer_colonnes_thematiques(
+    df: pd.DataFrame,
+    theme: str,
+    dict_vars: dict,
+    libelles_metadonnees: dict | None = None,
+    dict_vars_generiques: dict | None = None,
+) -> pd.DataFrame:
     """
     Reprend la logique de l'ancien script 'rename_columns' mais de façon optimisée.
     Gère les préfixes Insee et les déclinaisons complexes (GSEC).
     """
     nouveaux_noms = []
+    colonnes_source = list(df.columns)
     colonnes_geo = ['IRIS', 'COM', 'TYP_IRIS', 'LAB_IRIS']
     
     for col in df.columns:
@@ -79,7 +125,7 @@ def preparer_colonnes_thematiques(df: pd.DataFrame, theme: str, dict_vars: dict)
             else:
                 nouveaux_noms.append(col.rsplit("_", 1)[-1])
                 
-        elif theme in {"CAF", "CNAM", "DEFM", "RPLS"}:
+        elif theme in {"CAF", "CNAM", "DEFM", "RPLS", "REV"}:
             nouveaux_noms.append(col)
         else: # LOG, DIP, etc.
             nouveaux_noms.append(col.rsplit("_", 1)[-1])
@@ -95,10 +141,23 @@ def preparer_colonnes_thematiques(df: pd.DataFrame, theme: str, dict_vars: dict)
         else:
             noms_dedoublonnes.append(col)
             
-    df.columns = noms_dedoublonnes
-    
-    # Application finale du dictionnaire YAML
-    df = df.rename(columns=dict_vars)
+    libelles_yaml = {
+        _normaliser_identifiant(code): libelle
+        for code, libelle in dict_vars.items()
+    }
+    libelles_metadonnees = libelles_metadonnees or {}
+    libelles_generiques = {
+        _normaliser_identifiant(code): libelle
+        for code, libelle in (dict_vars_generiques or {}).items()
+    }
+    df.columns = [
+        libelles_yaml.get(_normaliser_identifiant(nom))
+        or libelles_metadonnees.get(_normaliser_identifiant(source))
+        or libelles_metadonnees.get(_normaliser_identifiant(nom))
+        or libelles_generiques.get(_normaliser_identifiant(nom))
+        or nom
+        for source, nom in zip(colonnes_source, noms_dedoublonnes)
+    ]
     return df
 
 def ingerer_donnees_thematiques(dossier_data: str, dossier_dicos: str) -> dict:
@@ -119,8 +178,10 @@ def ingerer_donnees_thematiques(dossier_data: str, dossier_dicos: str) -> dict:
         nom_base = fichier[:-4]
         theme_identifie = None
         annee = re.search(r'\d{4}', nom_base).group() if re.search(r'\d{4}', nom_base) else "2022"
+        nom_base_normalise = _normaliser_nom_fichier(nom_base)
         for cle_mapping, nom_cible in mapping_noms.items():
-            if cle_mapping in nom_base:
+            cle_normalisee = _normaliser_nom_fichier(cle_mapping)
+            if cle_mapping.casefold() in nom_base.casefold() or cle_normalisee in nom_base_normalise:
                 theme_identifie = nom_cible
                 break
         if not theme_identifie:
@@ -149,16 +210,33 @@ def ingerer_donnees_thematiques(dossier_data: str, dossier_dicos: str) -> dict:
 
         df_brut = df_brut.reset_index(drop=True)
         df_propre = nettoyage_valeurs_insee(df_brut)
+        colonnes_vides = [
+            colonne
+            for colonne in df_propre.columns
+            if (df_propre[colonne].isna() | df_propre[colonne].astype("string").str.strip().eq("")).all()
+        ]
+        df_propre = df_propre.drop(columns=colonnes_vides)
         cle_finale = f"{theme_identifie} {annee}"
         print(f"Traitement du thème : {cle_finale}")
 
         prefixe_dico = theme_identifie.split(' ')[0]
         fichier_dico = os.path.join(dossier_dicos, f"dictionnaire_variables_{prefixe_dico}.yml")
+        dictionnaire_generique = load_mapping(os.path.join(dossier_dicos, "dictionnaire_variables.yml"))
         if os.path.exists(fichier_dico):
             dict_vars = load_mapping(fichier_dico)
         else:
-            dict_vars = load_mapping(os.path.join(dossier_dicos, "dictionnaire_variables.yml"))
-        df_final = preparer_colonnes_thematiques(df_propre, prefixe_dico, dict_vars)
+            dict_vars = {}
+        libelles_metadonnees = _charger_libelles_metadonnees(
+            fichier,
+            [dossier_data, dossier_dicos],
+        )
+        df_final = preparer_colonnes_thematiques(
+            df_propre,
+            prefixe_dico,
+            dict_vars,
+            libelles_metadonnees,
+            dictionnaire_generique,
+        )
         dico_dataframes[cle_finale] = df_final
             
     return dico_dataframes

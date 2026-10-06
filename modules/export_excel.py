@@ -142,11 +142,38 @@ def preparer_dataframe_modele(nom_onglet: str, dataframe: pd.DataFrame) -> pd.Da
             "Grands quartiers": "Quartiers SIG (Grands quartiers)",
             "Mairies de quartiers": "Mairies de qartiers",
         })
+        resultat = resultat.drop(columns=["Superficie en km²"], errors="ignore")
         colonnes_ages = [f"Age : {age}" for age in range(18) if f"Age : {age}" in resultat.columns]
         resultat["TOTAL 0-17"] = resultat[colonnes_ages].sum(axis=1)
         resultat["Crèches"] = ""
-    if "IRIS" in resultat.columns:
-        resultat = resultat.drop(columns="IRIS")
+    colonnes_techniques = {
+        "iris",
+        "com",
+        "typ iris",
+        "lab iris",
+        "commune ou arm",
+        "type d iris",
+        "label de l iris",
+        "code geographique",
+        "code commune",
+        "libelle geographique",
+    }
+    resultat = resultat.drop(
+        columns=[
+            colonne
+            for colonne in resultat.columns
+            if _normaliser_nom_colonne(colonne) in colonnes_techniques
+        ],
+        errors="ignore",
+    )
+    colonnes_notes_vides = []
+    for colonne in resultat.columns:
+        if _normaliser_nom_colonne(colonne) != "note de diffusion":
+            continue
+        valeurs = resultat[colonne].dropna().astype(str).str.strip()
+        if valeurs.empty or valeurs.isin({"0", "0.0"}).all():
+            colonnes_notes_vides.append(colonne)
+    resultat = resultat.drop(columns=colonnes_notes_vides)
     return resultat
 
 

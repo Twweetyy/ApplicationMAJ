@@ -1,0 +1,54 @@
+DEC_PIMP21: Part des ménages fiscaux imposés (%)
+DEC_TP6021: Taux de bas revenus déclarés au seuil de 60 % (%)
+DEC_INCERT21: Incertitude sur le taux de bas revenus et la part des ménages imposés
+DEC_Q121: 1er quartile (€)
+DEC_MED21: Médiane (€)
+DEC_Q321: 3e quartile (€)
+DEC_EQ21: Écart inter-quartile rapporté à la médiane
+DEC_D121: 1er décile (€)
+DEC_D221: 2e décile (€)
+DEC_D321: 3e décile (€)
+DEC_D421: 4e décile (€)
+DEC_D621: 6e décile (€)
+DEC_D721: 7e décile (€)
+DEC_D821: 8e décile (€)
+DEC_D921: 9e décile (€)
+DEC_RD21: Rapport interdécile D9/D1
+DEC_S80S2021: S80/S20
+DEC_GI21: Indice de Gini
+DEC_PACT21: Part des revenus d’activité (%)
+DEC_PTSA21: dont part des salaires et traitements (%)
+DEC_PCHO21: dont part des indemnités de chômage (%)
+DEC_PBEN21: dont part des revenus des activités non salariées (%)
+DEC_PPEN21: Part des pensions, retraites et rentes (%)
+DEC_PAUT21: Part des autres revenus (%)
+DEC_NOTE21: Note de précaution (voir onglet seuils)
+DISP_TP6021: Taux de pauvreté au seuil de 60 % (%)
+DISP_INCERT21: Incertitude sur le taux de pauvreté
+DISP_Q121: 1er quartile (€)
+DISP_MED21: Médiane (€)
+DISP_Q321: 3e quartile (€)
+DISP_EQ21: Écart inter-quartile rapporté à la médiane
+DISP_D121: 1er décile (€)
+DISP_D221: 2e décile (€)
+DISP_D321: 3e décile (€)
+DISP_D421: 4e décile (€)
+DISP_D621: 6e décile (€)
+DISP_D721: 7e décile (€)
+DISP_D821: 8e décile (€)
+DISP_D921: 9e décile (€)
+DISP_RD21: Rapport interdécile D9/D1
+DISP_S80S2021: S80/S20
+DISP_GI21: Indice de Gini
+DISP_PACT21: Part des revenus d’activité (%)
+DISP_PTSA21: dont part des salaires et traitements (%)
+DISP_PCHO21: dont part des indemnités de chômage (%)
+DISP_PBEN21: dont part des revenus des activités non salariées (%)
+DISP_PPEN21: Part des pensions, retraites et rentes (%)
+DISP_PPAT21: Part des revenus du patrimoine et autres revenus (%)
+DISP_PPSOC21: Part de l’ensemble des prestations sociales (%)
+DISP_PPFAM21: dont part des prestations familiales (%)
+DISP_PPMINI21: dont part des minima sociaux (%)
+DISP_PPLOGT21: dont part des prestations logement (%)
+DISP_PIMPOT21: Part des impôts (%)
+DISP_NOTE21: Note de précaution (voir onglet seuils)
