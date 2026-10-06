@@ -7,6 +7,8 @@ import openpyxl
 from openpyxl import load_workbook
 from openpyxl.utils import get_column_letter
 from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
+from openpyxl.utils.cell import range_boundaries
+from openpyxl.worksheet.table import TableColumn
 import yaml
 from tqdm.auto import tqdm
 
@@ -430,6 +432,41 @@ def _generer_depuis_modele(
                 column=colonne,
                 value=f"=SUBTOTAL(9,{lettre}3:{lettre}{derniere_ligne_donnees})",
             )
+
+    for worksheet in workbook.worksheets:
+        for table in worksheet.tables.values():
+            min_col, min_row, max_col, max_row = range_boundaries(table.ref)
+            max_col = max(max_col, worksheet.max_column)
+            max_row = max(max_row, worksheet.max_row)
+            largeur = max_col - min_col + 1
+            table_columns = list(table.tableColumns[:largeur])
+            while len(table_columns) < largeur:
+                index = len(table_columns) + 1
+                table_columns.append(TableColumn(id=index, name=f"Column{index}"))
+
+            noms_utilises = set()
+            for index, table_column in enumerate(table_columns):
+                colonne = min_col + index
+                entete = worksheet.cell(row=min_row, column=colonne).value
+                nom_entete = str(entete) if entete is not None else f"Column{index + 1}"
+                nom_unique = nom_entete
+                suffixe = 2
+                while nom_unique in noms_utilises:
+                    nom_unique = f"{nom_entete}_{suffixe}"
+                    suffixe += 1
+                if nom_unique != entete:
+                    worksheet.cell(row=min_row, column=colonne, value=nom_unique)
+                noms_utilises.add(nom_unique)
+                table_column.id = index + 1
+                table_column.name = nom_unique
+
+            table.tableColumns = table_columns
+            table.ref = (
+                f"{get_column_letter(min_col)}{min_row}:"
+                f"{get_column_letter(max_col)}{max_row}"
+            )
+            if table.autoFilter is not None:
+                table.autoFilter.ref = table.ref
 
     os.makedirs(os.path.dirname(os.path.abspath(chemin_sortie)), exist_ok=True)
     workbook.save(chemin_sortie)
