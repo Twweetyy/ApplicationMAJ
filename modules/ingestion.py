@@ -79,6 +79,8 @@ def preparer_colonnes_thematiques(df: pd.DataFrame, theme: str, dict_vars: dict)
             else:
                 nouveaux_noms.append(col.rsplit("_", 1)[-1])
                 
+        elif theme in {"CAF", "CNAM", "DEFM", "RPLS"}:
+            nouveaux_noms.append(col)
         else: # LOG, DIP, etc.
             nouveaux_noms.append(col.rsplit("_", 1)[-1])
             
@@ -128,9 +130,16 @@ def ingerer_donnees_thematiques(dossier_data: str, dossier_dicos: str) -> dict:
         df_brut = pd.read_csv(
             chemin_complet,
             sep=";",
-            dtype={'IRIS': str, 'CODGEO': str, 'COM': str, 'LAB_IRIS': str},
+            dtype={'IRIS': str, 'CODGEO': str, 'CodGeo': str, 'COM': str, 'LAB_IRIS': str},
             low_memory=False,
         )
+
+        colonne_code_iris = next(
+            (colonne for colonne in df_brut.columns if colonne.casefold() in {"codgeo", "iris"}),
+            None,
+        )
+        if colonne_code_iris and colonne_code_iris != "IRIS":
+            df_brut = df_brut.rename(columns={colonne_code_iris: "IRIS"})
 
         # Filtrage strict sur Roubaix
         if "IRIS" in df_brut.columns:
@@ -145,7 +154,10 @@ def ingerer_donnees_thematiques(dossier_data: str, dossier_dicos: str) -> dict:
 
         prefixe_dico = theme_identifie.split(' ')[0]
         fichier_dico = os.path.join(dossier_dicos, f"dictionnaire_variables_{prefixe_dico}.yml")
-        dict_vars = load_mapping(fichier_dico)
+        if os.path.exists(fichier_dico):
+            dict_vars = load_mapping(fichier_dico)
+        else:
+            dict_vars = load_mapping(os.path.join(dossier_dicos, "dictionnaire_variables.yml"))
         df_final = preparer_colonnes_thematiques(df_propre, prefixe_dico, dict_vars)
         dico_dataframes[cle_finale] = df_final
             

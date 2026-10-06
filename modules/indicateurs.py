@@ -114,8 +114,15 @@ def ajouter_indicateurs_calcules(fichiers: dict, chemin_yaml: str) -> dict:
         var4 = params.get("var4")
         
         if df_name not in fichiers:
-            # Le DataFrame n'a pas encore été chargé ou n'existe pas
-            continue
+            theme = df_name.rsplit(" ", 1)[0] if isinstance(df_name, str) else None
+            correspondances = [
+                nom_fichier
+                for nom_fichier in fichiers
+                if isinstance(nom_fichier, str) and nom_fichier.rsplit(" ", 1)[0] == theme
+            ]
+            if len(correspondances) != 1:
+                continue
+            df_name = correspondances[0]
             
         df = fichiers[df_name]
         
