@@ -24,33 +24,82 @@ def _normaliser_nom_fichier(nom: str) -> str:
     return re.sub(r"[^a-z0-9]", "", sans_annee)
 
 
-def _charger_libelles_metadonnees(fichier: str, dossiers: list[str]) -> dict:
-    nom_base = os.path.splitext(os.path.basename(fichier))[0]
-    if nom_base.casefold().startswith("data_"):
+def _cle_nom_fichier_meta(nom_fichier: str) -> str:
+    nom_base = os.path.splitext(os.path.basename(nom_fichier))[0]
+    prefixe = nom_base.casefold()
+    if prefixe.startswith("meta_") or prefixe.startswith("data_"):
         nom_base = nom_base[5:]
-    noms_possibles = {f"meta_{nom_base}.csv", f"meta_{nom_base}.CSV"}
+    return _normaliser_nom_fichier(nom_base)
 
+
+def _trouver_fichier_meta(fichier: str, dossiers: list[str]) -> str | None:
+    cle_source = _cle_nom_fichier_meta(fichier)
     for dossier in dossiers:
         if not os.path.isdir(dossier):
             continue
-        noms_existants = {nom.casefold(): nom for nom in os.listdir(dossier)}
-        for nom in noms_possibles:
-            chemin = os.path.join(dossier, noms_existants.get(nom.casefold(), ""))
-            if not os.path.isfile(chemin):
+        for nom in os.listdir(dossier):
+            if not nom.casefold().startswith("meta_") or not nom.casefold().endswith(".csv"):
                 continue
-            try:
-                metadonnees = pd.read_csv(chemin, sep=";", dtype=str, encoding="utf-8-sig")
-            except (OSError, pd.errors.ParserError, UnicodeError):
-                continue
-            if not {"COD_VAR", "LIB_VAR"}.issubset(metadonnees.columns):
-                continue
-            metadonnees = metadonnees[["COD_VAR", "LIB_VAR"]].dropna()
-            return {
-                _normaliser_identifiant(code.strip()): libelle.strip()
-                for code, libelle in zip(metadonnees["COD_VAR"], metadonnees["LIB_VAR"])
-                if code.strip() and libelle.strip()
-            }
-    return {}
+            if _cle_nom_fichier_meta(nom) == cle_source:
+                return os.path.join(dossier, nom)
+    return None
+
+
+def _normaliser_modalite(valeur) -> str:
+    texte = str(valeur).strip()
+    try:
+        nombre = float(texte.replace(",", "."))
+        if nombre.is_integer():
+            return str(int(nombre))
+    except ValueError:
+        pass
+    return texte.casefold()
+
+
+def _charger_metadonnees(
+    chemin: str | None,
+    colonnes_variables: list[str] | None = None,
+) -> tuple[dict, dict]:
+    if not chemin:
+        return {}, {}
+    try:
+        metadonnees = pd.read_csv(chemin, sep=";", dtype=str, encoding="utf-8-sig")
+    except (OSError, pd.errors.ParserError, UnicodeError):
+        return {}, {}
+    metadonnees.columns = [str(colonne).strip().upper() for colonne in metadonnees.columns]
+    if not {"COD_VAR", "LIB_VAR"}.issubset(metadonnees.columns):
+        return {}, {}
+
+    metadonnees["COD_VAR"] = metadonnees["COD_VAR"].astype("string").str.strip()
+    metadonnees["CODE_NORMALISE"] = metadonnees["COD_VAR"].map(_normaliser_identifiant)
+    if colonnes_variables is not None:
+        codes_requis = {_normaliser_identifiant(colonne) for colonne in colonnes_variables}
+        metadonnees = metadonnees[metadonnees["CODE_NORMALISE"].isin(codes_requis)]
+
+    variables = metadonnees[["CODE_NORMALISE", "LIB_VAR"]].dropna().drop_duplicates("CODE_NORMALISE")
+    libelles = {
+        code: libelle.strip()
+        for code, libelle in zip(variables["CODE_NORMALISE"], variables["LIB_VAR"])
+        if str(libelle).strip()
+    }
+
+    colonnes_modalites = {"COD_MOD", "LIB_MOD", "TYPE_VAR"}
+    modalites = {}
+    if colonnes_modalites.issubset(metadonnees.columns):
+        variables_a_modalites = metadonnees[
+            metadonnees["TYPE_VAR"].astype("string").str.upper().eq("CHAR")
+            & ~metadonnees["CODE_NORMALISE"].isin({"iris", "codgeo", "com"})
+        ][["CODE_NORMALISE", "COD_MOD", "LIB_MOD"]].dropna()
+        modalites = {
+            (code, _normaliser_modalite(modalite)): libelle.strip()
+            for code, modalite, libelle in zip(
+                variables_a_modalites["CODE_NORMALISE"],
+                variables_a_modalites["COD_MOD"],
+                variables_a_modalites["LIB_MOD"],
+            )
+            if str(libelle).strip()
+        }
+    return libelles, modalites
 
 
 def nettoyage_valeurs_insee(df: pd.DataFrame) -> pd.DataFrame:
@@ -83,6 +132,7 @@ def preparer_colonnes_thematiques(
     dict_vars: dict,
     libelles_metadonnees: dict | None = None,
     dict_vars_generiques: dict | None = None,
+    modalites_metadonnees: dict | None = None,
 ) -> pd.DataFrame:
     """
     Reprend la logique de l'ancien script 'rename_columns' mais de façon optimisée.
@@ -150,7 +200,8 @@ def preparer_colonnes_thematiques(
         _normaliser_identifiant(code): libelle
         for code, libelle in (dict_vars_generiques or {}).items()
     }
-    df.columns = [
+    modalites_metadonnees = modalites_metadonnees or {}
+    noms_finaux = [
         libelles_yaml.get(_normaliser_identifiant(nom))
         or libelles_metadonnees.get(_normaliser_identifiant(source))
         or libelles_metadonnees.get(_normaliser_identifiant(nom))
@@ -158,6 +209,20 @@ def preparer_colonnes_thematiques(
         or nom
         for source, nom in zip(colonnes_source, noms_dedoublonnes)
     ]
+    for source, nom_final in zip(colonnes_source, noms_finaux):
+        code_variable = _normaliser_identifiant(source)
+        correspondances = {
+            _normaliser_modalite(valeur): modalites_metadonnees[(code_variable, _normaliser_modalite(valeur))]
+            for valeur in df[source].dropna().unique()
+            if (code_variable, _normaliser_modalite(valeur)) in modalites_metadonnees
+        }
+        if correspondances:
+            df[source] = df[source].map(
+                lambda valeur: correspondances.get(_normaliser_modalite(valeur), valeur)
+                if not pd.isna(valeur)
+                else valeur
+            )
+    df.columns = noms_finaux
     return df
 
 def ingerer_donnees_thematiques(dossier_data: str, dossier_dicos: str) -> dict:
@@ -226,9 +291,13 @@ def ingerer_donnees_thematiques(dossier_data: str, dossier_dicos: str) -> dict:
             dict_vars = load_mapping(fichier_dico)
         else:
             dict_vars = {}
-        libelles_metadonnees = _charger_libelles_metadonnees(
+        chemin_meta = _trouver_fichier_meta(
             fichier,
-            [dossier_data, dossier_dicos],
+            [os.path.join(dossier_dicos, "meta"), dossier_data, dossier_dicos],
+        )
+        libelles_metadonnees, modalites_metadonnees = _charger_metadonnees(
+            chemin_meta,
+            df_propre.columns.tolist(),
         )
         df_final = preparer_colonnes_thematiques(
             df_propre,
@@ -236,6 +305,7 @@ def ingerer_donnees_thematiques(dossier_data: str, dossier_dicos: str) -> dict:
             dict_vars,
             libelles_metadonnees,
             dictionnaire_generique,
+            modalites_metadonnees,
         )
         dico_dataframes[cle_finale] = df_final
             

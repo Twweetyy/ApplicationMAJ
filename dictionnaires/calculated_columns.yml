@@ -489,48 +489,48 @@ Part des allocataires bénéficiant du RSA socle (%) :
 
 Part de la population couverte bénéficiaire de la C2S non participative (%) :
   df: CNAM 2024
-  var1: Population couverte bénéficiaire de la C2S non participative
-  var2: Population couverte
+  var1: Population couverte bénéficiaire de la C2S non participative (ex-CMUC)
+  var2: Population couverte bénéficiaire du régime général
   var3:
   var4:
   expression: files[df][var1] * 100 / files[df][var2]
 
 Part des bénéficiaires de la C2S non participative de moins de 18 ans (%) :
   df: CNAM 2024
-  var1: Bénéficiaires de la C2S non participative de moins de 18 ans
-  var2: Population couverte bénéficiaire de la C2S non participative
+  var1: Bénéficiaires de la C2S non participative (ex-CMUC) de moins de 18 ans
+  var2: Population couverte bénéficiaire de la C2S non participative (ex-CMUC)
   var3:
   var4:
   expression: files[df][var1] * 100 / files[df][var2]
 
 Part des moins de 18 ans bénéficiaires de la C2S non participative(%) :
   df: CNAM 2024
-  var1: Bénéficiaires de la C2S non participative de moins de 18 ans
-  var2: Moins de 18 ans
+  var1: Bénéficiaires de la C2S non participative (ex-CMUC) de moins de 18 ans
+  var2: Bénéficiaires du régime général de moins de 18 ans
   var3:
   var4:
   expression: files[df][var1] * 100 / files[df][var2]
 
 Part de la population couverte bénéficiaire de la C2S participative (%) :
   df: CNAM 2024
-  var1: Population couverte bénéficiaire de la C2S participative
-  var2: Population couverte
+  var1: Population couverte bénéficiaire de la C2S participative (ex-ACS)
+  var2: Population couverte bénéficiaire du régime général
   var3:
   var4:
   expression: files[df][var1] * 100 / files[df][var2]
 
 Part des bénéficiaires de la C2S participative de moins de 18 ans (%) :
   df: CNAM 2024
-  var1: Bénéficiaires de la C2S participative de moins de 18 ans
-  var2: Population couverte bénéficiaire de la C2S participative
+  var1: Bénéficiaires de la C2S participative (ex-ACS) de moins de 18 ans
+  var2: Population couverte bénéficiaire de la C2S participative (ex-ACS)
   var3:
   var4:
   expression: files[df][var1] * 100 / files[df][var2]
 
 Part des moins de 18 ans bénéficiaires de la C2S participative (%) :
   df: CNAM 2024
-  var1: Bénéficiaires de la C2S participative de moins de 18 ans
-  var2: Moins de 18 ans
+  var1: Bénéficiaires de la C2S participative (ex-ACS) de moins de 18 ans
+  var2: Bénéficiaires du régime général de moins de 18 ans
   var3:
   var4:
   expression: files[df][var1] * 100 / files[df][var2]
