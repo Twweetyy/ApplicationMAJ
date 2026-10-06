@@ -2,7 +2,7 @@ import os
 from time import perf_counter
 from tqdm.auto import tqdm
 from modules.socle_geo import ajouter_superficies_iris, charger_referentiel_mas, joindre_perimetre
-from modules.ingestion import ingerer_donnees_thematiques, lire_individus_recensement
+from modules.ingestion import ingerer_donnees_thematiques, lire_individus_recensement, trouver_fichier_meta
 from modules.indicateurs import ajouter_indicateurs_calcules, arrondir_variables
 from modules.indicateurs import calculer_repartition_enfants
 from modules.export_excel import generer_fichier_bddmas
@@ -33,7 +33,14 @@ def main():
 
         progression.set_postfix_str("calcul des enfants pondérés")
         if os.path.exists(FICHIER_INDIVIDUS):
-            blocs_individus = lire_individus_recensement(FICHIER_INDIVIDUS)
+            meta_individus = trouver_fichier_meta(
+                FICHIER_INDIVIDUS,
+                [os.path.join(DOSSIER_DICOS, "meta")],
+            )
+            blocs_individus = lire_individus_recensement(
+                FICHIER_INDIVIDUS,
+                chemin_meta=meta_individus,
+            )
             repartitions = calculer_repartition_enfants(blocs_individus)
             dico_fichiers["PETITE ENFANCE 2022"] = repartitions["Enfants âge révolu"]
             dico_fichiers["PETITE ENFANCE MILLÉSIME"] = repartitions["Enfants âge millésime"]

@@ -32,15 +32,21 @@ def _cle_nom_fichier_meta(nom_fichier: str) -> str:
     return _normaliser_nom_fichier(nom_base)
 
 
-def _trouver_fichier_meta(fichier: str, dossiers: list[str]) -> str | None:
+def trouver_fichier_meta(fichier: str, dossiers: list[str]) -> str | None:
     cle_source = _cle_nom_fichier_meta(fichier)
     for dossier in dossiers:
         if not os.path.isdir(dossier):
             continue
         for nom in os.listdir(dossier):
-            if not nom.casefold().startswith("meta_") or not nom.casefold().endswith(".csv"):
+            nom_normalise = nom.casefold()
+            if not nom_normalise.endswith(".csv"):
                 continue
-            if _cle_nom_fichier_meta(nom) == cle_source:
+            est_meta_source = nom_normalise.startswith("meta_") and _cle_nom_fichier_meta(nom) == cle_source
+            est_meta_individus = (
+                cle_source == _normaliser_nom_fichier("FD_INDCVI")
+                and _cle_nom_fichier_meta(nom) == _normaliser_nom_fichier("varmod_indcvi")
+            )
+            if est_meta_source or est_meta_individus:
                 return os.path.join(dossier, nom)
     return None
 
@@ -291,7 +297,7 @@ def ingerer_donnees_thematiques(dossier_data: str, dossier_dicos: str) -> dict:
             dict_vars = load_mapping(fichier_dico)
         else:
             dict_vars = {}
-        chemin_meta = _trouver_fichier_meta(
+        chemin_meta = trouver_fichier_meta(
             fichier,
             [os.path.join(dossier_dicos, "meta"), dossier_data, dossier_dicos],
         )
@@ -330,12 +336,28 @@ def _estimer_nombre_lignes_csv(chemin_fichier: str, taille_echantillon: int = 2_
     return max(0, round(taille_fichier / octets_par_ligne) - 1)
 
 
-def lire_individus_recensement(chemin_fichier: str, taille_bloc: int = 250_000):
+def lire_individus_recensement(
+    chemin_fichier: str,
+    taille_bloc: int = 250_000,
+    chemin_meta: str | None = None,
+):
     """Lit les variables enfants par blocs avec une estimation de progression."""
     if not os.path.exists(chemin_fichier):
         raise FileNotFoundError(f"Fichier de recensement introuvable : {chemin_fichier}")
 
     colonnes = ["IRIS", "AGEREV", "AGED", "IPONDI"]
+    if chemin_meta:
+        libelles_meta, _ = _charger_metadonnees(chemin_meta, colonnes)
+        codes_documentes = set(libelles_meta)
+        colonnes_sans_meta = [
+            colonne for colonne in colonnes
+            if _normaliser_identifiant(colonne) not in codes_documentes
+        ]
+        if colonnes_sans_meta:
+            raise ValueError(
+                "La métadonnée du recensement ne documente pas les colonnes requises : "
+                + ", ".join(colonnes_sans_meta)
+            )
     types = {
         "IRIS": str,
         "AGEREV": "float64",
