@@ -2,7 +2,12 @@ import os
 from time import perf_counter
 from tqdm.auto import tqdm
 from modules.socle_geo import ajouter_superficies_iris, charger_referentiel_mas, joindre_perimetre
-from modules.ingestion import ingerer_donnees_thematiques, lire_individus_recensement, trouver_fichier_meta
+from modules.ingestion import (
+    analyser_fichiers_entree,
+    ingerer_donnees_thematiques,
+    lire_individus_recensement,
+    trouver_fichier_meta,
+)
 from modules.indicateurs import ajouter_indicateurs_calcules, arrondir_variables
 from modules.indicateurs import calculer_repartition_enfants
 from modules.export_excel import generer_fichier_bddmas
@@ -25,6 +30,23 @@ FICHIER_SORTIE = os.path.join(DOSSIER_COURANT, "TAB_BDDMAS_INSEE2022_Tout_perime
 def main():
     debut = perf_counter()
     print("=== PIPELINE BDDMAS ROUBAIX ===")
+
+    rapport_precontrole = analyser_fichiers_entree(DOSSIER_DATA, DOSSIER_DICOS)
+    nombre_themes = sum(source["role"] == "theme" for source in rapport_precontrole["sources"])
+    print(
+        "Pré-contrôle : "
+        f"{nombre_themes} sources thématiques, "
+        f"{sum(source['role'] == 'perimetre' for source in rapport_precontrole['sources'])} périmètre, "
+        f"{sum(source['role'] == 'microdonnees_enfants' for source in rapport_precontrole['sources'])} fichier(s) enfants."
+    )
+    for avertissement in rapport_precontrole["avertissements"]:
+        fichier = avertissement.get("fichier", "")
+        print(f"AVERTISSEMENT {fichier} : {avertissement['message']}")
+    if rapport_precontrole["erreurs"]:
+        for erreur in rapport_precontrole["erreurs"]:
+            fichier = erreur.get("fichier", "")
+            print(f"ERREUR {fichier} : {erreur['message']}")
+        raise ValueError("Pré-contrôle bloquant : le pipeline n'a pas été lancé.")
 
     with tqdm(total=9, desc="Pipeline BDDMAS", unit="étapes", dynamic_ncols=True) as progression:
         progression.set_postfix_str("ingestion des thèmes")

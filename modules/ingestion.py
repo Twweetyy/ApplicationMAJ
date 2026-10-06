@@ -1,5 +1,6 @@
 import os
 import re
+import unicodedata
 import pandas as pd
 import numpy as np
 import yaml
@@ -20,7 +21,9 @@ def _normaliser_identifiant(nom: str) -> str:
 
 
 def _normaliser_nom_fichier(nom: str) -> str:
-    sans_annee = re.sub(r"\d{4}", "", str(nom).casefold())
+    texte = unicodedata.normalize("NFKD", str(nom).casefold())
+    texte = "".join(caractere for caractere in texte if not unicodedata.combining(caractere))
+    sans_annee = re.sub(r"\d{4}", "", texte)
     return re.sub(r"[^a-z0-9]", "", sans_annee)
 
 
@@ -106,6 +109,237 @@ def _charger_metadonnees(
             if str(libelle).strip()
         }
     return libelles, modalites
+
+
+def _identifier_theme_fichier(nom_fichier: str, mapping_noms: dict) -> tuple[str | None, str]:
+    nom_base = os.path.splitext(os.path.basename(nom_fichier))[0]
+    correspondance_annee = re.search(r"\d{4}", nom_base)
+    annee = correspondance_annee.group() if correspondance_annee else "2022"
+    nom_base_normalise = _normaliser_nom_fichier(nom_base)
+    for cle_mapping, nom_cible in mapping_noms.items():
+        cle_normalisee = _normaliser_nom_fichier(cle_mapping)
+        if cle_mapping.casefold() in nom_base.casefold() or cle_normalisee in nom_base_normalise:
+            return nom_cible, annee
+    return None, annee
+
+
+def analyser_fichiers_entree(dossier_data: str, dossier_dicos: str) -> dict:
+    """Inspecte un lot d'entrée et retourne un rapport JSON-compatible sans traiter les lignes."""
+    rapport = {
+        "statut": "ok",
+        "sources": [],
+        "avertissements": [],
+        "erreurs": [],
+        "fichiers_ignores": [],
+    }
+    if not os.path.isdir(dossier_data):
+        rapport["erreurs"].append({
+            "code": "dossier_data_absent",
+            "message": f"Dossier de données introuvable : {dossier_data}",
+        })
+        rapport["statut"] = "erreur"
+        return rapport
+
+    mapping_noms = load_mapping(os.path.join(dossier_dicos, "files_names.yml"))
+    sources_par_theme = {}
+    perimetre_trouve = False
+    individus_trouves = False
+    dossier_meta = os.path.join(dossier_dicos, "meta")
+
+    for fichier in sorted(os.listdir(dossier_data)):
+        if not fichier.casefold().endswith(".csv") or fichier.casefold().startswith("meta_"):
+            continue
+
+        cle_fichier = _normaliser_nom_fichier(os.path.splitext(fichier)[0])
+        if cle_fichier == "perimetresmas":
+            role = "perimetre"
+            theme = None
+            annee = None
+        elif cle_fichier.startswith("fdindcvi"):
+            role = "microdonnees_enfants"
+            theme = None
+            annee = re.search(r"\d{4}", fichier)
+            annee = annee.group() if annee else None
+        else:
+            theme, annee = _identifier_theme_fichier(fichier, mapping_noms)
+            role = "theme" if theme else None
+
+        if role is None:
+            rapport["fichiers_ignores"].append(fichier)
+            rapport["avertissements"].append({
+                "code": "fichier_non_reconnu",
+                "fichier": fichier,
+                "message": "Aucune entrée de files_names.yml ne reconnaît ce nom; le fichier sera ignoré.",
+            })
+            continue
+
+        chemin = os.path.join(dossier_data, fichier)
+        try:
+            separateur = "," if role == "perimetre" else ";"
+            entetes = list(
+                pd.read_csv(
+                    chemin,
+                    sep=separateur,
+                    nrows=0,
+                    encoding="utf-8-sig",
+                ).columns
+            )
+        except (OSError, pd.errors.ParserError, pd.errors.EmptyDataError, UnicodeError) as erreur:
+            rapport["erreurs"].append({
+                "code": "csv_illisible",
+                "fichier": fichier,
+                "message": f"Impossible de lire l'en-tête du CSV : {erreur}",
+            })
+            continue
+
+        entetes_normalisees = {_normaliser_identifiant(entete) for entete in entetes}
+        meta_path = trouver_fichier_meta(fichier, [dossier_meta])
+        source = {
+            "fichier": fichier,
+            "role": role,
+            "theme": theme,
+            "millesime": annee,
+            "nombre_colonnes": len(entetes),
+            "meta": os.path.basename(meta_path) if meta_path else None,
+            "colonnes_non_documentees": [],
+        }
+        rapport["sources"].append(source)
+
+        if role == "perimetre":
+            perimetre_trouve = True
+            if "iris" not in entetes_normalisees:
+                rapport["erreurs"].append({
+                    "code": "cle_iris_absente",
+                    "fichier": fichier,
+                    "message": "Le référentiel de périmètre doit contenir une colonne IRIS.",
+                })
+            continue
+
+        if role == "microdonnees_enfants":
+            individus_trouves = True
+            colonnes_requises = {"iris", "agerev", "aged", "ipondi"}
+            manquantes = sorted(colonnes_requises - entetes_normalisees)
+            if manquantes:
+                rapport["erreurs"].append({
+                    "code": "colonnes_enfants_absentes",
+                    "fichier": fichier,
+                    "colonnes": manquantes,
+                    "message": "Le fichier enfants ne contient pas toutes les colonnes utilisées par le calcul.",
+                })
+            if not meta_path:
+                rapport["avertissements"].append({
+                    "code": "meta_absente",
+                    "fichier": fichier,
+                    "message": "La méta varmod_indcvi n'a pas été trouvée.",
+                })
+            else:
+                libelles_meta, _ = _charger_metadonnees(meta_path, list(colonnes_requises))
+                colonnes_sans_meta = sorted(colonnes_requises - set(libelles_meta))
+                if colonnes_sans_meta:
+                    rapport["erreurs"].append({
+                        "code": "colonnes_enfants_non_documentees",
+                        "fichier": fichier,
+                        "colonnes": colonnes_sans_meta,
+                        "message": "La méta du fichier enfants ne documente pas toutes les colonnes requises.",
+                    })
+            continue
+
+        if not entetes_normalisees.intersection({"iris", "codgeo", "com"}):
+            rapport["erreurs"].append({
+                "code": "cle_geographique_absente",
+                "fichier": fichier,
+                "theme": theme,
+                "message": "Aucune colonne IRIS, CODGEO ou COM n'a été trouvée.",
+            })
+
+        if not meta_path:
+            rapport["avertissements"].append({
+                "code": "meta_absente",
+                "fichier": fichier,
+                "theme": theme,
+                "message": "Aucune méta correspondante; les dictionnaires YAML seront utilisés en repli.",
+            })
+        else:
+            try:
+                entetes_meta = {
+                    str(colonne).strip().upper()
+                    for colonne in pd.read_csv(meta_path, sep=";", nrows=0, encoding="utf-8-sig").columns
+                }
+                if not {"COD_VAR", "LIB_VAR"}.issubset(entetes_meta):
+                    raise ValueError("Les colonnes COD_VAR et LIB_VAR sont requises.")
+                codes_meta = {
+                    _normaliser_identifiant(code)
+                    for code in pd.read_csv(
+                        meta_path,
+                        sep=";",
+                        usecols=["COD_VAR"],
+                        dtype=str,
+                        encoding="utf-8-sig",
+                    )["COD_VAR"].dropna()
+                }
+                prefixe_dico = theme.split(" ", 1)[0]
+                chemins_dictionnaires = [
+                    os.path.join(dossier_dicos, "dictionnaire_variables.yml"),
+                    os.path.join(dossier_dicos, f"dictionnaire_variables_{prefixe_dico}.yml"),
+                ]
+                for chemin_dictionnaire in chemins_dictionnaires:
+                    if not os.path.isfile(chemin_dictionnaire):
+                        continue
+                    codes_meta.update(
+                        _normaliser_identifiant(code)
+                        for code in load_mapping(chemin_dictionnaire)
+                    )
+                non_documentees = sorted(entete for entete in entetes if _normaliser_identifiant(entete) not in codes_meta)
+                source["colonnes_non_documentees"] = non_documentees
+                if non_documentees:
+                    rapport["avertissements"].append({
+                        "code": "colonnes_non_documentees",
+                        "fichier": fichier,
+                        "theme": theme,
+                        "colonnes": non_documentees,
+                        "message": "Ces colonnes n'ont pas de libellé dans la méta et seront conservées sous leur nom source.",
+                    })
+            except (OSError, pd.errors.ParserError, pd.errors.EmptyDataError, UnicodeError, ValueError) as erreur:
+                rapport["erreurs"].append({
+                    "code": "meta_invalide",
+                    "fichier": fichier,
+                    "meta": os.path.basename(meta_path),
+                    "message": f"La méta ne peut pas être utilisée : {erreur}",
+                })
+
+        sources_par_theme.setdefault(theme, []).append({"fichier": fichier, "millesime": annee})
+
+    if not perimetre_trouve:
+        rapport["erreurs"].append({
+            "code": "perimetre_absent",
+            "message": "Le fichier Périmètres_MAS.csv est requis pour joindre les données géographiques.",
+        })
+    if not sources_par_theme:
+        rapport["erreurs"].append({
+            "code": "aucun_theme_reconnu",
+            "message": "Aucun CSV thématique ne correspond aux entrées de files_names.yml.",
+        })
+    if not individus_trouves:
+        rapport["avertissements"].append({
+            "code": "microdonnees_enfants_absentes",
+            "message": "Le calcul de la petite enfance sera ignoré : aucun FD_INDCVI n'a été trouvé.",
+        })
+
+    for theme, sources in sources_par_theme.items():
+        annees = {source["millesime"] for source in sources}
+        if len(sources) > 1:
+            rapport["erreurs"].append({
+                "code": "versions_multiples_theme",
+                "theme": theme,
+                "fichiers": [source["fichier"] for source in sources],
+                "message": "Plusieurs fichiers du même thème sont présents; le millésime à utiliser est ambigu.",
+            })
+
+    if rapport["erreurs"]:
+        rapport["statut"] = "erreur"
+    elif rapport["avertissements"]:
+        rapport["statut"] = "attention"
+    return rapport
 
 
 def nettoyage_valeurs_insee(df: pd.DataFrame) -> pd.DataFrame:
