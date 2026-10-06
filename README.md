@@ -53,6 +53,17 @@ except ErreurPrecontrole as erreur:
 
 Le rapport de pré-contrôle est également renvoyé dans `resultat["precontrole"]`. `dossier_export_sig=None` et `persister_sql=False` désactivent ces sorties, ce qui convient à une génération web isolée. Le périmètre est fourni dans `dossier_data`; les chemins du modèle, des superficies, des calculs et des titres peuvent être surchargés si besoin.
 
+## Application web locale
+
+Installer les dépendances, puis lancer le serveur depuis la racine du projet :
+
+```powershell
+python -m pip install -r requirements.txt
+python -m uvicorn webapp:app --host 127.0.0.1 --port 8000
+```
+
+Ouvrir `http://127.0.0.1:8000`. Déposer les CSV de données et leurs fichiers `meta_*.csv` (ainsi que `varmod_indcvi_2022.csv` pour INDCVI). L’interface affiche le pré-contrôle avant d’autoriser la génération. Les jobs sont isolés dans le répertoire temporaire du système et nettoyés après 12 heures; SIG et SQL ne sont pas produits par l’interface.
+
 Pendant l'exécution, `tqdm` affiche la progression des étapes du pipeline, la lecture du recensement et l'écriture des lignes Excel. Pour le recensement, le nombre de lignes et le temps restant sont estimés à partir des 2 premiers Mo du fichier; cette estimation est indicative et s'affine au fur et à mesure de la lecture.
 
 ## Fichiers d'entrée

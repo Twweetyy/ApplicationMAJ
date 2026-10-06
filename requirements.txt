@@ -3,3 +3,6 @@ openpyxl>=3.1
 tqdm>=4.65
 PyYAML>=6.0
 SQLAlchemy>=2.0
+fastapi>=0.115
+uvicorn>=0.30
+python-multipart>=0.0.9
