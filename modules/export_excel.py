@@ -146,6 +146,29 @@ def preparer_dataframe_modele(nom_onglet: str, dataframe: pd.DataFrame) -> pd.Da
         colonnes_ages = [f"Age : {age}" for age in range(18) if f"Age : {age}" in resultat.columns]
         resultat["TOTAL 0-17"] = resultat[colonnes_ages].sum(axis=1)
         resultat["Crèches"] = ""
+    if nom_onglet.startswith("COU FAM"):
+        resultat = resultat.rename(columns={
+            "Pop 15-24 ans en 2022 (princ)": "Pop 15-24 ans",
+            "Pop 25-54 ans en 2022 (princ)": "Pop 25-54 ans",
+        })
+    if nom_onglet.startswith("CNAM"):
+        renommages_cnam = {
+            "Population couverte bénéficiaire du régime général": "Population couverte",
+            "Hommes bénéficiaires du régime général": "Hommes",
+            "Femmes bénéficiaires du régime général": "Femmes",
+            "Bénéficiaires du régime général de moins de 18 ans": "Moins de 18 ans",
+            "Bénéficiaires du régime général  de 18 ans à moins de 25 ans": "de 18 ans à moins de 25 ans",
+            "Bénéficiaires du régime général  de 25 ans à moins de 50 ans": "de 25 ans à moins de 50 ans",
+            "Bénéficiaires du régime général  de 50 ans à moins de 60 ans": "de 50 ans à moins de 60 ans",
+            "Bénéficiaires du régime général  de 60 ans à moins de 75 ans": "de 60 ans à moins de 75 ans",
+            "Bénéficiaires du régime général  de 75 ans ou plus": "75 ans ou plus",
+        }
+        resultat = resultat.rename(columns=renommages_cnam)
+        resultat = resultat.rename(columns={
+            colonne: re.sub(r" \(ex-(?:CMUC|ACS)\)", "", colonne)
+            for colonne in resultat.columns
+            if isinstance(colonne, str) and "(ex-CMUC)" in colonne or isinstance(colonne, str) and "(ex-ACS)" in colonne
+        })
     colonnes_techniques = {
         "iris",
         "com",
@@ -157,6 +180,7 @@ def preparer_dataframe_modele(nom_onglet: str, dataframe: pd.DataFrame) -> pd.Da
         "code geographique",
         "code commune",
         "libelle geographique",
+        "libelle de la commune",
     }
     resultat = resultat.drop(
         columns=[
@@ -166,14 +190,14 @@ def preparer_dataframe_modele(nom_onglet: str, dataframe: pd.DataFrame) -> pd.Da
         ],
         errors="ignore",
     )
-    colonnes_notes_vides = []
-    for colonne in resultat.columns:
-        if _normaliser_nom_colonne(colonne) != "note de diffusion":
-            continue
-        valeurs = resultat[colonne].dropna().astype(str).str.strip()
-        if valeurs.empty or valeurs.isin({"0", "0.0"}).all():
-            colonnes_notes_vides.append(colonne)
-    resultat = resultat.drop(columns=colonnes_notes_vides)
+    resultat = resultat.drop(
+        columns=[
+            colonne
+            for colonne in resultat.columns
+            if _normaliser_nom_colonne(colonne) in {"note", "note de diffusion"}
+        ],
+        errors="ignore",
+    )
     return resultat
 
 
@@ -249,7 +273,7 @@ def creer_modele_si_absent(dico_fichiers: dict, chemin_modele: str, chemin_infos
             feuille.cell(row=2, column=index, value=nom_colonne)
 
     for nom_onglet in dico_fichiers:
-        if nom_onglet in ordre_onglets or nom_onglet in {"Présentation", "Detail calcul"}:
+        if nom_onglet in ordre_onglets or nom_onglet in {"Présentation", "Detail calcul", "PETITE ENFANCE MILLÉSIME"}:
             continue
         dataframe = dico_fichiers[nom_onglet]
         feuille = workbook.create_sheet(title=nom_onglet)
@@ -282,6 +306,8 @@ def _generer_depuis_modele(
                 cell.value = None
 
     for nom_onglet, dataframe in dico_fichiers.items():
+        if nom_onglet == "PETITE ENFANCE MILLÉSIME":
+            continue
         if nom_onglet not in workbook.sheetnames:
             theme = nom_onglet.rsplit(" ", 1)[0] if " " in nom_onglet else nom_onglet
             feuilles_theme = [
@@ -308,6 +334,41 @@ def _generer_depuis_modele(
             worksheet = workbook[nom_onglet]
 
         donnees = preparer_dataframe_modele(nom_onglet, dataframe)
+        entetes_modele = [
+            worksheet.cell(row=2, column=colonne).value
+            for colonne in range(1, worksheet.max_column + 1)
+        ]
+
+        if nom_onglet.startswith("DEFM"):
+            alias_entetes_defm = {
+                "nombre total d allocataires": "DEFM catégorie A",
+                "defm categories abc dont motif d inscription est une 1ere entree sur marche du travail":
+                    "DEFM catégories ABC dont le motif d'inscription est une 1ère entrée sur le marché du travail",
+                "defm categories abc dont motif d inscription est un licenciement":
+                    "DEFM catégories ABC dont le motif d'inscription est un licenciement",
+                "defm categories abc dont motif d inscription est une fin de contrat a duree determinee":
+                    "DEFM catégories ABC dont le motif d'inscription est une fin de CDD",
+                "defm categories abc dont motif d inscription est une fin de mission d interim":
+                    "DEFM catégories ABC dont le motif d'inscription est une fin de mission d'intérim",
+                "defm categories abc dont motif d inscription est autre":
+                    "DEFM catégories ABC dont le motif d'inscription est autre",
+            }
+            for colonne, entete in enumerate(entetes_modele, start=1):
+                entete_normalise = _normaliser_nom_colonne(entete)
+                if entete_normalise in alias_entetes_defm:
+                    worksheet.cell(row=2, column=colonne, value=alias_entetes_defm[entete_normalise])
+            entetes_modele = [
+                worksheet.cell(row=2, column=colonne).value
+                for colonne in range(1, worksheet.max_column + 1)
+            ]
+
+        colonnes_obsoletes = [
+            colonne
+            for colonne, entete in enumerate(entetes_modele, start=1)
+            if entete is not None and _retrouver_entete_modele(entete, donnees.columns) is None
+        ]
+        for colonne in reversed(colonnes_obsoletes):
+            worksheet.delete_cols(colonne)
         entetes_modele = [
             worksheet.cell(row=2, column=colonne).value
             for colonne in range(1, worksheet.max_column + 1)
