@@ -26,7 +26,7 @@ def main():
     debut = perf_counter()
     print("=== PIPELINE BDDMAS ROUBAIX ===")
 
-    with tqdm(total=8, desc="Pipeline BDDMAS", unit="étapes", dynamic_ncols=True) as progression:
+    with tqdm(total=9, desc="Pipeline BDDMAS", unit="étapes", dynamic_ncols=True) as progression:
         progression.set_postfix_str("ingestion des thèmes")
         dico_fichiers = ingerer_donnees_thematiques(DOSSIER_DATA, DOSSIER_DICOS)
         progression.update(1)
@@ -45,6 +45,11 @@ def main():
         df_perimetre = charger_referentiel_mas(FICHIER_PERIMETRE)
         dico_fichiers = joindre_perimetre(dico_fichiers, df_perimetre)
         dico_fichiers = ajouter_superficies_iris(dico_fichiers, FICHIER_SUPERFICIES)
+        progression.update(1)
+
+        progression.set_postfix_str("préparation du modèle")
+        from modules.export_excel import creer_modele_si_absent
+        creer_modele_si_absent(dico_fichiers, FICHIER_MODELE, FICHIER_INFOS)
         progression.update(1)
 
         progression.set_postfix_str("calcul des indicateurs")

@@ -1,4 +1,6 @@
 import os
+import re
+import unicodedata
 from copy import copy
 import pandas as pd
 import openpyxl
@@ -107,6 +109,30 @@ def formater_onglet_thematique(worksheet, dataframe, titre_onglet):
     lettre_fige = get_column_letter(col_geo_max + 1)
     worksheet.freeze_panes = f"{lettre_fige}3"
 
+def _normaliser_nom_colonne(nom_colonne):
+    """Normalise un libellé de colonne pour comparer des variantes de nom."""
+    if nom_colonne is None:
+        return ""
+    texte = str(nom_colonne).strip().casefold()
+    texte = unicodedata.normalize("NFKD", texte)
+    texte = ''.join(ch for ch in texte if not unicodedata.combining(ch))
+    texte = re.sub(r"[^a-z0-9]+", " ", texte)
+    return re.sub(r"\s+", " ", texte).strip()
+
+
+def _retrouver_entete_modele(nom_colonne, entetes_modele):
+    """Cherche un libellé de colonne compatible dans le modèle, y compris avec des variations de libellés."""
+    if nom_colonne in entetes_modele:
+        return nom_colonne
+    nom_normalise = _normaliser_nom_colonne(nom_colonne)
+    for entete in entetes_modele:
+        if entete is None:
+            continue
+        if _normaliser_nom_colonne(entete) == nom_normalise:
+            return entete
+    return None
+
+
 def preparer_dataframe_modele(nom_onglet: str, dataframe: pd.DataFrame) -> pd.DataFrame:
     """Adapte les colonnes calculées aux libellés du modèle Excel BDDMAS."""
     resultat = dataframe.copy()
@@ -122,6 +148,92 @@ def preparer_dataframe_modele(nom_onglet: str, dataframe: pd.DataFrame) -> pd.Da
     if "IRIS" in resultat.columns:
         resultat = resultat.drop(columns="IRIS")
     return resultat
+
+
+def creer_modele_si_absent(dico_fichiers: dict, chemin_modele: str, chemin_infos_onglets: str) -> None:
+    """Crée automatiquement un classeur modèle vide conforme au gabarit métier."""
+    if not chemin_modele or os.path.exists(chemin_modele):
+        return
+
+    titres = charger_titres_onglets(chemin_infos_onglets)
+    workbook = openpyxl.Workbook()
+    workbook.remove(workbook.active)
+
+    feuille_accueil = workbook.create_sheet("Présentation")
+    feuille_accueil.sheet_view.showGridLines = False
+    feuille_accueil.merge_cells("A1:C1")
+    feuille_accueil["A1"] = "Base MAS - INSEE mise à jour 2022"
+    feuille_accueil["A1"].font = Font(bold=True, size=16, color="FFFFFF")
+    feuille_accueil["A1"].fill = PatternFill(start_color="4F81BD", end_color="4F81BD", fill_type="solid")
+    feuille_accueil["A1"].alignment = Alignment(horizontal="center", vertical="center")
+    feuille_accueil.row_dimensions[1].height = 40
+
+    workbook.create_sheet("Detail calcul")
+
+    ordre_onglets = [
+        "POP 2022",
+        "ACT RES 2022",
+        "COU FAM 2022",
+        "DIP FORMATION 2022",
+        "LOG 2022",
+        "REV DEC 2021",
+        "REV DISP 2021",
+        "PETITE ENFANCE 2022",
+        "CAF 2024",
+        "CNAM 2024",
+        "DEFM 2024",
+        "RPLS 2024",
+    ]
+
+    for nom_onglet in ordre_onglets:
+        if nom_onglet not in dico_fichiers:
+            continue
+        dataframe = dico_fichiers[nom_onglet]
+        feuille = workbook.create_sheet(title=nom_onglet)
+        donnees = preparer_dataframe_modele(nom_onglet, dataframe)
+        titre = titres.get(nom_onglet, f"Données infra-communales - {nom_onglet}")
+        feuille.cell(row=1, column=1, value=titre)
+
+        if nom_onglet.startswith("PETITE ENFANCE"):
+            colonnes_model = [
+                "Centres sociaux",
+                "Crèches",
+                "Périmètres NPNRU",
+                "Contrats de Ville (CDV)",
+                "Cités éducatives",
+                "Quartiers SIG (Grands quartiers)",
+                "Mairies de qartiers",
+                "Libellé de l'Iris",
+            ]
+        else:
+            colonnes_model = [
+                "Centres sociaux",
+                "Périmètres NPNRU",
+                "Contrats de Ville 2024 (CDV)",
+                "Cités éducatives",
+                "Grands quartiers",
+                "Mairies de quartiers",
+                "Libellé de l'Iris",
+            ]
+
+        colonnes_fin = [col for col in donnees.columns if col not in colonnes_model]
+        colonnes_totales = colonnes_model + colonnes_fin
+        for index, nom_colonne in enumerate(colonnes_totales, start=1):
+            feuille.cell(row=2, column=index, value=nom_colonne)
+
+    for nom_onglet in dico_fichiers:
+        if nom_onglet in ordre_onglets or nom_onglet in {"Présentation", "Detail calcul"}:
+            continue
+        dataframe = dico_fichiers[nom_onglet]
+        feuille = workbook.create_sheet(title=nom_onglet)
+        donnees = preparer_dataframe_modele(nom_onglet, dataframe)
+        titre = titres.get(nom_onglet, f"Données infra-communales - {nom_onglet}")
+        feuille.cell(row=1, column=1, value=titre)
+        for index, nom_colonne in enumerate(donnees.columns, start=1):
+            feuille.cell(row=2, column=index, value=nom_colonne)
+
+    os.makedirs(os.path.dirname(os.path.abspath(chemin_modele)), exist_ok=True)
+    workbook.save(chemin_modele)
 
 
 def _generer_depuis_modele(
@@ -144,6 +256,21 @@ def _generer_depuis_modele(
 
     for nom_onglet, dataframe in dico_fichiers.items():
         if nom_onglet not in workbook.sheetnames:
+            theme = nom_onglet.rsplit(" ", 1)[0] if " " in nom_onglet else nom_onglet
+            feuilles_theme = [
+                titre
+                for titre in workbook.sheetnames
+                if " " in titre and titre.rsplit(" ", 1)[0] == theme
+            ]
+            tables_theme = [
+                nom
+                for nom in dico_fichiers
+                if " " in nom and nom.rsplit(" ", 1)[0] == theme
+            ]
+            if len(feuilles_theme) == 1 and len(tables_theme) == 1:
+                workbook[feuilles_theme[0]].title = nom_onglet[:31]
+
+        if nom_onglet not in workbook.sheetnames:
             if nom_onglet == "PETITE ENFANCE MILLÉSIME" and "PETITE ENFANCE 2022" in workbook.sheetnames:
                 worksheet = workbook.copy_worksheet(workbook["PETITE ENFANCE 2022"])
                 worksheet.title = nom_onglet
@@ -158,6 +285,15 @@ def _generer_depuis_modele(
             worksheet.cell(row=2, column=colonne).value
             for colonne in range(1, worksheet.max_column + 1)
         ]
+
+        colonnes_nouvelles = [
+            col for col in donnees.columns
+            if _retrouver_entete_modele(col, entetes_modele) is None
+        ]
+        for index, nom_colonne in enumerate(colonnes_nouvelles, start=worksheet.max_column + 1):
+            worksheet.cell(row=2, column=index, value=nom_colonne)
+            entetes_modele.append(nom_colonne)
+
         derniere_ligne = len(donnees) + 2
 
         if derniere_ligne > worksheet.max_row and worksheet.max_row >= 3:
@@ -180,9 +316,14 @@ def _generer_depuis_modele(
         )
         for ligne, (_, enregistrement) in enumerate(lignes, start=3):
             for colonne, entete in enumerate(entetes_modele, start=1):
-                if entete not in donnees.columns:
+                nom_colonne_source = None
+                for colonne_df in donnees.columns:
+                    if colonne_df == entete or _normaliser_nom_colonne(colonne_df) == _normaliser_nom_colonne(entete):
+                        nom_colonne_source = colonne_df
+                        break
+                if nom_colonne_source is None:
                     continue
-                valeur = enregistrement[entete]
+                valeur = enregistrement[nom_colonne_source]
                 if pd.isna(valeur):
                     valeur = None
                 elif hasattr(valeur, "item"):
@@ -214,7 +355,12 @@ def generer_fichier_bddmas(
 ):
     """
     Génère le classeur Excel final à partir du dictionnaire de DataFrames.
+    Si le modèle est absent, il est créé automatiquement avant d'être alimenté.
     """
+    if chemin_modele and not os.path.exists(chemin_modele):
+        print("MODELE ABSENT : création automatique du fichier de référence...")
+        creer_modele_si_absent(dico_fichiers, chemin_modele, chemin_infos_onglets)
+
     if chemin_modele and os.path.exists(chemin_modele):
         print("GÉNÉRATION DU CLASSEUR À PARTIR DU MODÈLE...")
         _generer_depuis_modele(dico_fichiers, chemin_sortie, chemin_infos_onglets, chemin_modele)
