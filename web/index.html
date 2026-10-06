@@ -3,137 +3,136 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#18372e">
-  <title>BDDMAS | Préparation des données</title>
+  <meta name="theme-color" content="#2c3e50">
+  <title>Portail Data SIG | BDDMAS Roubaix</title>
   <link rel="stylesheet" href="/static/styles.css">
-  <script src="/static/app.js" defer></script>
+  <script src="/static/multi-upload.js" defer></script>
 </head>
 <body>
-  <header class="masthead">
-    <a class="brand" href="/" aria-label="BDDMAS, accueil">
-      <span class="brand-mark">M</span>
-      <span class="brand-name">BDDMAS <span>ROUBAIX</span></span>
-    </a>
-    <div class="server-state"><span class="state-dot"></span> Traitement local</div>
-  </header>
-
-  <main class="workspace">
-    <section class="intro" aria-labelledby="page-title">
-      <div>
-        <p class="eyebrow">DONNÉES INFRA-COMMUNALES <span>·</span> INSEE / MEL</p>
-        <h1 id="page-title">Préparer un nouveau lot</h1>
-        <p class="intro-copy">Déposez les sources et leurs métadonnées pour contrôler le lot et générer le classeur.</p>
+  <div class="application-shell">
+    <aside class="sidebar">
+      <a class="logo" href="/" aria-label="Portail Data SIG Roubaix">
+        <span class="logo-mark">SIG</span>
+        <span class="logo-copy">MAIRIE<br>DE ROUBAIX</span>
+      </a>
+      <nav class="nav-menu" aria-label="Navigation du traitement">
+        <a class="nav-item active" href="#sources" id="navSources"><span class="nav-icon">01</span> Traitement BDDMAS</a>
+        <a class="nav-item" href="#reportSection" id="navReport"><span class="nav-icon">02</span> Contrôle du lot</a>
+        <a class="nav-item" href="#progressSection" id="navResult"><span class="nav-icon">03</span> Classeur généré</a>
+      </nav>
+      <div class="sidebar-footer">
+        <span class="local-dot"></span>
+        <span>TRAITEMENT LOCAL</span>
       </div>
-      <div class="edition-mark" aria-label="Millésimes variables">
-        <span class="edition-number">01</span>
-        <span class="edition-caption">NOUVEAU<br>TRAITEMENT</span>
-      </div>
-    </section>
+    </aside>
 
-    <nav class="steps" aria-label="Étapes du traitement">
-      <div class="step active" id="stepUpload"><span>1</span><b>Fichiers</b></div>
-      <i></i>
-      <div class="step" id="stepCheck"><span>2</span><b>Contrôle</b></div>
-      <i></i>
-      <div class="step" id="stepResult"><span>3</span><b>Classeur</b></div>
-    </nav>
-
-    <section class="upload-section" aria-labelledby="upload-title">
-      <div class="section-heading">
+    <main class="main-content">
+      <header class="page-header">
         <div>
-          <p class="eyebrow">01 / SOURCES</p>
-          <h2 id="upload-title">Constituer le lot</h2>
+          <p class="eyebrow">PORTAIL DATA SIG <span>/</span> BDDMAS</p>
+          <h1>Générateur de classeurs</h1>
+          <p class="subtitle">Structuration et enrichissement géographique des données infra-communales.</p>
         </div>
-        <span class="file-limit">CSV · 60 fichiers max.</span>
+        <div class="user-info"><span class="user-mark">R</span><span>ROUBAIX <small>· SERVICE SIG</small></span></div>
+      </header>
+
+      <div class="perimeter-tabs" aria-label="Périmètre du traitement">
+        <span class="perimeter-tab active"><span class="tab-dot"></span> Périmètre : Roubaix (IRIS)</span>
       </div>
 
-      <label class="dropzone" id="dropzone" for="fileInput" tabindex="0">
-        <input id="fileInput" type="file" accept=".csv,text/csv" multiple>
-        <span class="drop-icon" aria-hidden="true">+</span>
-        <span class="drop-title">Déposer les fichiers ici</span>
-        <span class="drop-subtitle">ou parcourir les fichiers CSV</span>
-      </label>
-
-      <div class="upload-toolbar">
-        <div class="selection-count" id="selectionCount">Aucun fichier sélectionné</div>
-        <button class="button button-quiet" id="clearFiles" type="button" disabled>Vider la sélection</button>
-      </div>
-
-      <ul class="file-list" id="fileList" aria-live="polite"></ul>
-      <div class="action-row">
-        <p class="action-note">Le référentiel des périmètres est requis. Les fichiers meta sont associés à leur source.</p>
-        <button class="button button-primary" id="analyzeButton" type="button" disabled>
-          <span>Analyser le lot</span><span aria-hidden="true">→</span>
-        </button>
-      </div>
-      <p class="inline-error" id="uploadError" role="alert" hidden></p>
-    </section>
-
-    <section class="report-section" id="reportSection" aria-labelledby="report-title" hidden>
-      <div class="section-heading">
-        <div>
-          <p class="eyebrow">02 / CONTRÔLE</p>
-          <h2 id="report-title">Rapport du lot</h2>
+      <section class="card source-card" id="sources" aria-labelledby="sourceTitle">
+        <div class="card-heading">
+          <div><p class="section-kicker">01 / FICHIERS</p><h2 id="sourceTitle">Constituer le lot</h2></div>
+          <span class="file-limit">CSV · 60 fichiers maximum</span>
         </div>
-        <span class="status-badge" id="reportStatus"></span>
-      </div>
 
-      <div class="report-summary" id="reportSummary"></div>
-      <div class="report-columns">
-        <div class="report-table-wrap">
-          <h3>Sources détectées</h3>
-          <div class="table-scroll">
-            <table>
+        <div class="upload-grid">
+          <section class="upload-panel" aria-labelledby="dataUploadTitle">
+            <div class="upload-panel-heading">
+              <div><p class="section-kicker">SOURCES</p><h3 id="dataUploadTitle">Données</h3></div>
+              <span class="panel-index">A</span>
+            </div>
+            <input class="file-input" id="dataInput" type="file" accept=".csv,text/csv" multiple>
+            <div class="upload-zone" id="uploadData" role="button" tabindex="0" aria-controls="dataInput">
+              <span class="upload-icon" aria-hidden="true">CSV</span>
+              <span class="upload-title">Déposer les fichiers de données ici</span>
+              <span class="upload-subtitle">ou parcourir les fichiers</span>
+            </div>
+            <div class="file-list-heading"><span id="dataCount">Aucun fichier</span><button class="text-button" id="clearData" type="button" disabled>Vider</button></div>
+            <ul class="file-list" id="dataFileList" aria-live="polite"></ul>
+          </section>
+
+          <section class="upload-panel" aria-labelledby="metaUploadTitle">
+            <div class="upload-panel-heading">
+              <div><p class="section-kicker">DICTIONNAIRES</p><h3 id="metaUploadTitle">Métadonnées &amp; varmod</h3></div>
+              <span class="panel-index">B</span>
+            </div>
+            <input class="file-input" id="metaInput" type="file" accept=".csv,text/csv" multiple>
+            <div class="upload-zone" id="uploadMeta" role="button" tabindex="0" aria-controls="metaInput">
+              <span class="upload-icon upload-icon-meta" aria-hidden="true">META</span>
+              <span class="upload-title">Déposer les fichiers meta ici</span>
+              <span class="upload-subtitle">meta_*.csv et varmod_indcvi_*.csv</span>
+            </div>
+            <div class="file-list-heading"><span id="metaCount">Aucun fichier</span><button class="text-button" id="clearMeta" type="button" disabled>Vider</button></div>
+            <ul class="file-list" id="metaFileList" aria-live="polite"></ul>
+          </section>
+        </div>
+
+        <div class="processing-options">
+          <div><span class="option-state">✓</span><span><b>Jointures géographiques</b><small>Référentiel des périmètres et superficies YAML</small></span></div>
+          <div><span class="option-state">✓</span><span><b>Calculs et sous-totaux</b><small>Indicateurs configurés et formules du modèle</small></span></div>
+        </div>
+
+        <div class="action-row">
+          <p class="action-note">Le fichier Périmètres_MAS.csv est requis. Les métadonnées sont rapprochées des sources automatiquement.</p>
+          <button class="button button-primary" id="analyzeButton" type="button" disabled><span>Analyser le lot</span><span aria-hidden="true">→</span></button>
+        </div>
+        <p class="inline-error" id="uploadError" role="alert" hidden></p>
+      </section>
+
+      <section class="card report-section" id="reportSection" aria-labelledby="reportTitle" hidden>
+        <div class="card-heading">
+          <div><p class="section-kicker">02 / PRÉ-CONTRÔLE</p><h2 id="reportTitle">Rapport du lot</h2></div>
+          <span class="status-badge" id="reportStatus"></span>
+        </div>
+        <div class="report-summary" id="reportSummary"></div>
+        <div class="report-columns">
+          <div class="report-table-wrap">
+            <h3>Sources détectées</h3>
+            <div class="table-scroll"><table>
               <thead><tr><th>Fichier</th><th>Thème</th><th>Année</th><th>Méta</th><th>Colonnes non décrites</th></tr></thead>
               <tbody id="sourceRows"></tbody>
-            </table>
+            </table></div>
           </div>
+          <aside class="report-notes">
+            <div class="message-group error-group" id="errorGroup" hidden><h3>À corriger</h3><ul id="errorList"></ul></div>
+            <div class="message-group warning-group" id="warningGroup" hidden><h3>À vérifier</h3><ul id="warningList"></ul></div>
+            <div class="ignored-group" id="ignoredGroup" hidden><h3>Fichiers ignorés</h3><ul id="ignoredList"></ul></div>
+            <div class="message-group clear-group" id="clearGroup" hidden><span class="checkmark">✓</span><span>Aucune anomalie bloquante.</span></div>
+          </aside>
         </div>
-        <aside class="report-notes">
-          <div class="message-group error-group" id="errorGroup" hidden>
-            <h3>À corriger</h3><ul id="errorList"></ul>
-          </div>
-          <div class="message-group warning-group" id="warningGroup" hidden>
-            <h3>À vérifier</h3><ul id="warningList"></ul>
-          </div>
-          <div class="ignored-group" id="ignoredGroup" hidden>
-            <h3>Fichiers ignorés</h3><ul id="ignoredList"></ul>
-          </div>
-          <div class="message-group clear-group" id="clearGroup" hidden>
-            <span class="checkmark">✓</span><span>Aucune anomalie bloquante détectée.</span>
-          </div>
-        </aside>
-      </div>
-
-      <div class="action-row report-actions">
-        <p class="action-note" id="generationNote">Les avertissements n’empêchent pas la génération.</p>
-        <button class="button button-primary" id="generateButton" type="button" disabled>
-          <span>Générer le classeur</span><span aria-hidden="true">→</span>
-        </button>
-      </div>
-    </section>
-
-    <section class="progress-section" id="progressSection" aria-live="polite" hidden>
-      <div class="progress-head">
-        <div>
-          <p class="eyebrow">03 / GÉNÉRATION</p>
-          <h2 id="progressTitle">Préparation du classeur</h2>
+        <div class="action-row report-actions">
+          <p class="action-note" id="generationNote">Les avertissements n’empêchent pas la génération.</p>
+          <button class="button button-primary" id="generateButton" type="button" disabled><span>Exécuter le pipeline ETL</span><span aria-hidden="true">→</span></button>
         </div>
-        <span class="progress-indicator" id="progressIndicator"><i></i> En cours</span>
-      </div>
-      <div class="progress-track"><span id="progressBar"></span></div>
-      <p class="progress-copy" id="progressCopy">Les fichiers sont traités localement. Cette étape peut prendre quelques minutes.</p>
-      <p class="inline-error" id="generationError" role="alert" hidden></p>
-      <div class="download-row" id="downloadRow" hidden>
-        <a class="button button-download" id="downloadButton" href="#">Télécharger le classeur <span aria-hidden="true">↓</span></a>
-        <button class="button button-quiet" id="newJobButton" type="button">Nouveau lot</button>
-      </div>
-    </section>
+      </section>
 
-    <footer class="page-footer">
-      <span>MAS <span class="footer-separator">/</span> ROUBAIX</span>
-      <span>Classeur Excel · Modèle BDDMAS</span>
-    </footer>
-  </main>
+      <section class="card progress-section" id="progressSection" aria-live="polite" hidden>
+        <div class="card-heading progress-heading">
+          <div><p class="section-kicker">03 / CLASSEUR</p><h2 id="progressTitle">Préparation du classeur</h2></div>
+          <span class="progress-indicator" id="progressIndicator"><i></i> En cours</span>
+        </div>
+        <div class="progress-track"><span id="progressBar"></span></div>
+        <p class="progress-copy" id="progressCopy">Traitement local des fichiers.</p>
+        <p class="inline-error" id="generationError" role="alert" hidden></p>
+        <div class="download-row" id="downloadRow" hidden>
+          <a class="button button-success" id="downloadButton" href="#">Télécharger le classeur <span aria-hidden="true">↓</span></a>
+          <button class="button button-secondary" id="newJobButton" type="button">Nouveau lot</button>
+        </div>
+      </section>
+
+      <footer class="page-footer"><span>PORTAIL DATA SIG <b>/</b> ROUBAIX</span><span>Génération BDDMAS</span></footer>
+    </main>
+  </div>
 </body>
 </html>
