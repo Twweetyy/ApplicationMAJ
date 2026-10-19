@@ -1,22 +1,17 @@
-# Environnements et fichiers temporaires Python
+# Ignorer les dossiers générés par PyInstaller et les artefacts locaux
+build/
+Dist/
+*.spec
+*.exe
+# Environnements virtuels
 .venv/
-venv/
+# Cache Python
 __pycache__/
-*.py[cod]
-
-# Données brutes lourdes ou microdonnées : conserver les sources localement
-data/*.CSV
-data/*.csv
-!data/Périmètres_MAS.csv
-!data/perimetres_mas.csv
-
-# Résultats régénérables
-exports_sig/
-TAB_BDDMAS_INSEE2022_Tout_perimetre.xlsx
-
-# Fichiers temporaires, secrets et journaux
-~$*.xlsx
-.env
-.env.*
-!.env.example
+# Fichiers temporaires de logs
 *.log
+# Autres dossiers temporaires
+tmp/
+# Ignorer les dossiers de données volumineuses
+
+data/
+exports_sig/
