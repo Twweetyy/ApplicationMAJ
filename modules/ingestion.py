@@ -2,6 +2,8 @@ import os
 import re
 import unicodedata
 import pandas as pd
+# Unified file reader (CSV + Parquet via DuckDB)
+from .utils import lire_fichier
 import numpy as np
 import yaml
 from tqdm.auto import tqdm
@@ -147,7 +149,7 @@ def analyser_fichiers_entree(dossier_data: str, dossier_dicos: str) -> dict:
     dossier_meta = os.path.join(dossier_dicos, "meta")
 
     for fichier in sorted(os.listdir(dossier_data)):
-        if not fichier.casefold().endswith(".csv") or fichier.casefold().startswith("meta_"):
+        if not (fichier.casefold().endswith(".csv") or fichier.casefold().endswith(".parquet")) or fichier.casefold().startswith("meta_"):
             continue
 
         cle_fichier = _normaliser_nom_fichier(os.path.splitext(fichier)[0])
@@ -175,15 +177,21 @@ def analyser_fichiers_entree(dossier_data: str, dossier_dicos: str) -> dict:
 
         chemin = os.path.join(dossier_data, fichier)
         try:
+            # Unified header reader that supports CSV and Parquet via DuckDB.
             separateur = "," if role == "perimetre" else ";"
-            entetes = list(
-                pd.read_csv(
-                    chemin,
-                    sep=separateur,
-                    nrows=0,
-                    encoding="utf-8-sig",
-                ).columns
-            )
+            try:
+                df_header = lire_fichier(chemin, nrows=0, sep=separateur, encoding="utf-8-sig")
+                entetes = list(df_header.columns)
+            except Exception as e:
+                # Fallback to pandas CSV reader if DuckDB fails or file is not Parquet.
+                entetes = list(
+                    pd.read_csv(
+                        chemin,
+                        sep=separateur,
+                        nrows=0,
+                        encoding="utf-8-sig",
+                    ).columns
+                )
         except (OSError, pd.errors.ParserError, pd.errors.EmptyDataError, UnicodeError) as erreur:
             rapport["erreurs"].append({
                 "code": "csv_illisible",
@@ -477,7 +485,7 @@ def ingerer_donnees_thematiques(dossier_data: str, dossier_dicos: str) -> dict:
     mapping_noms = load_mapping(os.path.join(dossier_dicos, "files_names.yml"))
     
     for fichier in os.listdir(dossier_data):
-        if not fichier.lower().endswith(".csv") or fichier.lower().startswith("meta_"):
+        if not (fichier.lower().endswith(".csv") or fichier.lower().endswith(".parquet")) or fichier.lower().startswith("meta_"):
             continue
 
         nom_base = fichier[:-4]
@@ -493,7 +501,7 @@ def ingerer_donnees_thematiques(dossier_data: str, dossier_dicos: str) -> dict:
             continue
 
         chemin_complet = os.path.join(dossier_data, fichier)
-        df_brut = pd.read_csv(
+        df_brut = lire_fichier(
             chemin_complet,
             sep=";",
             dtype={'IRIS': str, 'CODGEO': str, 'CodGeo': str, 'COM': str, 'LAB_IRIS': str},
