@@ -15,7 +15,7 @@ start "" /B python run_portal.py %*
 rem Attendre que le serveur réponde sur le port 5000
 powershell -Command "while(-not (Test-NetConnection -ComputerName localhost -Port 5000).TcpTestSucceeded){Start-Sleep -Milliseconds 500}"
 rem Ouvrir la page du portail dans le navigateur par défaut
-start "" "http://127.0.0.1:5000"
+rem start "" "http://127.0.0.1:5000"  # ouvert par le script Python
 
 rem Désactiver l'environnement et revenir au répertoire précédent
 call deactivate
