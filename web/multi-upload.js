@@ -189,6 +189,10 @@ async function analyzeFiles() {
     const result = await response.json();
     if (!response.ok) throw new Error(result.detail || "Le contrôle du lot a échoué.");
     currentJobId = result.id;
+    // Après le POST, indiquer le succès visuel
+    if (selected.data.length) dataZone.classList.add('success');
+    if (selected.meta.length) metaZone.classList.add('success');
+    // Afficher le rapport
     showReport(result);
     reportSection.scrollIntoView({ behavior: "smooth", block: "start" });
   } catch (error) {
@@ -272,6 +276,8 @@ async function resetJob() {
   dataInput.value = "";
   metaInput.value = "";
   renderFiles();
+  dataZone.classList.remove('success');
+  metaZone.classList.remove('success');
   reportSection.hidden = true;
   progressSection.hidden = true;
   showError($("#uploadError"), "");
