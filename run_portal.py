@@ -35,7 +35,7 @@ def _find_free_port() -> int:
 def main() -> None:
     python_exe = sys.executable
     _ensure_web_stack(python_exe)
-    port = _find_free_port()
+    port = 5000  # port fixe pour être compatible avec le batch
     cwd = os.path.abspath(os.path.dirname(__file__))
     cmd = [python_exe, "-m", "uvicorn", "webapp:app", "--host", "127.0.0.1", "--port", str(port)]
     proc = subprocess.Popen(cmd, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
