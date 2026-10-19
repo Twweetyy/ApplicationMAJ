@@ -60,6 +60,11 @@
             </div>
             <div class="file-list-heading"><span id="dataCount">Aucun fichier</span><button class="text-button" id="clearData" type="button" disabled>Vider</button></div>
             <ul class="file-list" id="dataFileList" aria-live="polite"></ul>
+            <!-- Import status for data files -->
+            <div class="import-status" id="dataStatus">
+              <span class="status-label">Fichier Diplômes et formation :</span>
+              <button class="status-indicator" id="dataDiplomesBtn" disabled>🔴</button>
+            </div>
           </section>
 
           <section class="upload-panel" aria-labelledby="metaUploadTitle">
@@ -75,13 +80,14 @@
             </div>
             <div class="file-list-heading"><span id="metaCount">Aucun fichier</span><button class="text-button" id="clearMeta" type="button" disabled>Vider</button></div>
             <ul class="file-list" id="metaFileList" aria-live="polite"></ul>
+            <!-- Import status for meta files -->
+            <div class="import-status" id="metaStatus">
+              <span class="status-label">Fichier Population :</span>
+              <button class="status-indicator" id="metaPopulationBtn" disabled>🔴</button>
+            </div>
           </section>
         </div>
 
-        <div class="processing-options">
-          <div><span class="option-state">✓</span><span><b>Jointures géographiques</b><small>Référentiel des périmètres et superficies YAML</small></span></div>
-          <div><span class="option-state">✓</span><span><b>Calculs et sous-totaux</b><small>Indicateurs configurés et formules du modèle</small></span></div>
-        </div>
 
         <div class="action-row">
           <p class="action-note">Le fichier Périmètres_MAS.csv est requis. Les métadonnées sont rapprochées des sources automatiquement.</p>

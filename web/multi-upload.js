@@ -37,6 +37,30 @@ function isMetaFile(name) {
   return lower.startsWith("meta_") || lower.startsWith("varmod_");
 }
 
+function updateImportStatus() {
+  // Update data side status (Diplômes et formation)
+  if (selected.data.length > 0) {
+    dataDiplomesBtn.disabled = false;
+    dataDiplomesBtn.textContent = '✅';
+    dataDiplomesBtn.classList.add('success');
+  } else {
+    dataDiplomesBtn.disabled = true;
+    dataDiplomesBtn.textContent = '🔴';
+    dataDiplomesBtn.classList.remove('success');
+  }
+  // Update meta side status (Population)
+  const hasPopulation = selected.meta.some(f => /population/i.test(f.name));
+  if (hasPopulation) {
+    metaPopulationBtn.disabled = false;
+    metaPopulationBtn.textContent = '✅';
+    metaPopulationBtn.classList.add('success');
+  } else {
+    metaPopulationBtn.disabled = true;
+    metaPopulationBtn.textContent = '🔴';
+    metaPopulationBtn.classList.remove('success');
+  }
+}
+
 function renderGroup(group, list, count, zone) {
   const files = selected[group];
   list.replaceChildren();
@@ -71,6 +95,7 @@ function renderFiles() {
   renderGroup("data", dataList, dataCount, dataZone);
   renderGroup("meta", metaList, metaCount, metaZone);
   analyzeButton.disabled = selected.data.length === 0;
+  updateImportStatus();
 }
 
 function addFiles(group, fileList) {
@@ -186,7 +211,13 @@ async function analyzeFiles() {
   [...selected.data, ...selected.meta].forEach((file) => form.append("files", file, file.name));
   try {
     const response = await fetch("/api/jobs", { method: "POST", body: form });
-    const result = await response.json();
+    const text = await response.text();
+    let result;
+    try {
+      result = JSON.parse(text);
+    } catch (_) {
+      result = { detail: text || "Erreur serveur inconnue." };
+    }
     if (!response.ok) throw new Error(result.detail || "Le contrôle du lot a échoué.");
     currentJobId = result.id;
     // Après le POST, indiquer le succès visuel

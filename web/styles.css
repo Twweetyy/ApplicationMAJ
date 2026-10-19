@@ -549,3 +549,27 @@ td:first-child { min-width: 190px; color: var(--ink); font-weight: 650; }
   .report-table-wrap { margin-right: -14px; }
   .page-footer { gap: 15px; font-size: 8px; }
 }
+
+/* Status indicator buttons for file import */
+.status-indicator {
+  min-width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 2px solid var(--danger);
+  border-radius: 4px;
+  background: #f8d7da;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: default;
+}
+.status-indicator.success {
+  border-color: var(--success);
+  background: var(--success);
+}
+.status-indicator:disabled {
+  opacity: .6;
+}
