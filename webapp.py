@@ -192,9 +192,12 @@ def creer_job(files: list[UploadFile] = File(...)):
         with _VERROU_JOBS:
             _JOBS[job_id] = job
         return _job_public(job)
-    except Exception:
+    except HTTPException:
         shutil.rmtree(racine, ignore_errors=True)
         raise
+    except Exception as exc:
+        shutil.rmtree(racine, ignore_errors=True)
+        raise HTTPException(status_code=500, detail=f"Erreur lors de l'analyse du lot : {type(exc).__name__}: {exc}")
 
 
 @app.get("/api/jobs/{job_id}")
