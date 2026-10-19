@@ -10,7 +10,12 @@ rem Activer l'environnement virtuel
 call .venv\Scripts\activate.bat
 
 rem Exécuter le script Python qui démarre le serveur
-python run_portal.py %*
+rem Lancer le serveur en arrière-plan
+start "" /B python run_portal.py %*
+rem Attendre que le serveur réponde sur le port 5000
+powershell -Command "while(-not (Test-NetConnection -ComputerName localhost -Port 5000).TcpTestSucceeded){Start-Sleep -Milliseconds 500}"
+rem Ouvrir la page du portail dans le navigateur par défaut
+start "" "http://127.0.0.1:5000"
 
 rem Désactiver l'environnement et revenir au répertoire précédent
 call deactivate
