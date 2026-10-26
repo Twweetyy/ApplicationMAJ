@@ -20,7 +20,7 @@
 ApplicationMAJ/
 ├─ main_bddmas.py              → Orchestrateur du pipeline ETL
 ├─ webapp.py                   → API FastAPI (gestion des jobs web)
-├─ run_portal.bat / .py        → Lanceur du portail (double-clic)
+├─ run_portal.bat / .py        → Lanceur du portail (double-clic, lance d'abord le transformer 2023)
 ├─ modules/
 │  ├─ socle_geo.py             → Référentiel MAS, superficies, jointures
 │  ├─ ingestion.py             → Pré-contrôle, lecture, nettoyage sources
@@ -32,12 +32,12 @@ ApplicationMAJ/
 ├─ dictionnaires/
 │  ├─ files_names.yml          → Correspondances fichier → nom d'onglet
 │  ├─ calculated_columns.yml   → Formules de colonnes calculées
-│  ├─ info_pages.yml           → Infos des pages du classeur
+│  ├─ info_pages.yml           → Titres des onglets (clés par thème, sans année)
 │  └─ meta/                    → Métadonnées CSV (meta2022/, meta2023/)
 ├─ scripts/
 │  ├─ diag.py                  → Diagnostic des cubes INSEE 2023
 │  ├─ extraire_indcvi_roubaix.py → Extraction FD_INDCVI Roubaix
-│  └─ transformer_2023_roubaix.py → Conversion cubes INSEE 2023
+│  └─ transformer_2023_roubaix.py → Conversion cubes INSEE 2023 (lit data/data2023/sources_brutes_insee/)
 ├─ doc/
 │  ├─ etat_du_projet_bddmas.md → Rapport d'avancement détaillé
 │  ├─ Fichiers_INSEE_2026.md   → Documentation fichiers INSEE
@@ -89,6 +89,10 @@ ApplicationMAJ/
 | Oct 2026 | Résolution dynamique des tables par thème (ex: `POP 2022` → `POP 2023`) | Compatibilité multi-millésime sans modifier les YAML |
 | Oct 2026 | Charte graphique Roubaix (magenta `#e3006a`, ardoise `#1e293b`) | Identité visuelle officielle de la Ville |
 | Oct 2026 | Ajout de `llm_wrapper.py` | Wrapper LLM générique (Groq/OpenAI/Ollama) pour futurs usages IA |
+| 26/10/2026 | `run_portal.bat` lance `scripts/transformer_2023_roubaix.py` avant le portail (si cubes bruts présents) | Les cubes déposés dans `sources_brutes_insee/` sont convertis automatiquement, contrôle de cohérence visible au démarrage |
+| 26/10/2026 | Onglet petite enfance nommé `PETITE ENFANCE {année du FD_INDCVI}` | Le millésime suit le fichier FD_INDCVI déposé, pas le recensement |
+| 26/10/2026 | `info_pages.yml` indexé par thème (`POP`, `CAF`…) + fonction `titre_onglet()` | Titres corrects quel que soit le millésime de l'onglet |
+| 26/10/2026 | `trouver_fichier_meta` lit aussi les sous-dossiers (`meta2022/`, `meta2023/`) et privilégie la méta de la même année | Ligne de commande fonctionnelle après le rangement des métas par millésime |
 | Oct 2026 | Suppression de `demarrer_portail.ps1` au profit de `run_portal.bat` + `run_portal.py` | Simplification : un seul clic, pas de politique d'exécution PowerShell |
 
 ---
@@ -96,13 +100,38 @@ ApplicationMAJ/
 ## 5. Limites Connues & Points d'Attention
 
 - **Recensement 2023** : certaines variables absentes des cubes INSEE (salariés CDI, familles monoparentales, pop 60-74 ans) → indicateurs vides dans le classeur
-- **Onglet petite enfance** : s'appelle toujours `PETITE ENFANCE 2022` quel que soit le millésime (nom codé en dur)
+- **Pages Présentation / Detail calcul** : titre « mise à jour 2022 » et années codés en dur dans le modèle Excel
+- **Colonne « Crèches »** (onglet petite enfance) : vide sur les 38 IRIS, aucune source dans `Périmètres_MAS.csv`
+- **Ligne de commande** : `python main_bddmas.py` lit `data/` à plat ; depuis le rangement par sous-dossiers, le portail est le mode recommandé
+- **Écarts d'arrondi** : totaux du classeur légèrement inférieurs au contrôle du transformer (ex. 98 284 vs 98 286 habitants) car arrondi par IRIS
 - **Exports SIG et SQL** : disponibles uniquement en ligne de commande, pas depuis le portail web
 - **Avertissement UNC** : « Les chemins d'accès UNC ne sont pas pris en charge » au démarrage → sans conséquence
 
 ---
 
 ## 6. Historique des Sessions de Travail
+
+### 📅 26 octobre 2026 (après-midi) — Validation 2023 et millésimes dynamiques
+
+**Auteur** : Bilal (assisté par IA)
+
+#### Validation bout-en-bout (portail, lot complet 2023)
+- Transformer : 38 IRIS, cohérence OK (Population 98 286, Logements 43 709, Résidences principales = Ménages 39 257, Pop 15-64 = Actifs + Inactifs 62 551)
+- Pré-contrôle « Prêt » : 11 thèmes, 1 périmètre, 1 fichier enfants, toutes les métas associées
+- Classeur : 14 onglets, 38 IRIS par onglet, aucun en-tête `Column…`/vide, tableaux structurés bornés à la ligne 40
+- 13 avertissements attendus (variables absentes des cubes 2023 : salariés/CDI, commune de résidence, familles, pop 60-74 ans)
+
+#### Modifications effectuées
+- `run_portal.bat` : exécute `scripts/transformer_2023_roubaix.py` après activation du `.venv` si `data/data2023/sources_brutes_insee/base-ic-*-2023.csv` existe ; en cas d'échec, pause puis lancement du portail quand même
+- `scripts/transformer_2023_roubaix.py` : `DOSSIER_RACINE` remonte d'un niveau (script déplacé dans `scripts/`)
+- `main_bddmas.py` : onglet `PETITE ENFANCE {millésime du FD_INDCVI}` (au lieu de `PETITE ENFANCE 2022` en dur)
+- `modules/export_excel.py` : nouvelle fonction `titre_onglet()` (titre trouvé par thème, année ignorée) utilisée partout ; renommage de l'onglet modèle petite enfance corrigé (« PETITE ENFANCE MILLÉSIME » exclu du décompte du thème) ; `creer_modele_si_absent` ordonne les onglets par thème sans années en dur
+- `dictionnaires/info_pages.yml` : clés sans année (`POP`, `ACT RES`, …, `PETITE ENFANCE`, `PETITE ENFANCE MILLÉSIME`)
+- `modules/ingestion.py` : `trouver_fichier_meta` parcourt les sous-dossiers directs et privilégie la méta de même année que le fichier source
+
+#### Résultat
+- Titres réels en ligne 1 de chaque onglet (ex. POP 2023 → « Données infra-communales - Population »)
+- À savoir : après toute modification du code, fermer la fenêtre du portail et relancer `run_portal.bat` (le serveur ne recharge pas le code)
 
 ### 📅 26 octobre 2026 — Mise à jour majeure du dépôt Git
 
@@ -144,12 +173,14 @@ ApplicationMAJ/
 
 ## 7. Tâches à Faire (TODO)
 
-- [ ] Validation bout-en-bout du portail avec données réelles 2023
+- [x] Validation bout-en-bout du portail avec données réelles 2023 (26/10)
 - [ ] Adapter les deux premières pages en fonction des données (2022, 2023, nouveaux calculs, etc)
 - [ ] Harmoniser les arrondis selon les directives strictes (cf. `doc/r_gles_d_arrondis_compl_tes.md`)
 - [ ] Audit de complétude des 38 IRIS roubaisiens avant traitement
 - [ ] Mise en page Excel automatisée (largeurs auto, séparateurs de milliers)
-- [ ] Dynamiser le nom de l'onglet petite enfance selon le millésime
+- [x] Dynamiser le nom de l'onglet petite enfance selon le millésime (26/10)
+- [x] Titres d'onglets indépendants du millésime (`info_pages.yml`) (26/10)
+- [ ] Source pour la colonne « Crèches » de l'onglet petite enfance (vide actuellement)
 - [ ] Intégrer le module LLM dans le pipeline (ex: Si des colonnes avec un nom non explicite, alors l'ia définit cette colonne pour permettre de mieux l'intégrer)
 
 ---
