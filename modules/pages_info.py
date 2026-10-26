@@ -1,5 +1,6 @@
 """Mise à jour des pages « Présentation » et « Detail calcul » selon le lot traité."""
 import math
+import os
 import re
 import unicodedata
 from copy import copy
@@ -51,8 +52,37 @@ def _theme_de_libelle(libelle, themes: list[str]) -> str | None:
     return max(candidats, key=len) if candidats else None
 
 
-def _maj_presentation(ws, onglets: dict, titre: str) -> None:
+def _charger_liens(chemin_liens: str | None) -> dict:
+    try:
+        with open(chemin_liens, "r", encoding="utf-8") as fichier:
+            brut = yaml.safe_load(fichier) or {}
+    except (OSError, TypeError):
+        return {}
+    return {str(theme): {str(annee): url for annee, url in (liens or {}).items()} for theme, liens in brut.items()}
+
+
+def _ecrire_lien(cellule, url: str, modele_lien) -> None:
+    cellule.value = url
+    cellule.hyperlink = url
+    if modele_lien is not None:
+        cellule.font = copy(modele_lien.font)
+        cellule.alignment = copy(modele_lien.alignment)
+    else:
+        police = copy(cellule.font)
+        cellule.font = Font(name=police.name, size=police.sz, underline="single", color="0563C1")
+
+
+def _maj_presentation(ws, onglets: dict, titre: str, liens: dict) -> None:
     ws["A1"] = titre
+    # Une cellule déjà en lien souligné sert de modèle de style
+    modele_lien = next(
+        (
+            ws.cell(row=r, column=5)
+            for r in range(4, ws.max_row + 1)
+            if ws.cell(row=r, column=5).hyperlink and ws.cell(row=r, column=5).font.u
+        ),
+        None,
+    )
     themes = sorted(set(onglets) | set(ORDRE_THEMES_CALCULS) | {"REV DEC", "REV DISP", "PETITE ENFANCE"})
     ligne = 4
     while ws.cell(row=ligne, column=1).value not in (None, ""):
@@ -63,6 +93,9 @@ def _maj_presentation(ws, onglets: dict, titre: str) -> None:
             date = ws.cell(row=ligne, column=3).value
             if isinstance(date, str) and re.search(r"\d{4}", date):
                 ws.cell(row=ligne, column=3, value=re.sub(r"\d{4}", annee, date))
+            url = liens.get(theme, {}).get(annee)
+            if url:
+                _ecrire_lien(ws.cell(row=ligne, column=5), url, modele_lien)
         elif theme is not None:
             ws.cell(row=ligne, column=2, value="Non fourni")
         ligne += 1
@@ -160,11 +193,18 @@ def _maj_detail_calcul(ws, dico_fichiers: dict, onglets: dict, chemin_calculs: s
         ws.row_dimensions[ligne].height = min(hauteur, 409)
 
 
-def mettre_a_jour_pages_info(workbook, dico_fichiers: dict, chemin_calculs: str | None) -> None:
+def mettre_a_jour_pages_info(
+    workbook,
+    dico_fichiers: dict,
+    chemin_calculs: str | None,
+    chemin_liens: str | None = None,
+) -> None:
     """Adapte les deux premières pages du classeur au lot réellement traité."""
     onglets = _onglets_par_theme(dico_fichiers)
     titre = _titre_general(onglets)
+    if chemin_liens is None and chemin_calculs:
+        chemin_liens = os.path.join(os.path.dirname(chemin_calculs), "liens_presentation.yml")
     if "Présentation" in workbook.sheetnames:
-        _maj_presentation(workbook["Présentation"], onglets, titre)
+        _maj_presentation(workbook["Présentation"], onglets, titre, _charger_liens(chemin_liens))
     if "Detail calcul" in workbook.sheetnames and chemin_calculs:
         _maj_detail_calcul(workbook["Detail calcul"], dico_fichiers, onglets, chemin_calculs, titre)

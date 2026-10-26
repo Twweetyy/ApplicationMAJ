@@ -1,0 +1,32 @@
+# Lien « dictionnaire de données » de la page Présentation, par thème puis par millésime.
+# Le portail choisit le lien correspondant à l'année du fichier déposé ;
+# si l'année n'est pas listée, le lien du modèle Excel est conservé.
+POP:
+  2022: https://www.insee.fr/fr/statistiques/8647014
+  2023: https://www.insee.fr/fr/statistiques/9054332
+ACT RES:
+  2022: https://www.insee.fr/fr/statistiques/8647006
+  2023: https://www.insee.fr/fr/statistiques/9040859
+COU FAM:
+  2022: https://www.insee.fr/fr/statistiques/8647008
+  2023: https://www.insee.fr/fr/statistiques/9058978
+DIP FORMATION:
+  2022: https://www.insee.fr/fr/statistiques/8647010
+  2023: https://www.insee.fr/fr/statistiques/9054820
+LOG:
+  2022: https://www.insee.fr/fr/statistiques/8647012
+  2023: https://www.insee.fr/fr/statistiques/9061333
+REV DEC:
+  2021: https://www.insee.fr/fr/statistiques/8229323
+REV DISP:
+  2021: https://www.insee.fr/fr/statistiques/8229323
+PETITE ENFANCE:
+  2022: https://www.insee.fr/fr/statistiques/8647104
+CAF:
+  2024: https://www.insee.fr/fr/statistiques/8682393
+CNAM:
+  2025: https://www.insee.fr/fr/statistiques/8736938
+DEFM:
+  2024: https://www.insee.fr/fr/statistiques/8644875
+RPLS:
+  2024: https://www.insee.fr/fr/statistiques/8736658
