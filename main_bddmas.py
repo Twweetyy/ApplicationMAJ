@@ -108,7 +108,8 @@ def executer_pipeline(
                 chemin_meta=meta_individus,
             )
             repartitions = calculer_repartition_enfants(blocs_individus)
-            dico_fichiers["PETITE ENFANCE 2022"] = repartitions["Enfants âge révolu"]
+            annee_enfants = source_individus.get("millesime") or "2022"
+            dico_fichiers[f"PETITE ENFANCE {annee_enfants}"] = repartitions["Enfants âge révolu"]
             dico_fichiers["PETITE ENFANCE MILLÉSIME"] = repartitions["Enfants âge millésime"]
         if progression is not None:
             progression.update(1)

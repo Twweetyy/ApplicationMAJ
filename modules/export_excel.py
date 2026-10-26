@@ -19,6 +19,16 @@ def charger_titres_onglets(chemin_yaml: str) -> dict:
     with open(chemin_yaml, "r", encoding="UTF-8") as file:
         return yaml.safe_load(file) or {}
 
+def titre_onglet(titres: dict, nom_onglet: str) -> str:
+    """Titre d'un onglet quel que soit le millésime (clé 'POP' ou 'POP 2021' -> onglet 'POP 2023')."""
+    if nom_onglet in titres:
+        return titres[nom_onglet]
+    theme = re.sub(r"\s+\d{4}$", "", nom_onglet)
+    for cle, titre in titres.items():
+        if re.sub(r"\s+\d{4}$", "", str(cle)) == theme:
+            return titre
+    return f"Données infra-communales - {nom_onglet}"
+
 def formater_onglet_thematique(worksheet, dataframe, titre_onglet):
     """
     Applique la charte graphique Mairie/MEL sur un onglet de données :
@@ -223,19 +233,15 @@ def creer_modele_si_absent(dico_fichiers: dict, chemin_modele: str, chemin_infos
 
     workbook.create_sheet("Detail calcul")
 
+    ordre_themes = [
+        "POP", "ACT RES", "COU FAM", "DIP FORMATION", "LOG", "REV DEC",
+        "REV DISP", "PETITE ENFANCE", "CAF", "CNAM", "DEFM", "RPLS",
+    ]
     ordre_onglets = [
-        "POP 2022",
-        "ACT RES 2022",
-        "COU FAM 2022",
-        "DIP FORMATION 2022",
-        "LOG 2022",
-        "REV DEC 2021",
-        "REV DISP 2021",
-        "PETITE ENFANCE 2022",
-        "CAF 2024",
-        "CNAM 2024",
-        "DEFM 2024",
-        "RPLS 2024",
+        nom
+        for theme in ordre_themes
+        for nom in dico_fichiers
+        if nom != "PETITE ENFANCE MILLÉSIME" and re.sub(r"\s+\d{4}$", "", nom) == theme
     ]
 
     for nom_onglet in ordre_onglets:
@@ -244,7 +250,7 @@ def creer_modele_si_absent(dico_fichiers: dict, chemin_modele: str, chemin_infos
         dataframe = dico_fichiers[nom_onglet]
         feuille = workbook.create_sheet(title=nom_onglet)
         donnees = preparer_dataframe_modele(nom_onglet, dataframe)
-        titre = titres.get(nom_onglet, f"Données infra-communales - {nom_onglet}")
+        titre = titre_onglet(titres, nom_onglet)
         feuille.cell(row=1, column=1, value=titre)
 
         if nom_onglet.startswith("PETITE ENFANCE"):
@@ -280,7 +286,7 @@ def creer_modele_si_absent(dico_fichiers: dict, chemin_modele: str, chemin_infos
         dataframe = dico_fichiers[nom_onglet]
         feuille = workbook.create_sheet(title=nom_onglet)
         donnees = preparer_dataframe_modele(nom_onglet, dataframe)
-        titre = titres.get(nom_onglet, f"Données infra-communales - {nom_onglet}")
+        titre = titre_onglet(titres, nom_onglet)
         feuille.cell(row=1, column=1, value=titre)
         for index, nom_colonne in enumerate(donnees.columns, start=1):
             feuille.cell(row=2, column=index, value=nom_colonne)
@@ -320,7 +326,7 @@ def _generer_depuis_modele(
             tables_theme = [
                 nom
                 for nom in dico_fichiers
-                if " " in nom and nom.rsplit(" ", 1)[0] == theme
+                if " " in nom and nom.rsplit(" ", 1)[0] == theme and nom != "PETITE ENFANCE MILLÉSIME"
             ]
             if len(feuilles_theme) == 1 and len(tables_theme) == 1:
                 workbook[feuilles_theme[0]].title = nom_onglet[:31]
@@ -451,7 +457,7 @@ def _generer_depuis_modele(
                     valeur = valeur.item()
                 worksheet.cell(row=ligne, column=colonne, value=valeur)
 
-        titre = titres.get(nom_onglet, f"Données infra-communales - {nom_onglet}")
+        titre = titre = titre_onglet(titres, nom_onglet)
         worksheet.cell(row=1, column=1, value=titre)
         nombre_colonnes_geo = 8 if "Age : 0" in entetes_modele else 7
         worksheet.cell(row=1, column=nombre_colonnes_geo, value="Total")
@@ -551,7 +557,7 @@ def generer_fichier_bddmas(
             
             # Récupération de la feuille pour le formatage
             worksheet = writer.sheets[nom_onglet]
-            titre_principal = titres_onglets.get(nom_onglet, f"Données infra-communales - {nom_onglet}")
+            titre_principal = titre_onglet(titres_onglets, nom_onglet)
             
             formater_onglet_thematique(worksheet, df, titre_principal)
             

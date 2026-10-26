@@ -37,23 +37,42 @@ def _cle_nom_fichier_meta(nom_fichier: str) -> str:
     return _normaliser_nom_fichier(nom_base)
 
 
+def _annee_nom_fichier(nom: str) -> str | None:
+    correspondance = re.search(r"\d{4}", os.path.basename(nom))
+    return correspondance.group() if correspondance else None
+
+
 def trouver_fichier_meta(fichier: str, dossiers: list[str]) -> str | None:
     cle_source = _cle_nom_fichier_meta(fichier)
+    annee_source = _annee_nom_fichier(fichier)
+    candidats = []
     for dossier in dossiers:
         if not os.path.isdir(dossier):
             continue
-        for nom in os.listdir(dossier):
-            nom_normalise = nom.casefold()
-            if not nom_normalise.endswith(".csv"):
-                continue
-            est_meta_source = nom_normalise.startswith("meta_") and _cle_nom_fichier_meta(nom) == cle_source
-            est_meta_individus = (
-                cle_source == _normaliser_nom_fichier("FD_INDCVI")
-                and _cle_nom_fichier_meta(nom) == _normaliser_nom_fichier("varmod_indcvi")
-            )
-            if est_meta_source or est_meta_individus:
-                return os.path.join(dossier, nom)
-    return None
+        # Le dossier lui-même puis ses sous-dossiers directs (meta2022, meta2023...)
+        dossiers_a_lire = [dossier] + [
+            os.path.join(dossier, nom)
+            for nom in sorted(os.listdir(dossier))
+            if os.path.isdir(os.path.join(dossier, nom))
+        ]
+        for dossier_courant in dossiers_a_lire:
+            for nom in sorted(os.listdir(dossier_courant)):
+                nom_normalise = nom.casefold()
+                if not nom_normalise.endswith(".csv"):
+                    continue
+                est_meta_source = nom_normalise.startswith("meta_") and _cle_nom_fichier_meta(nom) == cle_source
+                est_meta_individus = (
+                    cle_source == _normaliser_nom_fichier("FD_INDCVI")
+                    and _cle_nom_fichier_meta(nom) == _normaliser_nom_fichier("varmod_indcvi")
+                )
+                if est_meta_source or est_meta_individus:
+                    candidats.append(os.path.join(dossier_courant, nom))
+    if not candidats:
+        return None
+    for candidat in candidats:
+        if annee_source and _annee_nom_fichier(candidat) == annee_source:
+            return candidat
+    return candidats[0]
 
 
 def _normaliser_modalite(valeur) -> str:

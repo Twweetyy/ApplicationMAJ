@@ -145,12 +145,12 @@ ApplicationMAJ/
 ## 7. Tâches à Faire (TODO)
 
 - [ ] Validation bout-en-bout du portail avec données réelles 2023
+- [ ] Adapter les deux premières pages en fonction des données (2022, 2023, nouveaux calculs, etc)
 - [ ] Harmoniser les arrondis selon les directives strictes (cf. `doc/r_gles_d_arrondis_compl_tes.md`)
 - [ ] Audit de complétude des 38 IRIS roubaisiens avant traitement
-- [ ] Agrégations multi-échelles (Quartiers, QPV, Centres sociaux)
 - [ ] Mise en page Excel automatisée (largeurs auto, séparateurs de milliers)
 - [ ] Dynamiser le nom de l'onglet petite enfance selon le millésime
-- [ ] Intégrer le module LLM dans le pipeline (ex: génération automatique de commentaires)
+- [ ] Intégrer le module LLM dans le pipeline (ex: Si des colonnes avec un nom non explicite, alors l'ia définit cette colonne pour permettre de mieux l'intégrer)
 
 ---
 
