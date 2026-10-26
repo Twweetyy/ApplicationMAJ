@@ -26,6 +26,7 @@ ApplicationMAJ/
 │  ├─ ingestion.py             → Pré-contrôle, lecture, nettoyage sources
 │  ├─ indicateurs.py           → Calculs dérivés, arrondis, répartitions
 │  ├─ export_excel.py          → Remplissage du modèle Excel + mise en forme
+│  ├─ pages_info.py            → Pages Présentation et Detail calcul générées selon le lot
 │  ├─ export_sig.py            → Export CSV pour SIG
 │  ├─ persistence.py           → Insertion SQLAlchemy
 │  └─ llm_wrapper.py           → Wrapper OpenAI/Groq/Ollama (nouveau)
@@ -33,6 +34,7 @@ ApplicationMAJ/
 │  ├─ files_names.yml          → Correspondances fichier → nom d'onglet
 │  ├─ calculated_columns.yml   → Formules de colonnes calculées
 │  ├─ info_pages.yml           → Titres des onglets (clés par thème, sans année)
+│  ├─ liens_presentation.yml   → Liens INSEE de la page Présentation (par thème et millésime)
 │  └─ meta/                    → Métadonnées CSV (meta2022/, meta2023/)
 ├─ scripts/
 │  ├─ diag.py                  → Diagnostic des cubes INSEE 2023
@@ -93,6 +95,9 @@ ApplicationMAJ/
 | 26/10/2026 | Onglet petite enfance nommé `PETITE ENFANCE {année du FD_INDCVI}` | Le millésime suit le fichier FD_INDCVI déposé, pas le recensement |
 | 26/10/2026 | `info_pages.yml` indexé par thème (`POP`, `CAF`…) + fonction `titre_onglet()` | Titres corrects quel que soit le millésime de l'onglet |
 | 26/10/2026 | `trouver_fichier_meta` lit aussi les sous-dossiers (`meta2022/`, `meta2023/`) et privilégie la méta de la même année | Ligne de commande fonctionnelle après le rangement des métas par millésime |
+| 26/10/2026 | Pages Présentation et Detail calcul régénérées à chaque classeur (`modules/pages_info.py`) | Titre, années, dates et liens suivent le lot ; Detail calcul toujours aligné sur `calculated_columns.yml` |
+| 26/10/2026 | Liens INSEE de la Présentation dans `liens_presentation.yml` (thème → année → URL) | Nouveau millésime = une ligne à ajouter, pas de modification du modèle Excel |
+| 26/10/2026 | « Part des DEFM hommes/femmes » conservées rapportées à la population de l'IRIS | Choix de définition (part de la population), pas une erreur |
 | Oct 2026 | Suppression de `demarrer_portail.ps1` au profit de `run_portal.bat` + `run_portal.py` | Simplification : un seul clic, pas de politique d'exécution PowerShell |
 
 ---
@@ -100,7 +105,8 @@ ApplicationMAJ/
 ## 5. Limites Connues & Points d'Attention
 
 - **Recensement 2023** : certaines variables absentes des cubes INSEE (salariés CDI, familles monoparentales, pop 60-74 ans) → indicateurs vides dans le classeur
-- **Pages Présentation / Detail calcul** : titre « mise à jour 2022 » et années codés en dur dans le modèle Excel
+- **Liens Présentation** : une année absente de `liens_presentation.yml` garde le lien du modèle Excel (à compléter à chaque nouveau millésime)
+- **Formule « actifs travaillant dans la commune de résidence »** : divise par « Salariés 15 ans ou plus » au lieu de « Actifs occupés 15 ans ou plus » ; sans effet en 2023 (variable absente), à revoir si un millésime la contient
 - **Colonne « Crèches »** (onglet petite enfance) : vide sur les 38 IRIS, aucune source dans `Périmètres_MAS.csv`
 - **Ligne de commande** : `python main_bddmas.py` lit `data/` à plat ; depuis le rangement par sous-dossiers, le portail est le mode recommandé
 - **Écarts d'arrondi** : totaux du classeur légèrement inférieurs au contrôle du transformer (ex. 98 284 vs 98 286 habitants) car arrondi par IRIS
@@ -110,6 +116,22 @@ ApplicationMAJ/
 ---
 
 ## 6. Historique des Sessions de Travail
+
+### 📅 26 octobre 2026 (fin d'après-midi) — Pages Présentation et Detail calcul dynamiques
+
+**Auteur** : Bilal (assisté par IA)
+
+#### Modifications effectuées
+- `modules/pages_info.py` (nouveau) : `mettre_a_jour_pages_info()` appelée juste avant l'enregistrement du classeur
+  - **Présentation** : titre `Base MAS - INSEE mise à jour {année POP}`, colonne Année = millésime réel de chaque onglet (« Non fourni » si thème absent), dates colonne C mises à l'année du fichier, lien colonne E pris dans `liens_presentation.yml`
+  - **Detail calcul** : reconstruit depuis `calculated_columns.yml` (une colonne par thème, `Indicateur -> formule` avec les vrais noms de colonnes) ; indicateurs non calculés en rouge italique « non calculé : variable absente de ce millésime » ; largeur 42, hauteurs de ligne calculées, anciens styles effacés
+- `dictionnaires/liens_presentation.yml` (nouveau) : liens 2022 du modèle + liens RP 2023 (POP 9054332, ACT RES 9040859, COU FAM 9058978, DIP 9054820, LOG 9061333) + CAF 8682393, CNAM 8736938, RPLS 8736658 (source : `doc/Fichiers_INSEE_2026.md`)
+- `modules/export_excel.py` : paramètre `chemin_calculs` ajouté à `generer_fichier_bddmas` et `_generer_depuis_modele`, appel de `mettre_a_jour_pages_info`
+- `main_bddmas.py` : transmet `chemin_calculs` à `generer_fichier_bddmas`
+- `dictionnaires/calculated_columns.yml` : « Part des DEFM ABC de niveau ≤ au BAC dans les DEFM ABC (%) » corrigée (`* 100` manquant, valeurs 0,8 → 80 %)
+
+#### Résultat
+- Validé sur le lot 2023 : Présentation « mise à jour 2023 », années 2023/2021/2022/2024/2025, liens à jour ; Detail calcul lisible, 13 indicateurs non calculés signalés en rouge
 
 ### 📅 26 octobre 2026 (après-midi) — Validation 2023 et millésimes dynamiques
 
@@ -174,7 +196,7 @@ ApplicationMAJ/
 ## 7. Tâches à Faire (TODO)
 
 - [x] Validation bout-en-bout du portail avec données réelles 2023 (26/10)
-- [ ] Adapter les deux premières pages en fonction des données (2022, 2023, nouveaux calculs, etc)
+- [x] Adapter les deux premières pages en fonction des données (2022, 2023, nouveaux calculs, etc) (26/10)
 - [ ] Harmoniser les arrondis selon les directives strictes (cf. `doc/r_gles_d_arrondis_compl_tes.md`)
 - [ ] Audit de complétude des 38 IRIS roubaisiens avant traitement
 - [ ] Mise en page Excel automatisée (largeurs auto, séparateurs de milliers)

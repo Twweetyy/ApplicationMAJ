@@ -75,6 +75,66 @@ def trouver_fichier_meta(fichier: str, dossiers: list[str]) -> str | None:
     return candidats[0]
 
 
+def _charger_iris_reference(dossier_dicos: str) -> set[str]:
+    """Codes IRIS de Roubaix attendus (clés de grand_quartier.yml)."""
+    chemin = os.path.join(dossier_dicos, "grand_quartier.yml")
+    if not os.path.isfile(chemin):
+        return set()
+    return {str(code).strip() for code in load_mapping(chemin)}
+
+
+def _iris_roubaix_presents(chemin: str, colonne: str, separateur: str) -> set[str]:
+    """Lit uniquement la colonne IRIS, par blocs, et garde les codes de Roubaix."""
+    presents = set()
+    lecteur = pd.read_csv(
+        chemin,
+        sep=separateur,
+        usecols=[colonne],
+        dtype=str,
+        encoding="utf-8-sig",
+        encoding_errors="replace",
+        chunksize=500_000,
+    )
+    for bloc in lecteur:
+        valeurs = bloc[colonne].dropna().str.strip()
+        presents.update(valeurs[valeurs.str.startswith("59512")])
+    return presents
+
+
+def _auditer_iris(rapport: dict, source: dict, chemin: str, entetes: list, separateur: str, iris_reference: set) -> None:
+    """Ajoute un avertissement si le fichier n'a pas exactement les IRIS de Roubaix attendus."""
+    if not iris_reference or chemin.casefold().endswith(".parquet"):
+        return
+    colonne_iris = next(
+        (entete for entete in entetes if _normaliser_identifiant(entete) in {"iris", "codgeo"}),
+        None,
+    )
+    if colonne_iris is None:
+        return
+    try:
+        presents = _iris_roubaix_presents(chemin, colonne_iris, separateur)
+    except (OSError, ValueError, pd.errors.ParserError, pd.errors.EmptyDataError):
+        return
+    manquants = sorted(iris_reference - presents)
+    inconnus = sorted(presents - iris_reference)
+    source["iris_roubaix"] = f"{len(presents & iris_reference)}/{len(iris_reference)}"
+    if not manquants and not inconnus:
+        return
+    details = []
+    if manquants:
+        details.append(f"{len(manquants)} IRIS absent(s) : {', '.join(manquants)}")
+    if inconnus:
+        details.append(f"{len(inconnus)} IRIS inconnu(s) de grand_quartier.yml : {', '.join(inconnus)}")
+    rapport["avertissements"].append({
+        "code": "iris_incomplets",
+        "fichier": source["fichier"],
+        "theme": source.get("theme"),
+        "manquants": manquants,
+        "inconnus": inconnus,
+        "message": f"{source['iris_roubaix']} IRIS de Roubaix trouvés. " + " ; ".join(details) + ".",
+    })
+
+
 def _normaliser_modalite(valeur) -> str:
     texte = str(valeur).strip()
     try:
@@ -166,6 +226,7 @@ def analyser_fichiers_entree(dossier_data: str, dossier_dicos: str) -> dict:
     perimetre_trouve = False
     individus_trouves = False
     dossier_meta = os.path.join(dossier_dicos, "meta")
+    iris_reference = _charger_iris_reference(dossier_dicos)
 
     for fichier in sorted(os.listdir(dossier_data)):
         if not (fichier.casefold().endswith(".csv") or fichier.casefold().endswith(".parquet")) or fichier.casefold().startswith("meta_"):
@@ -231,6 +292,7 @@ def analyser_fichiers_entree(dossier_data: str, dossier_dicos: str) -> dict:
             "colonnes_non_documentees": [],
         }
         rapport["sources"].append(source)
+        _auditer_iris(rapport, source, chemin, entetes, separateur, iris_reference)
 
         if role == "perimetre":
             perimetre_trouve = True
