@@ -3,17 +3,18 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#2c3e50">
+  <meta name="theme-color" content="#1e293b">
   <title>Portail Data SIG | BDDMAS Roubaix</title>
-  <link rel="stylesheet" href="/static/styles.css?v=2">
-  <script src="/static/multi-upload.js?v=2" defer></script>
+  <link rel="icon" type="image/png" href="/static/logo_institutionnel.png">
+  <link rel="stylesheet" href="/static/styles.css?v=5">
+  <script src="/static/multi-upload.js?v=6" defer></script>
 </head>
 <body>
   <div class="application-shell">
     <aside class="sidebar">
       <a class="logo" href="/" aria-label="Portail Data SIG Roubaix">
-        <span class="logo-mark">SIG</span>
-        <span class="logo-copy">MAIRIE<br>DE ROUBAIX</span>
+        <img class="logo-institutionnel" src="/static/logo_institutionnel.png" alt="Ville de Roubaix">
+        <span class="logo-badge">PORTAIL DATA SIG</span>
       </a>
       <nav class="nav-menu" aria-label="Navigation du traitement">
         <a class="nav-item active" href="#sources" id="navSources"><span class="nav-icon">01</span> Traitement BDDMAS</a>
@@ -33,7 +34,7 @@
           <h1>Générateur de classeurs</h1>
           <p class="subtitle">Structuration et enrichissement géographique des données infra-communales.</p>
         </div>
-        <div class="user-info"><span class="user-mark">R</span><span>ROUBAIX <small>· SERVICE SIG</small></span></div>
+        <div class="user-info"><span class="user-mark">SIG</span><span>ROUBAIX <small>· DIRECTION DU SIG</small></span></div>
       </header>
 
       <div class="perimeter-tabs" aria-label="Périmètre du traitement">
@@ -61,10 +62,7 @@
             <div class="file-list-heading"><span id="dataCount">Aucun fichier</span><button class="text-button" id="clearData" type="button" disabled>Vider</button></div>
             <ul class="file-list" id="dataFileList" aria-live="polite"></ul>
             <!-- Import status for data files -->
-            <div class="import-status" id="dataStatus">
-              <span class="status-label">Fichier Diplômes et formation :</span>
-              <button class="status-indicator" id="dataDiplomesBtn" disabled>🔴</button>
-            </div>
+            <div id="dataStatusContainer"></div>
           </section>
 
           <section class="upload-panel" aria-labelledby="metaUploadTitle">
@@ -81,10 +79,7 @@
             <div class="file-list-heading"><span id="metaCount">Aucun fichier</span><button class="text-button" id="clearMeta" type="button" disabled>Vider</button></div>
             <ul class="file-list" id="metaFileList" aria-live="polite"></ul>
             <!-- Import status for meta files -->
-            <div class="import-status" id="metaStatus">
-              <span class="status-label">Fichier Population :</span>
-              <button class="status-indicator" id="metaPopulationBtn" disabled>🔴</button>
-            </div>
+            <div id="metaStatusContainer"></div>
           </section>
         </div>
 
@@ -92,6 +87,13 @@
         <div class="action-row">
           <p class="action-note">Le fichier Périmètres_MAS.csv est requis. Les métadonnées sont rapprochées des sources automatiquement.</p>
           <button class="button button-primary" id="analyzeButton" type="button" disabled><span>Analyser le lot</span><span aria-hidden="true">→</span></button>
+        </div>
+        <div class="analyze-progress" id="analyzeProgress" hidden>
+          <div class="progress-track"><span id="analyzeProgressBar"></span></div>
+          <p class="progress-copy" id="analyzeProgressCopy">
+            <span class="spinner-dot" aria-hidden="true"></span>
+            <span id="analyzeProgressText">Préparation de l'envoi…</span>
+          </p>
         </div>
         <p class="inline-error" id="uploadError" role="alert" hidden></p>
       </section>

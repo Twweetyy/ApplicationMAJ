@@ -1,17 +1,52 @@
-# Ignorer les dossiers générés par PyInstaller et les artefacts locaux
+# ===== Build & Packaging =====
 build/
-Dist/
+dist/
 *.spec
 *.exe
-# Environnements virtuels
-.venv/
-# Cache Python
-__pycache__/
-# Fichiers temporaires de logs
-*.log
-# Autres dossiers temporaires
-tmp/
-# Ignorer les dossiers de données volumineuses
 
+# ===== Environnements virtuels =====
+.venv/
+venv/
+env/
+
+# ===== Cache Python =====
+__pycache__/
+*.pyc
+*.pyo
+
+# ===== Fichiers temporaires et logs =====
+*.log
+tmp/
+
+# ===== Données volumineuses (non versionnées) =====
 data/
 exports_sig/
+sorties/
+
+# ===== Métadonnées CSV volumineuses (organisées par millésime localement) =====
+dictionnaires/meta/meta2022/
+dictionnaires/meta/meta2023/
+
+# ===== Fichiers sensibles =====
+.env
+.gitmessage
+
+# ===== Fichiers générés (classeurs Excel de sortie) =====
+TAB_BDDMAS_*.xlsx
+!TAB_BDDMAS_INSEE2022_MODELE.xlsx
+
+# ===== IDE / Éditeurs =====
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# ===== OS =====
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# ===== Bases de données locales =====
+*.sqlite
+*.db

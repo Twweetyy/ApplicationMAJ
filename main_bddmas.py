@@ -24,7 +24,7 @@ FICHIER_MODELE = os.path.join(DOSSIER_COURANT, "TAB_BDDMAS_INSEE2022_MODELE.xlsx
 DOSSIER_EXPORT_SIG = os.path.join(DOSSIER_COURANT, "exports_sig")
 FICHIER_CALCULS = os.path.join(DOSSIER_DICOS, "calculated_columns.yml")
 FICHIER_INFOS = os.path.join(DOSSIER_DICOS, "info_pages.yml")
-FICHIER_SORTIE = os.path.join(DOSSIER_COURANT, "TAB_BDDMAS_INSEE2022_Tout_perimetre.xlsx")
+FICHIER_SORTIE = os.path.join(DOSSIER_COURANT, "sorties", "TAB_BDDMAS_INSEE_Tout_perimetre.xlsx")
 
 class ErreurPrecontrole(ValueError):
     def __init__(self, rapport: dict):

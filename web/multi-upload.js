@@ -10,9 +10,55 @@ const metaCount = $("#metaCount");
 const analyzeButton = $("#analyzeButton");
 const reportSection = $("#reportSection");
 const progressSection = $("#progressSection");
+const downloadRow = $("#downloadRow");
+const downloadButton = $("#downloadButton");
+const newJobButton = $("#newJobButton");
+
 const selected = { data: [], meta: [] };
+
+// Fichiers de données attendus avec prédicats de détection robustes
+const expectedDataFiles = [
+  { label: "Périmètres MAS (requis)", test: (n) => n.includes("perimetresmas") },
+  { label: "Évolution structure pop. (POP)", test: (n) => n.includes("evolstructpop") || n.includes("pop2023") },
+  { label: "Diplômes et formation", test: (n) => n.includes("diplomesformation") || n.includes("dip2023") },
+  { label: "Logement", test: (n) => n.includes("logement") || n.includes("log2023") },
+  { label: "Activité des résidents", test: (n) => n.includes("activiteresidents") || n.includes("emp2023") },
+  { label: "Couples, familles, ménages", test: (n) => n.includes("couplesfamillesmenages") || n.includes("men2023") },
+  { label: "Filosofi Déciles (DEC)", test: (n) => n.includes("filo") && n.includes("dec") },
+  { label: "Filosofi Revenus disp. (DISP)", test: (n) => n.includes("filo") && n.includes("disp") },
+  { label: "Données CAF", test: (n) => n.includes("caf") },
+  { label: "Données CNAM", test: (n) => n.includes("cnam") },
+  { label: "Données DEFM", test: (n) => n.includes("defm") },
+  { label: "Données RPLS", test: (n) => n.includes("rpls") },
+  { label: "Recensement enfants (FD_INDCVI)", test: (n) => n.includes("indcvi") },
+];
+
+// Fichiers de métadonnées attendus
+const expectedMetaFiles = [
+  { label: "Méta Évolution structure pop.", test: (n) => n.includes("evolstructpop") },
+  { label: "Méta Diplômes et formation", test: (n) => n.includes("diplomesformation") },
+  { label: "Méta Logement", test: (n) => n.includes("logement") },
+  { label: "Méta Activité des résidents", test: (n) => n.includes("activiteresidents") },
+  { label: "Méta Couples, familles, ménages", test: (n) => n.includes("couplesfamillesmenages") },
+  { label: "Méta Filosofi Déciles (DEC)", test: (n) => n.includes("filo") && n.includes("dec") },
+  { label: "Méta Filosofi Revenus disp. (DISP)", test: (n) => n.includes("filo") && n.includes("disp") },
+  { label: "Méta CAF", test: (n) => n.includes("caf") },
+  { label: "Méta CNAM", test: (n) => n.includes("cnam") },
+  { label: "Méta DEFM", test: (n) => n.includes("defm") },
+  { label: "Méta RPLS", test: (n) => n.includes("rpls") },
+  { label: "Varmod Enfants (varmod_indcvi)", test: (n) => n.includes("indcvi") },
+];
+
 let currentJobId = null;
 let polling = false;
+
+function normaliseNom(str) {
+  return (str || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "");
+}
 
 function showError(element, message) {
   element.textContent = message;
@@ -21,7 +67,8 @@ function showError(element, message) {
 
 function setStep(active) {
   ["navSources", "navReport", "navResult"].forEach((id, index) => {
-    document.getElementById(id).classList.toggle("active", index === active);
+    const el = document.getElementById(id);
+    if (el) el.classList.toggle("active", index === active);
   });
 }
 
@@ -37,28 +84,43 @@ function isMetaFile(name) {
   return lower.startsWith("meta_") || lower.startsWith("varmod_");
 }
 
+function renderStatusList(containerId, expectedList, selectedFiles, title) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  container.className = "import-status-list";
+  container.replaceChildren();
+
+  const titleEl = document.createElement("p");
+  titleEl.className = "import-status-title";
+  titleEl.textContent = title;
+  container.append(titleEl);
+
+  const normalizedSelected = selectedFiles.map((f) => normaliseNom(f.name));
+
+  for (const item of expectedList) {
+    const isPresent = normalizedSelected.some((nom) => item.test(nom));
+    const row = document.createElement("div");
+    row.className = "import-status";
+
+    const label = document.createElement("span");
+    label.className = "status-label";
+    label.textContent = item.label;
+
+    const indicator = document.createElement("button");
+    indicator.type = "button";
+    indicator.className = `status-indicator${isPresent ? " success" : ""}`;
+    indicator.textContent = isPresent ? "✅" : "🔴";
+    indicator.disabled = !isPresent;
+    indicator.title = isPresent ? `${item.label} : présent` : `${item.label} : manquant`;
+
+    row.append(label, indicator);
+    container.append(row);
+  }
+}
+
 function updateImportStatus() {
-  // Update data side status (Diplômes et formation)
-  if (selected.data.length > 0) {
-    dataDiplomesBtn.disabled = false;
-    dataDiplomesBtn.textContent = '✅';
-    dataDiplomesBtn.classList.add('success');
-  } else {
-    dataDiplomesBtn.disabled = true;
-    dataDiplomesBtn.textContent = '🔴';
-    dataDiplomesBtn.classList.remove('success');
-  }
-  // Update meta side status (Population)
-  const hasPopulation = selected.meta.some(f => /population/i.test(f.name));
-  if (hasPopulation) {
-    metaPopulationBtn.disabled = false;
-    metaPopulationBtn.textContent = '✅';
-    metaPopulationBtn.classList.add('success');
-  } else {
-    metaPopulationBtn.disabled = true;
-    metaPopulationBtn.textContent = '🔴';
-    metaPopulationBtn.classList.remove('success');
-  }
+  renderStatusList("dataStatusContainer", expectedDataFiles, selected.data, "Statut des données :");
+  renderStatusList("metaStatusContainer", expectedMetaFiles, selected.meta, "Statut des métadonnées :");
 }
 
 function renderGroup(group, list, count, zone) {
@@ -202,36 +264,82 @@ function showReport(job) {
   $("#generationNote").textContent = blocked ? "Corrigez les erreurs bloquantes et déposez à nouveau le lot." : "Les avertissements n’empêchent pas la génération.";
 }
 
-async function analyzeFiles() {
+function analyzeFiles() {
   if (!selected.data.length) return;
   analyzeButton.disabled = true;
   showError($("#uploadError"), "");
+
+  const analyzeProgress = $("#analyzeProgress");
+  const analyzeProgressBar = $("#analyzeProgressBar");
+  const analyzeProgressText = $("#analyzeProgressText");
+
+  analyzeProgress.hidden = false;
+  analyzeProgressBar.style.width = "0%";
+  analyzeProgressBar.style.animation = "none";
+  analyzeProgressText.textContent = "Préparation de l'envoi…";
   analyzeButton.querySelector("span:first-child").textContent = "Contrôle en cours…";
+
   const form = new FormData();
   [...selected.data, ...selected.meta].forEach((file) => form.append("files", file, file.name));
-  try {
-    const response = await fetch("/api/jobs", { method: "POST", body: form });
-    const text = await response.text();
-    let result;
-    try {
-      result = JSON.parse(text);
-    } catch (_) {
-      result = { detail: text || "Erreur serveur inconnue." };
+
+  const xhr = new XMLHttpRequest();
+  xhr.open("POST", "/api/jobs");
+
+  xhr.upload.addEventListener("progress", (event) => {
+    if (event.lengthComputable) {
+      const percent = Math.min(100, Math.round((event.loaded / event.total) * 100));
+      analyzeProgressBar.style.width = `${percent}%`;
+      const loadedStr = formatSize(event.loaded);
+      const totalStr = formatSize(event.total);
+      if (percent < 100) {
+        analyzeProgressText.textContent = `Téléversement des fichiers : ${percent}% (${loadedStr} / ${totalStr})…`;
+      } else {
+        analyzeProgressText.textContent = "Fichiers téléversés. Analyse et pré-contrôle en cours…";
+        analyzeProgressBar.style.animation = "progress 1.8s ease-in-out infinite";
+      }
+    } else {
+      analyzeProgressText.textContent = "Téléversement des fichiers en cours…";
+      analyzeProgressBar.style.animation = "progress 1.8s ease-in-out infinite";
     }
-    if (!response.ok) throw new Error(result.detail || "Le contrôle du lot a échoué.");
-    currentJobId = result.id;
-    // Après le POST, indiquer le succès visuel
-    if (selected.data.length) dataZone.classList.add('success');
-    if (selected.meta.length) metaZone.classList.add('success');
-    // Afficher le rapport
-    showReport(result);
-    reportSection.scrollIntoView({ behavior: "smooth", block: "start" });
-  } catch (error) {
-    showError($("#uploadError"), error.message || "Impossible d’analyser les fichiers.");
-  } finally {
+  });
+
+  xhr.addEventListener("load", () => {
+    analyzeProgress.hidden = true;
     analyzeButton.querySelector("span:first-child").textContent = "Analyser le lot";
     analyzeButton.disabled = selected.data.length === 0;
-  }
+
+    let result;
+    try {
+      result = JSON.parse(xhr.responseText);
+    } catch (_) {
+      result = { detail: xhr.responseText || "Erreur serveur inconnue." };
+    }
+
+    if (xhr.status >= 200 && xhr.status < 300) {
+      currentJobId = result.id;
+      if (selected.data.length) dataZone.classList.add("success");
+      if (selected.meta.length) metaZone.classList.add("success");
+      showReport(result);
+      reportSection.scrollIntoView({ behavior: "smooth", block: "start" });
+    } else {
+      showError($("#uploadError"), result.detail || "Le contrôle du lot a échoué.");
+    }
+  });
+
+  xhr.addEventListener("error", () => {
+    analyzeProgress.hidden = true;
+    analyzeButton.querySelector("span:first-child").textContent = "Analyser le lot";
+    analyzeButton.disabled = selected.data.length === 0;
+    showError($("#uploadError"), "Impossible de communiquer avec le serveur.");
+  });
+
+  xhr.addEventListener("abort", () => {
+    analyzeProgress.hidden = true;
+    analyzeButton.querySelector("span:first-child").textContent = "Analyser le lot";
+    analyzeButton.disabled = selected.data.length === 0;
+  });
+
+  xhr.send(form);
 }
 
 function showGenerationState(status, error = "", warnings = []) {
@@ -307,38 +415,16 @@ async function resetJob() {
   dataInput.value = "";
   metaInput.value = "";
   renderFiles();
-  dataZone.classList.remove('success');
-  metaZone.classList.remove('success');
+  dataZone.classList.remove("success");
+  metaZone.classList.remove("success");
   reportSection.hidden = true;
   progressSection.hidden = true;
+  $("#analyzeProgress").hidden = true;
   showError($("#uploadError"), "");
   showError($("#generationError"), "");
   $("#generateButton").disabled = true;
   setStep(0);
   window.scrollTo({ top: 0, behavior: "smooth" });
-}
-
-function bindDropzone(zone, input, group) {
-  zone.addEventListener("click", () => input.click());
-  zone.addEventListener("keydown", (event) => {
-    if (event.key === "Enter" || event.key === " ") {
-      event.preventDefault();
-      input.click();
-    }
-  });
-  input.addEventListener("change", (event) => {
-    addFiles(group, event.target.files);
-    input.value = "";
-  });
-  ["dragenter", "dragover"].forEach((type) => zone.addEventListener(type, (event) => {
-    event.preventDefault();
-    zone.classList.add("dragover");
-  }));
-  ["dragleave", "drop"].forEach((type) => zone.addEventListener(type, (event) => {
-    event.preventDefault();
-    zone.classList.remove("dragover");
-  }));
-  zone.addEventListener("drop", (event) => addFiles(group, event.dataTransfer.files));
 }
 
 function clearSelectedGroup(group) {
@@ -348,8 +434,8 @@ function clearSelectedGroup(group) {
   renderFiles();
 }
 
-bindDropzone(uploadData, dataInput, "data");
-bindDropzone(uploadMeta, metaInput, "meta");
+bindDropzone(dataZone, dataInput, "data");
+bindDropzone(metaZone, metaInput, "meta");
 $("#clearData").addEventListener("click", () => clearSelectedGroup("data"));
 $("#clearMeta").addEventListener("click", () => clearSelectedGroup("meta"));
 analyzeButton.addEventListener("click", analyzeFiles);

@@ -1,0 +1,611 @@
+#!/usr/bin/env python3
+"""
+transformer_2023_roubaix.py
+===========================
+Convertit les cubes multidimensionnels Insee RP 2023 (format long / SDMX)
+en tables plates infracommunales (format large) pour la Ville de Roubaix (38 IRIS).
+
+Produit les 5 fichiers de données requis par le portail BDDMAS :
+  - base-ic-evol-struct-pop-2023.CSV
+  - base-ic-activite-residents-2023.CSV
+  - base-ic-logement-2023.CSV
+  - base-ic-couples-familles-menages-2023.CSV
+  - base-ic-diplomes-formation-2023.CSV
+ainsi que leurs 5 métadonnées correspondantes :
+  - meta_base-ic-evol-struct-pop-2023.csv
+  - etc.
+"""
+
+import os
+import re
+import pandas as pd
+import numpy as np
+import yaml
+
+# ---------------------------------------------------------------------------
+# Dossiers
+# ---------------------------------------------------------------------------
+DOSSIER_RACINE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DOSSIER_SOURCES_2023 = os.path.join(DOSSIER_RACINE, "data", "data2023", "sources_brutes_insee")
+DOSSIER_OUTPUT_DATA = os.path.join(DOSSIER_RACINE, "data", "data2023")
+DOSSIER_OUTPUT_META = os.path.join(DOSSIER_RACINE, "dictionnaires", "meta", "meta2023")
+
+# Load allowed GEO codes from grand_quartier.yml (full IRIS codes for Roubaix)
+GRAND_QUARTIER_PATH = os.path.join(DOSSIER_RACINE, "dictionnaires", "grand_quartier.yml")
+with open(GRAND_QUARTIER_PATH, "r", encoding="utf-8") as f:
+    ALLOWED_GEO = {str(k) for k in yaml.safe_load(f).keys()}
+
+# Colonnes qui ne sont pas des dimensions du cube (identifiants, libellés, mesure, statut)
+COLONNES_NON_DIMENSION = {
+    "GEO", "GEO_OBJECT", "OBS_VALUE", "OBS_STATUS", "TIME_PERIOD", "FREQ",
+    "TRIRIS", "LARGE_DISTRICT", "RP_MEASURE", "TYP_IRIS", "LAB_IRIS",
+    "Type d'IRIS", "Label de l'IRIS",
+}
+
+def valeur_cube(iris_df, res, filtre):
+    """Somme OBS_VALUE par IRIS pour un filtre donné.
+
+    Les cubes Insee 2023 croisent plusieurs dimensions : toute dimension non citée
+    dans le filtre est ramenée à son total "_T" (quand il existe) pour ne pas
+    additionner plusieurs fois les mêmes personnes ou logements.
+    """
+    sub = iris_df
+    for k, v in filtre.items():
+        if isinstance(v, list):
+            sub = sub[sub[k].isin(v)]
+        else:
+            sub = sub[sub[k] == v]
+    for col in sub.columns:
+        if col in COLONNES_NON_DIMENSION or col in filtre:
+            continue
+        if (sub[col].astype(str) == "_T").any():
+            sub = sub[sub[col].astype(str) == "_T"]
+    s = sub.groupby("GEO")["OBS_VALUE"].sum()
+    return res["IRIS"].map(s).fillna(0.0)
+
+def charger_roubaix(chemin_csv):
+    """Charge et filtre uniquement les lignes de Roubaix (GEO dans ALLOWED_GEO)."""
+    chunks = []
+    print(f"  -> Lecture et filtrage de {os.path.basename(chemin_csv)}...")
+    for chunk in pd.read_csv(chemin_csv, sep=";", chunksize=100000, dtype=str):
+        m = chunk[chunk["GEO"].astype(str).isin(ALLOWED_GEO)]
+        if not m.empty:
+            chunks.append(m)
+    if not chunks:
+        raise ValueError(f"Aucune ligne pour Roubaix dans {chemin_csv}")
+    df = pd.concat(chunks, ignore_index=True)
+    df["GEO"] = df["GEO"].astype(str)
+    df["OBS_VALUE"] = pd.to_numeric(df["OBS_VALUE"], errors="coerce").fillna(0.0)
+    return df
+
+def extraire_socle_geo(df_source):
+    """Extrait le socle géographique des IRIS de Roubaix (IRIS, COM, TYP_IRIS, LAB_IRIS)."""
+    iris_rows = df_source[df_source["GEO_OBJECT"] == "IRIS"] if "GEO_OBJECT" in df_source.columns else df_source
+    iris_rows = iris_rows[iris_rows["GEO"].astype(str).str.len() == 9]
+    socle = iris_rows.groupby("GEO").first().reset_index()
+    socle["IRIS"] = socle["GEO"].astype(str)
+    socle["COM"] = "59512"
+    socle["TYP_IRIS"] = socle.get("TYP_IRIS", "H")
+    socle["LAB_IRIS"] = socle.get("LAB_IRIS", "2")
+    return socle[["IRIS", "COM", "TYP_IRIS", "LAB_IRIS"]].drop_duplicates("IRIS").sort_values("IRIS").reset_index(drop=True)
+
+# ==============================================================================
+# 1. POPULATION (POP)
+# ==============================================================================
+def transformer_population(df_raw, socle):
+    print("Traitement du thème POPULATION (POP)...")
+    res = socle.copy()
+    iris_df = df_raw[df_raw["GEO"].astype(str).isin(res["IRIS"])]
+    
+    def get_val(filtre):
+        return valeur_cube(iris_df, res, {"RP_MEASURE": "POP", **filtre})
+
+    # Indicateurs Population
+    colonnes_pop = {
+        "P23_POP": {"SEX": "_T", "AGE": "_T", "IMMI": "_T", "NATIONALITY_TYPE": "_T", "HAR": "_T"},
+        "P23_POP0002": {"AGE": "Y_LT2"},
+        "P23_POP0305": {"AGE": "Y2T5"},
+        "P23_POP0610": {"AGE": "Y6T10"},
+        "P23_POP1117": {"AGE": ["Y11T14", "Y15T17"]},
+        "P23_POP1824": {"AGE": "Y18T24"},
+        "P23_POP2539": {"AGE": "Y25T39"},
+        "P23_POP4054": {"AGE": "Y40T54"},
+        "P23_POP5564": {"AGE": "Y55T64"},
+        "P23_POP6579": {"AGE": "Y65T79"},
+        "P23_POP80P": {"AGE": "Y_GE80"},
+        "P23_POP0014": {"AGE": "Y_LT15"},
+        "P23_POP1524": {"AGE": "Y15T24"},
+        "P23_POP0019": {"AGE": "Y_LT20"},
+        "P23_POP2064": {"AGE": "Y20T64"},
+        "P23_POP65P": {"AGE": "Y_GE65"},
+        "P23_POPH": {"SEX": "M", "AGE": "_T", "IMMI": "_T", "NATIONALITY_TYPE": "_T", "HAR": "_T"},
+        "P23_H0014": {"SEX": "M", "AGE": "Y_LT15"},
+        "P23_H1524": {"SEX": "M", "AGE": "Y15T24"},
+        "P23_H0019": {"SEX": "M", "AGE": "Y_LT20"},
+        "P23_H2064": {"SEX": "M", "AGE": "Y20T64"},
+        "P23_H65P": {"SEX": "M", "AGE": "Y_GE65"},
+        "P23_POPF": {"SEX": "F", "AGE": "_T", "IMMI": "_T", "NATIONALITY_TYPE": "_T", "HAR": "_T"},
+        "P23_F0014": {"SEX": "F", "AGE": "Y_LT15"},
+        "P23_F1524": {"SEX": "F", "AGE": "Y15T24"},
+        "P23_F0019": {"SEX": "F", "AGE": "Y_LT20"},
+        "P23_F2064": {"SEX": "F", "AGE": "Y20T64"},
+        "P23_F65P": {"SEX": "F", "AGE": "Y_GE65"},
+        "P23_POP_FR": {"NATIONALITY_TYPE": "250"},
+        "P23_POP_ETR": {"NATIONALITY_TYPE": "100"},
+        "P23_POP_IMM": {"IMMI": "1"},
+        "P23_PMEN": {"HAR": "01"},
+        "P23_PHORMEN": {"HAR": "11T23"},
+    }
+
+    meta_rows = [
+        ("COM", "Commune ou ARM"),
+        ("TYP_IRIS", "Type d'Iris"),
+        ("LAB_IRIS", "Label de l'Iris"),
+        ("P23_POP", "Population"),
+        ("P23_POP0002", "Pop 0-2 ans"),
+        ("P23_POP0305", "Pop 3-5 ans"),
+        ("P23_POP0610", "Pop 6-10 ans"),
+        ("P23_POP1117", "Pop 11-17 ans"),
+        ("P23_POP1824", "Pop 18-24 ans"),
+        ("P23_POP2539", "Pop 25-39 ans"),
+        ("P23_POP4054", "Pop 40-54 ans"),
+        ("P23_POP5564", "Pop 55-64 ans"),
+        ("P23_POP6579", "Pop 65-79 ans"),
+        ("P23_POP80P", "Pop 80 ans ou plus"),
+        ("P23_POP0014", "Pop 0-14 ans"),
+        ("P23_POP1524", "Pop 15-24 ans"),
+        ("P23_POP0019", "Pop 0-19 ans"),
+        ("P23_POP2064", "Pop 20-64 ans"),
+        ("P23_POP65P", "Pop 65 ans ou plus"),
+        ("P23_POPH", "Pop Hommes"),
+        ("P23_H0014", "Pop Hommes 0-14 ans"),
+        ("P23_H1524", "Pop Hommes 15-24 ans"),
+        ("P23_H0019", "Pop Hommes 0-19 ans"),
+        ("P23_H2064", "Pop Hommes 20-64 ans"),
+        ("P23_H65P", "Pop Hommes 65 ans ou plus"),
+        ("P23_POPF", "Pop Femmes"),
+        ("P23_F0014", "Pop Femmes 0-14 ans"),
+        ("P23_F1524", "Pop Femmes 15-24 ans"),
+        ("P23_F0019", "Pop Femmes 0-19 ans"),
+        ("P23_F2064", "Pop Femmes 20-64 ans"),
+        ("P23_F65P", "Pop Femmes 65 ans ou plus"),
+        ("P23_POP_FR", "Pop Français"),
+        ("P23_POP_ETR", "Pop Etrangers"),
+        ("P23_POP_IMM", "Pop Immigrés"),
+        ("P23_PMEN", "Pop ménages"),
+        ("P23_PHORMEN", "Pop hors ménages"),
+    ]
+
+    for col, filt in colonnes_pop.items():
+        res[col] = get_val(filt)
+    # Renommer les colonnes en enlevant le préfixe 'P23_'
+    col_mapping = {col: col.replace('P23_', '') for col in colonnes_pop.keys()}
+    res = res.rename(columns=col_mapping)
+    # Mettre à jour les métadonnées en fonction du nouveau nom
+    meta_rows = [(col_mapping.get(col, col), lib) for col, lib in meta_rows]
+    return res, meta_rows
+
+# ==============================================================================
+# 2. LOGEMENT (LOG)
+# ==============================================================================
+def transformer_logement(df_raw, socle):
+    print("Traitement du thème LOGEMENT (LOG)...")
+    res = socle.copy()
+    iris_df = df_raw[df_raw["GEO"].astype(str).isin(res["IRIS"])]
+
+    def get_val(filtre):
+        return valeur_cube(iris_df, res, {"RP_MEASURE": "DWELLINGS", **filtre})
+
+    colonnes_log = {
+        "P23_LOG": {"OCS": "_T"},
+        "P23_RP": {"OCS": "DW_MAIN"},
+        "P23_MEN": {"OCS": "DW_MAIN"},
+        "P23_PMEN": {"OCS": "DW_MAIN", "RP_MEASURE": "DWELLINGS_POPSIZE"},
+        "P23_RSECOCC": {"OCS": "DW_SEC_DW_OCC"},
+        "P23_LOGVAC": {"OCS": "DW_VAC"},
+        "P23_MAISON": {"TDW": "1"},
+        "P23_APPART": {"TDW": "2"},
+        "P23_RP_1P": {"NOR": "R1"},
+        "P23_RP_2P": {"NOR": "R2"},
+        "P23_RP_3P": {"NOR": "R3"},
+        "P23_RP_4P": {"NOR": "R4"},
+        "P23_RP_5PP": {"NOR": "R_GE5"},
+        "P23_RP_M30M2": {"UFS": "LT30"},
+        "P23_RP_3040M2": {"UFS": "30T39"},
+        "P23_RP_4060M2": {"UFS": "40T59"},
+        "P23_RP_6080M2": {"UFS": "60T79"},
+        "P23_RP_80100M2": {"UFS": "80T99"},
+        "P23_RP_100120M2": {"UFS": "100T119"},
+        "P23_RP_120M2P": {"UFS": "GE120"},
+        "P23_RP_ACH1919": {"BUILD_END": "Y_LT1919"},
+        "P23_RP_ACH1945": {"BUILD_END": "Y1919T1945"},
+        "P23_RP_ACH1970": {"BUILD_END": "Y1946T1970"},
+        "P23_RP_ACH1990": {"BUILD_END": "Y1971T1990"},
+        "P23_RP_ACH2005": {"BUILD_END": "Y1991T2005"},
+        "P23_RP_ACH2019": {"BUILD_END": "Y2006TAAAA"},
+        "P23_MEN_ANEM0002": {"L_STAY": "Y_LT2"},
+        "P23_MEN_ANEM0204": {"L_STAY": "Y2T4"},
+        "P23_MEN_ANEM0509": {"L_STAY": "Y5T9"},
+        "P23_MEN_ANEM10P": {"L_STAY": "Y_GE10"},
+        "P23_RP_PROP": {"TSH": "100"},
+        "P23_RP_LOC": {"TSH": "200"},
+        "P23_RP_LOCHLMV": {"TSH": "221"},
+        "P23_RP_GRAT": {"TSH": "300"},
+        "P23_RP_VOIT1": {"CARS": "C1"},
+        "P23_RP_VOIT2P": {"CARS": "C_GE2"},
+        "P23_RP_VOIT1P": {"CARS": "C_GE1"},
+        "P23_RP_GARL": {"CARPARK": "1"},
+        "P23_RP_CGAZV": {"NRG_SRC": "TOWN_GAS"},
+        "P23_RP_CFIOUL": {"NRG_SRC": "OIL"},
+        "P23_RP_CELEC": {"NRG_SRC": "ELC"},
+        "P23_RP_CGAZB": {"NRG_SRC": "BOT_GAS"},
+        "P23_RP_CAUT": {"NRG_SRC": "OTH"},
+    }
+
+    meta_rows = [
+        ("COM", "Commune ou ARM"),
+        ("TYP_IRIS", "Type d'Iris"),
+        ("LAB_IRIS", "Label de l'Iris"),
+        ("P23_LOG", "Logements"),
+        ("P23_RP", "Résidences principales"),
+        ("P23_MEN", "Ménages"),
+        ("P23_PMEN", "Pop Ménages"),
+        ("P23_RSECOCC", "Rés secondaires et logts occasionnels"),
+        ("P23_LOGVAC", "Logements vacants"),
+        ("P23_MAISON", "Maisons"),
+        ("P23_APPART", "Appartements"),
+        ("P23_RP_1P", "Rés princ 1 pièce"),
+        ("P23_RP_2P", "Rés princ 2 pièces"),
+        ("P23_RP_3P", "Rés princ 3 pièces"),
+        ("P23_RP_4P", "Rés princ 4 pièces"),
+        ("P23_RP_5PP", "Rés princ 5 pièces ou plus"),
+        ("P23_RP_M30M2", "Rés princ moins de 30 m²"),
+        ("P23_RP_3040M2", "Rés princ 30 à moins de 40 m²"),
+        ("P23_RP_4060M2", "Rés princ 40 à moins de 60 m²"),
+        ("P23_RP_6080M2", "Rés princ 60 à moins de 80 m²"),
+        ("P23_RP_80100M2", "Rés princ 80 à moins de 100 m²"),
+        ("P23_RP_100120M2", "Rés princ 100 à moins de 120 m²"),
+        ("P23_RP_120M2P", "Rés princ 120 m² ou plus"),
+        ("P23_RP_ACH1919", "Rés princ construites avant 1919"),
+        ("P23_RP_ACH1945", "Rés princ construites de 1919 à 1945"),
+        ("P23_RP_ACH1970", "Rés princ construites de 1946 à 1970"),
+        ("P23_RP_ACH1990", "Rés princ construites de 1971 à 1990"),
+        ("P23_RP_ACH2005", "Rés princ construites de 1991 à 2005"),
+        ("P23_RP_ACH2019", "Rés princ construites de 2006 à 2021"),
+        ("P23_MEN_ANEM0002", "Emménagement de moins de 2 ans"),
+        ("P23_MEN_ANEM0204", "Emménagement de 2 à 4 ans"),
+        ("P23_MEN_ANEM0509", "Emménagement de 5 à 9 ans"),
+        ("P23_MEN_ANEM10P", "Emménagement de 10 ans ou plus"),
+        ("P23_RP_PROP", "Propriétaires"),
+        ("P23_RP_LOC", "Locataires"),
+        ("P23_RP_LOCHLMV", "Locataires HLM"),
+        ("P23_RP_GRAT", "Logés gratuitement"),
+        ("P23_RP_VOIT1", "Ménages avec 1 voiture"),
+        ("P23_RP_VOIT2P", "Ménages avec 2 voitures ou plus"),
+        ("P23_RP_VOIT1P", "Ménages avec au moins 1 voiture"),
+        ("P23_RP_GARL", "Ménages avec garage ou parking"),
+        ("P23_RP_CGAZV", "Chauffage gaz de ville"),
+        ("P23_RP_CFIOUL", "Chauffage fioul"),
+        ("P23_RP_CELEC", "Chauffage électrique"),
+        ("P23_RP_CGAZB", "Chauffage gaz en bouteille"),
+        ("P23_RP_CAUT", "Autre chauffage"),
+    ]
+
+    for col, filt in colonnes_log.items():
+        res[col] = get_val(filt)
+
+    # Renommer les colonnes en enlevant le préfixe "P23_"
+    col_mapping = {col: col.replace('P23_', '') for col in colonnes_log.keys()}
+    res = res.rename(columns=col_mapping)
+    # Mettre à jour les métadonnées
+    meta_rows = [(col_mapping.get(col, col), lib) for col, lib in meta_rows]
+    return res, meta_rows
+
+# ==============================================================================
+# 3. ACTIVITE DES RESIDENTS (ACT RES / EMP)
+# ==============================================================================
+def transformer_activite(df_raw, socle):
+    print("Traitement du thème ACTIVITÉ DES RÉSIDENTS (ACT RES)...")
+    res = socle.copy()
+    iris_df = df_raw[df_raw["GEO"].astype(str).isin(res["IRIS"])]
+
+    def get_val(filtre):
+        return valeur_cube(iris_df, res, {"RP_MEASURE": "POP", **filtre})
+
+    colonnes_act = {
+        "P23_POP1564": {"AGE": "Y15T64", "SEX": "_T"},
+        "P23_POP1524": {"AGE": "Y15T24", "SEX": "_T"},
+        "P23_POP2554": {"AGE": "Y25T54", "SEX": "_T"},
+        "P23_POP5564": {"AGE": "Y55T64", "SEX": "_T"},
+        "P23_H1564": {"AGE": "Y15T64", "SEX": "M"},
+        "P23_H1524": {"AGE": "Y15T24", "SEX": "M"},
+        "P23_H2554": {"AGE": "Y25T54", "SEX": "M"},
+        "P23_H5564": {"AGE": "Y55T64", "SEX": "M"},
+        "P23_F1564": {"AGE": "Y15T64", "SEX": "F"},
+        "P23_F1524": {"AGE": "Y15T24", "SEX": "F"},
+        "P23_F2554": {"AGE": "Y25T54", "SEX": "F"},
+        "P23_F5564": {"AGE": "Y55T64", "SEX": "F"},
+        "P23_ACT1564": {"EMPSTA_ENQ": "1T2", "AGE": "Y15T64", "SEX": "_T"},
+        "P23_ACT1524": {"EMPSTA_ENQ": "1T2", "AGE": "Y15T24", "SEX": "_T"},
+        "P23_ACT2554": {"EMPSTA_ENQ": "1T2", "AGE": "Y25T54", "SEX": "_T"},
+        "P23_ACT5564": {"EMPSTA_ENQ": "1T2", "AGE": "Y55T64", "SEX": "_T"},
+        "P23_HACT1564": {"EMPSTA_ENQ": "1T2", "AGE": "Y15T64", "SEX": "M"},
+        "P23_HACT1524": {"EMPSTA_ENQ": "1T2", "AGE": "Y15T24", "SEX": "M"},
+        "P23_HACT2554": {"EMPSTA_ENQ": "1T2", "AGE": "Y25T54", "SEX": "M"},
+        "P23_HACT5564": {"EMPSTA_ENQ": "1T2", "AGE": "Y55T64", "SEX": "M"},
+        "P23_FACT1564": {"EMPSTA_ENQ": "1T2", "AGE": "Y15T64", "SEX": "F"},
+        "P23_FACT1524": {"EMPSTA_ENQ": "1T2", "AGE": "Y15T24", "SEX": "F"},
+        "P23_FACT2554": {"EMPSTA_ENQ": "1T2", "AGE": "Y25T54", "SEX": "F"},
+        "P23_FACT5564": {"EMPSTA_ENQ": "1T2", "AGE": "Y55T64", "SEX": "F"},
+        "P23_ACTOCC1564": {"EMPSTA_ENQ": "1", "AGE": "Y15T64", "SEX": "_T"},
+        "P23_ACTOCC1524": {"EMPSTA_ENQ": "1", "AGE": "Y15T24", "SEX": "_T"},
+        "P23_ACTOCC2554": {"EMPSTA_ENQ": "1", "AGE": "Y25T54", "SEX": "_T"},
+        "P23_ACTOCC5564": {"EMPSTA_ENQ": "1", "AGE": "Y55T64", "SEX": "_T"},
+        "P23_HACTOCC1564": {"EMPSTA_ENQ": "1", "AGE": "Y15T64", "SEX": "M"},
+        "P23_HACTOCC1524": {"EMPSTA_ENQ": "1", "AGE": "Y15T24", "SEX": "M"},
+        "P23_HACTOCC2554": {"EMPSTA_ENQ": "1", "AGE": "Y25T54", "SEX": "M"},
+        "P23_HACTOCC5564": {"EMPSTA_ENQ": "1", "AGE": "Y55T64", "SEX": "M"},
+        "P23_FACTOCC1564": {"EMPSTA_ENQ": "1", "AGE": "Y15T64", "SEX": "F"},
+        "P23_FACTOCC1524": {"EMPSTA_ENQ": "1", "AGE": "Y15T24", "SEX": "F"},
+        "P23_FACTOCC2554": {"EMPSTA_ENQ": "1", "AGE": "Y25T54", "SEX": "F"},
+        "P23_FACTOCC5564": {"EMPSTA_ENQ": "1", "AGE": "Y55T64", "SEX": "F"},
+        "P23_CHOM1564": {"EMPSTA_ENQ": "2", "AGE": "Y15T64", "SEX": "_T"},
+        "P23_CHOM1524": {"EMPSTA_ENQ": "2", "AGE": "Y15T24", "SEX": "_T"},
+        "P23_CHOM2554": {"EMPSTA_ENQ": "2", "AGE": "Y25T54", "SEX": "_T"},
+        "P23_CHOM5564": {"EMPSTA_ENQ": "2", "AGE": "Y55T64", "SEX": "_T"},
+        "P23_INACT1564": {"EMPSTA_ENQ": "3", "AGE": "Y15T64", "SEX": "_T"},
+        "P23_ETUD1564": {"EMPSTA_ENQ": "33", "AGE": "Y15T64", "SEX": "_T"},
+        "P23_RETR1564": {"EMPSTA_ENQ": "31", "AGE": "Y15T64", "SEX": "_T"},
+        "P23_AINACT1564": {"EMPSTA_ENQ": "35T36", "AGE": "Y15T64", "SEX": "_T"},
+    }
+
+    meta_rows = [
+        ("COM", "Commune ou ARM"),
+        ("TYP_IRIS", "Type d'Iris"),
+        ("LAB_IRIS", "Label de l'Iris"),
+        ("P23_POP1564", "Pop 15-64 ans"),
+        ("P23_POP1524", "Pop 15-24 ans"),
+        ("P23_POP2554", "Pop 25-54 ans"),
+        ("P23_POP5564", "Pop 55-64 ans"),
+        ("P23_H1564", "Pop 15-64 ans Hommes"),
+        ("P23_H1524", "Pop 15-24 ans Hommes"),
+        ("P23_H2554", "Pop 25-54 ans Hommes"),
+        ("P23_H5564", "Pop 55-64 ans Hommes"),
+        ("P23_F1564", "Pop 15-64 ans Femmes"),
+        ("P23_F1524", "Pop 15-24 ans Femmes"),
+        ("P23_F2554", "Pop 25-54 ans Femmes"),
+        ("P23_F5564", "Pop 55-64 ans Femmes"),
+        ("P23_ACT1564", "Actifs 15-64 ans"),
+        ("P23_ACT1524", "Actifs 15-24 ans"),
+        ("P23_ACT2554", "Actifs 25-54 ans"),
+        ("P23_ACT5564", "Actifs 55-64 ans"),
+        ("P23_HACT1564", "Actifs 15-64 ans Hommes"),
+        ("P23_HACT1524", "Actifs 15-24 ans Hommes"),
+        ("P23_HACT2554", "Actifs 25-54 ans Hommes"),
+        ("P23_HACT5564", "Actifs 55-64 ans Hommes"),
+        ("P23_FACT1564", "Actifs 15-64 ans Femmes"),
+        ("P23_FACT1524", "Actifs 15-24 ans Femmes"),
+        ("P23_FACT2554", "Actifs 25-54 ans Femmes"),
+        ("P23_FACT5564", "Actifs 55-64 ans Femmes"),
+        ("P23_ACTOCC1564", "Actifs occupés 15-64 ans"),
+        ("P23_ACTOCC1524", "Actifs occupés 15-24 ans"),
+        ("P23_ACTOCC2554", "Actifs occupés 25-54 ans"),
+        ("P23_ACTOCC5564", "Actifs occupés 55-64 ans"),
+        ("P23_HACTOCC1564", "Actifs occupés 15-64 ans Hommes"),
+        ("P23_HACTOCC1524", "Actifs occupés 15-24 ans Hommes"),
+        ("P23_HACTOCC2554", "Actifs occupés 25-54 ans Hommes"),
+        ("P23_HACTOCC5564", "Actifs occupés 55-64 ans Hommes"),
+        ("P23_FACTOCC1564", "Actifs occupés 15-64 ans Femmes"),
+        ("P23_FACTOCC1524", "Actifs occupés 15-24 ans Femmes"),
+        ("P23_FACTOCC2554", "Actifs occupés 25-54 ans Femmes"),
+        ("P23_FACTOCC5564", "Actifs occupés 55-64 ans Femmes"),
+        ("P23_CHOM1564", "Chômeurs 15-64 ans"),
+        ("P23_CHOM1524", "Chômeurs 15-24 ans"),
+        ("P23_CHOM2554", "Chômeurs 25-54 ans"),
+        ("P23_CHOM5564", "Chômeurs 55-64 ans"),
+        ("P23_INACT1564", "Inactifs 15-64 ans"),
+        ("P23_ETUD1564", "Élèves, étudiants 15-64 ans"),
+        ("P23_RETR1564", "Retraités 15-64 ans"),
+        ("P23_AINACT1564", "Autres inactifs 15-64 ans"),
+    ]
+
+    for col, filt in colonnes_act.items():
+        res[col] = get_val(filt)
+
+    # Renommer les colonnes en enlevant le préfixe "P23_"
+    col_mapping = {col: col.replace('P23_', '') for col in colonnes_act.keys()}
+    res = res.rename(columns=col_mapping)
+    # Mettre à jour les métadonnées
+    meta_rows = [(col_mapping.get(col, col), lib) for col, lib in meta_rows]
+    return res, meta_rows
+
+# ==============================================================================
+# 4. COUPLES FAMILLES MENAGES (COU FAM / MEN)
+# ==============================================================================
+def transformer_menages(df_raw, socle, df_log_raw):
+    print("Traitement du thème COUPLES, FAMILLES, MÉNAGES (COU FAM)...")
+    res = socle.copy()
+    iris_df = df_raw[df_raw["GEO"].astype(str).isin(res["IRIS"])]
+
+    def get_val(filtre):
+        return valeur_cube(iris_df, res, filtre)
+
+    colonnes_men = {
+        "C23_MENPSEUL": {"RP_MEASURE": "ONEPERS", "AGE": "Y_GE15"},
+        "P23_POP15P_MARIEE": {"RP_MEASURE": "POP", "CIVIL_STATUS": "1", "AGE": "Y_GE15"},
+        "P23_POP15P_PACSEE": {"RP_MEASURE": "POP", "CIVIL_STATUS": "2", "AGE": "Y_GE15"},
+        "P23_POP15P_CONCUB_UNION_LIBRE": {"RP_MEASURE": "POP", "CIVIL_STATUS": "3", "AGE": "Y_GE15"},
+        "P23_POP15P_VEUFS": {"RP_MEASURE": "POP", "CIVIL_STATUS": "4", "AGE": "Y_GE15"},
+        "P23_POP15P_DIVORCEE": {"RP_MEASURE": "POP", "CIVIL_STATUS": "5", "AGE": "Y_GE15"},
+        "P23_POP15P_CELIBATAIRE": {"RP_MEASURE": "POP", "CIVIL_STATUS": "6", "AGE": "Y_GE15"},
+    }
+
+    meta_rows = [
+        ("COM", "Commune ou ARM"),
+        ("TYP_IRIS", "Type d'Iris"),
+        ("LAB_IRIS", "Label de l'Iris"),
+        ("C23_MEN", "Ménages"),
+        ("C23_MENPSEUL", "Ménages 1 personne"),
+        ("P23_POP15P_MARIEE", "Pop 15 ans ou plus Mariée"),
+        ("P23_POP15P_PACSEE", "Pop 15 ans ou plus Pacsée"),
+        ("P23_POP15P_CONCUB_UNION_LIBRE", "Pop 15 ans ou plus Concubinage"),
+        ("P23_POP15P_VEUFS", "Pop 15 ans ou plus Veufs"),
+        ("P23_POP15P_DIVORCEE", "Pop 15 ans ou plus Divorcée"),
+        ("P23_POP15P_CELIBATAIRE", "Pop 15 ans ou plus Célibataire"),
+    ]
+
+    # Le cube MEN n'a pas de mesure "ménages" : ménages = résidences principales (cube LOG)
+    iris_log = df_log_raw[df_log_raw["GEO"].astype(str).isin(res["IRIS"])]
+    res["C23_MEN"] = valeur_cube(iris_log, res, {"RP_MEASURE": "DWELLINGS", "OCS": "DW_MAIN"})
+    for col, filt in colonnes_men.items():
+        res[col] = get_val(filt)
+
+    # Renommer les colonnes en enlevant le préfixe "P23_"
+    col_mapping = {col: col.replace('P23_', '') for col in ["C23_MEN", *colonnes_men.keys()]}
+    res = res.rename(columns=col_mapping)
+    # Mettre à jour les métadonnées
+    meta_rows = [(col_mapping.get(col, col), lib) for col, lib in meta_rows]
+    return res, meta_rows
+
+# ==============================================================================
+# 5. DIPLOMES ET FORMATION (DIP FORMATION / DIP)
+# ==============================================================================
+def transformer_diplomes(df_raw, socle):
+    print("Traitement du thème DIPLÔMES ET FORMATION (DIP FORMATION)...")
+    res = socle.copy()
+    iris_df = df_raw[df_raw["GEO"].astype(str).isin(res["IRIS"])]
+
+    def get_val(filtre):
+        return valeur_cube(iris_df, res, {"RP_MEASURE": "POP", **filtre})
+
+    colonnes_dip = {
+        "P23_NSCOL15P": {"AGE": "Y_GE15", "EDUC": "_T", "SEX": "_T"},
+        "P23_NSCOL15P_DIPLMIN": {"AGE": "Y_GE15", "EDUC": "001T100_RP", "SEX": "_T"},
+        "P23_NSCOL15P_BEPC": {"AGE": "Y_GE15", "EDUC": "200_RP", "SEX": "_T"},
+        "P23_NSCOL15P_CAPBEP": {"AGE": "Y_GE15", "EDUC": "300_RP", "SEX": "_T"},
+        "P23_NSCOL15P_BAC": {"AGE": "Y_GE15", "EDUC": "350T351_RP", "SEX": "_T"},
+        "P23_NSCOL15P_SUP2": {"AGE": "Y_GE15", "EDUC": "500_RP", "SEX": "_T"},
+        "P23_NSCOL15P_SUP34": {"AGE": "Y_GE15", "EDUC": "600_RP", "SEX": "_T"},
+        "P23_NSCOL15P_SUP5": {"AGE": "Y_GE15", "EDUC": "700_RP", "SEX": "_T"},
+        "P23_HNSCOL15P": {"AGE": "Y_GE15", "EDUC": "_T", "SEX": "M"},
+        "P23_HNSCOL15P_DIPLMIN": {"AGE": "Y_GE15", "EDUC": "001T100_RP", "SEX": "M"},
+        "P23_HNSCOL15P_CAPBEP": {"AGE": "Y_GE15", "EDUC": "300_RP", "SEX": "M"},
+        "P23_HNSCOL15P_BAC": {"AGE": "Y_GE15", "EDUC": "350T351_RP", "SEX": "M"},
+        "P23_FNSCOL15P": {"AGE": "Y_GE15", "EDUC": "_T", "SEX": "F"},
+        "P23_FNSCOL15P_DIPLMIN": {"AGE": "Y_GE15", "EDUC": "001T100_RP", "SEX": "F"},
+        "P23_FNSCOL15P_CAPBEP": {"AGE": "Y_GE15", "EDUC": "300_RP", "SEX": "F"},
+        "P23_FNSCOL15P_BAC": {"AGE": "Y_GE15", "EDUC": "350T351_RP", "SEX": "F"},
+    }
+
+    meta_rows = [
+        ("COM", "Commune ou ARM"),
+        ("TYP_IRIS", "Type d'Iris"),
+        ("LAB_IRIS", "Label de l'Iris"),
+        ("P23_NSCOL15P", "Pop non scolarisée 15 ans ou plus"),
+        ("P23_NSCOL15P_DIPLMIN", "Pop non scol 15 ans ou plus Aucun diplôme ou CEP"),
+        ("P23_NSCOL15P_BEPC", "Pop non scol 15 ans ou plus Brevet des collèges"),
+        ("P23_NSCOL15P_CAPBEP", "Pop non scol 15 ans ou plus CAP, BEP"),
+        ("P23_NSCOL15P_BAC", "Pop non scol 15 ans ou plus Baccalauréat"),
+        ("P23_NSCOL15P_SUP2", "Pop non scol 15 ans ou plus Enseignement court Bac+2"),
+        ("P23_NSCOL15P_SUP34", "Pop non scol 15 ans ou plus Bac+3 ou Bac+4"),
+        ("P23_NSCOL15P_SUP5", "Pop non scol 15 ans ou plus Bac+5 ou plus"),
+        ("P23_HNSCOL15P", "Pop non scolarisée 15 ans ou plus Hommes"),
+        ("P23_HNSCOL15P_DIPLMIN", "Pop non scol 15P Hommes Aucun diplôme ou CEP"),
+        ("P23_HNSCOL15P_CAPBEP", "Pop non scol 15P Hommes CAP, BEP"),
+        ("P23_HNSCOL15P_BAC", "Pop non scol 15P Hommes Baccalauréat"),
+        ("P23_FNSCOL15P", "Pop non scolarisée 15 ans ou plus Femmes"),
+        ("P23_FNSCOL15P_DIPLMIN", "Pop non scol 15P Femmes Aucun diplôme ou CEP"),
+        ("P23_FNSCOL15P_CAPBEP", "Pop non scol 15P Femmes CAP, BEP"),
+        ("P23_FNSCOL15P_BAC", "Pop non scol 15P Femmes Baccalauréat"),
+    ]
+
+    for col, filt in colonnes_dip.items():
+        res[col] = get_val(filt)
+
+    # Renommer les colonnes en enlevant le préfixe "P23_"
+    col_mapping = {col: col.replace('P23_', '') for col in colonnes_dip.keys()}
+    res = res.rename(columns=col_mapping)
+    # Mettre à jour les métadonnées
+    meta_rows = [(col_mapping.get(col, col), lib) for col, lib in meta_rows]
+    return res, meta_rows
+
+def main():
+    print("=== Démarrage de la transformation Insee 2023 pour Roubaix ===")
+    
+    # 1. Chargement de POP pour initialiser le socle géographique
+    fichier_pop = os.path.join(DOSSIER_SOURCES_2023, "base-ic-pop-2023.csv")
+    df_pop_raw = charger_roubaix(fichier_pop)
+    socle = extraire_socle_geo(df_pop_raw)
+    print(f"Socle géographique : {len(socle)} IRIS trouvés pour Roubaix.")
+
+    # 1. POP
+    df_pop, meta_pop = transformer_population(df_pop_raw, socle)
+    
+    # 2. LOG
+    fichier_log = os.path.join(DOSSIER_SOURCES_2023, "base-ic-log-2023.csv")
+    df_log_raw = charger_roubaix(fichier_log)
+    df_log, meta_log = transformer_logement(df_log_raw, socle)
+
+    # 3. EMP
+    fichier_emp = os.path.join(DOSSIER_SOURCES_2023, "base-ic-emp-2023.csv")
+    df_emp_raw = charger_roubaix(fichier_emp)
+    df_emp, meta_emp = transformer_activite(df_emp_raw, socle)
+
+    # 4. MEN
+    fichier_men = os.path.join(DOSSIER_SOURCES_2023, "base-ic-men-2023.csv")
+    df_men_raw = charger_roubaix(fichier_men)
+    df_men, meta_men = transformer_menages(df_men_raw, socle, df_log_raw)
+
+    # 5. DIP
+    fichier_dip = os.path.join(DOSSIER_SOURCES_2023, "base-ic-dip-2023.csv")
+    df_dip_raw = charger_roubaix(fichier_dip)
+    df_dip, meta_dip = transformer_diplomes(df_dip_raw, socle)
+
+    # Sauvegardes
+    sorties = [
+        ("base-ic-evol-struct-pop-2023.CSV", df_pop, "meta_base-ic-evol-struct-pop-2023.csv", meta_pop),
+        ("base-ic-logement-2023.CSV", df_log, "meta_base-ic-logement-2023.csv", meta_log),
+        ("base-ic-activite-residents-2023.CSV", df_emp, "meta_base-ic-activite-residents-2023.csv", meta_emp),
+        ("base-ic-couples-familles-menages-2023.CSV", df_men, "meta_base-ic-couples-familles-menages-2023.csv", meta_men),
+        ("base-ic-diplomes-formation-2023.CSV", df_dip, "meta_base-ic-diplomes-formation-2023.csv", meta_dip),
+    ]
+
+    print("\n=== Contrôle de cohérence (somme Roubaix) ===")
+    for libelle, valeur in [
+        ("Population", df_pop["POP"].sum()),
+        ("Pop Hommes + Femmes", df_pop["POPH"].sum() + df_pop["POPF"].sum()),
+        ("Pop Français + Etrangers", df_pop["POP_FR"].sum() + df_pop["POP_ETR"].sum()),
+        ("Logements", df_log["LOG"].sum()),
+        ("RP + RSECOCC + LOGVAC", df_log["RP"].sum() + df_log["RSECOCC"].sum() + df_log["LOGVAC"].sum()),
+        ("Résidences principales", df_log["RP"].sum()),
+        ("RP 1 à 5+ pièces", sum(df_log[c].sum() for c in ["RP_1P", "RP_2P", "RP_3P", "RP_4P", "RP_5PP"])),
+        ("Ménages (COU FAM)", df_men["C23_MEN"].sum()),
+        ("Ménages 1 personne", df_men["C23_MENPSEUL"].sum()),
+        ("Pop 15-64 ans", df_emp["POP1564"].sum()),
+        ("Actifs + Inactifs 15-64", df_emp["ACT1564"].sum() + df_emp["INACT1564"].sum()),
+        ("Pop non scol 15+", df_dip["NSCOL15P"].sum()),
+    ]:
+        print(f"  {libelle:<28} {valeur:>12,.0f}")
+
+    print("\n=== Écriture des fichiers de données et métadonnées ===")
+    for nom_csv, df_res, nom_meta, meta_tuples in sorties:
+        # Données CSV
+        path_csv = os.path.join(DOSSIER_OUTPUT_DATA, nom_csv)
+        try:
+            df_res.to_csv(path_csv, sep=";", index=False, encoding="utf-8-sig")
+            taille_ko = os.path.getsize(path_csv) / 1024
+            print(f"  [DATA] {nom_csv} ({len(df_res)} lignes, {len(df_res.columns)} colonnes, {taille_ko:.1f} Ko)")
+        except PermissionError:
+            print(f"  [ERREUR] Impossible d'écrire {nom_csv} : le fichier est probablement ouvert dans Excel !")
+            raise
+
+        # Méta CSV
+        path_meta = os.path.join(DOSSIER_OUTPUT_META, nom_meta)
+        df_meta = pd.DataFrame(meta_tuples, columns=["COD_VAR", "LIB_VAR"])
+        df_meta.to_csv(path_meta, sep=";", index=False, encoding="utf-8-sig")
+        print(f"  [META] {nom_meta} ({len(df_meta)} variables documentees)")
+
+    print("\n=== Terminé avec succès ! ===")
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,53 @@
+# Liste des fichiers INSEE à fournir à l'application / mettre à jour
+
+| Base | Nom du fichier | Description | Année de la dernière donnée | Lien de la page INSEE | Lien de téléchargement direct |
+|-----------------------------------|-------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------|---------------------------------------------------------------|----------------------------------------------------------------------------------------------------|
+| Revenus déclarés | BASE_TD_FILO_IRIS_XXXX_DEC_CSV.csv | Les bases téléchargeables contiennent des indicateurs détaillés sur les revenus déclarés (avant redistribution) et les niveaux de vie. | 2021 | https://www.insee.fr/fr/statistiques/8229323 | https://www.insee.fr/fr/statistiques/fichier/8229323/BASE_TD_FILO_IRIS_2021_DEC_CSV.zip |
+| Revenus disponibles | BASE_TD_FILO_IRIS_XXXX_DISP_CSV.csv | Les bases téléchargeables contiennent des indicateurs détaillés sur les revenus disponibles (après redistribution) et les niveaux de vie. | 2021 | https://www.insee.fr/fr/statistiques/8229323 | https://www.insee.fr/fr/statistiques/fichier/8229323/BASE_TD_FILO_IRIS_2021_DISP_CSV.zip |
+| Activité des résidents | base-ic-activite-residents-2023.CSV | La base infracommunale « Activité des résidents » fournit des données sur les caractéristiques des actifs (sexe, âge, catégorie socio-professionnelle), des salariés et non-salariés (sexe et âge). | 2023 | https://www.insee.fr/fr/statistiques/9040859?sommaire=9040875#consulter | https://www.insee.fr/fr/statistiques/fichier/9040859/base-ic-activite-residents-2023_csv.zip |
+| Couples - Familles - Ménages | base-ic-couples-familles-menages-2023.CSV | La base infracommunale « Couples - Familles - Ménages » fournit des données sur les caractéristiques des ménages, des personnes qui les composent (âge, statut conjugal, catégorie socio-professionnelle) et les caractéristiques des familles (nombre d'enfants). | 2023 | https://www.insee.fr/fr/statistiques/9058978?sommaire=9058987 | https://www.insee.fr/fr/statistiques/fichier/9058978/base-ic-couples-familles-menages-2023_csv.zip |
+| Diplômes - Formation | base-ic-diplomes-formation-2023.CSV | La base infracommunale « Diplôme - Formation » fournit des données sur l'âge des personnes scolarisées et les niveaux de diplôme des personnes non scolarisées. | 2023 | https://www.insee.fr/fr/statistiques/9054820?sommaire=9054862#consulter | https://www.insee.fr/fr/statistiques/fichier/9054820/base-ic-diplomes-formation-2023_csv.zip |
+| Population | base-ic-evol-struct-pop-2023.CSV | La base infracommunale « Population » fournit des données sur les caractéristiques de la population selon le sexe, l'âge, la catégorie socio-professionnelle et la catégorie de nationalité. | 2023 | https://www.insee.fr/fr/statistiques/9054332?sommaire=9054352#consulter | https://www.insee.fr/fr/statistiques/fichier/9054332/base-ic-evol-struct-pop-2023_csv.zip |
+| Logement | base-ic-logement-2023.CSV | La base infracommunale « Logement » fournit des données sur les caractéristiques des résidences principales, la date d'emménagement, la possession d'une voiture ainsi que le parc de logements, maisons et appartements. | 2023 | https://www.insee.fr/fr/statistiques/9061333?sommaire=9061358#consulter | https://www.insee.fr/fr/statistiques/fichier/9061333/base-ic-logement-2023_csv.zip |
+| Individus localisés au canton ou ville | FD_INDCVI_2022.csv | Fichier détail des individus (microdonnées). Permet d'extraire la distribution par âge révolu des enfants par IRIS après traitement via le programme `traitement_enfants_roubaix`. | 2022 | https://www.insee.fr/fr/statistiques/8647104?sommaire=8590191 | https://www.insee.fr/fr/statistiques/fichier/8647104/RP2022_indcvi.zip |
+| CAF | data_CAF_2024_IRIS.csv | Cette base fournit des indicateurs sur les bénéficiaires des prestations légales versées par les CAF dans les quartiers politique de la ville. | 2024 | https://www.insee.fr/fr/statistiques/8682393 | https://www.insee.fr/fr/statistiques/fichier/8682393/beneficiaires_CAF_31-12-2024_Iris.zip |
+| CNAM | data_CNAM_2025_IRIS.csv | Cette base fournit des indicateurs sur les bénéficiaires du régime général de l'assurance maladie ainsi que sur les bénéficiaires de la Complémentaire Santé Solidaire (C2S) dans les quartiers prioritaires de la politique de la ville. | 2025 | https://www.insee.fr/fr/statistiques/8736938 | https://www.insee.fr/fr/statistiques/fichier/8736938/beneficiaires_CNAM_01-01-2025_Iris_csv.zip |
+| Demandeurs d'emploi | data_DEFM2024_iris.csv | Cette base fournit des indicateurs sur les demandeurs d'emploi en fin de mois au 31 décembre dans les quartiers prioritaires de la politique de la ville. | 2024 | https://www.insee.fr/fr/statistiques/8644875 | https://www.insee.fr/fr/statistiques/fichier/8644875/DEFM2024_Iris_csv.zip |
+| Répertoire du Parc Locatif Social | data_RPLS2024_IRIS.csv | Cette base fournit des indicateurs sur le parc des logements locatifs des bailleurs sociaux dans les quartiers prioritaires de la politique de la ville. | 2024 | https://www.insee.fr/fr/statistiques/8736658 | https://www.insee.fr/fr/statistiques/fichier/8736658/RPLS_01-01-2024_Iris.zip |
+
+# Comment les obtenir ?
+
+Les fichiers meta contiennent le dictionnaire des variables, ils ne nous intéressent pas, on peut les supprimer.
+
+## Fichiers Population, Activité des résidents, Couples - Familles - Ménages, Diplômes - Formation et Logement
+
+- Aller sur la page **Accès à l'ensemble des résultats statistiques de 2006 à 20XX** : https://www.insee.fr/fr/information/2880845
+- Sélectionner les **résultats statistiques** de l'année la plus récente.
+- Utiliser les liens des **Bases infracommunales**.
+
+![Bases infracommunales](doc_images/bases_infracommunales.PNG)
+
+- Pour chaque lien télécharger le fichier **IRIS - France hors Mayotte** **au format CSV**.
+
+## Fichier Individus localisés au canton ou ville (Microdonnées)
+
+- Aller sur la page **Fichiers détail du recensement de la population** : https://www.insee.fr/fr/statistiques/8647104?sommaire=8590191
+- Télécharger l'archive ZIP des **Individus localisés au canton-ou-ville (INDCVI)**.
+- Extraire le fichier CSV brut (`FD_INDCVI_2022.csv`) à placer à la racine du projet pour exécution dans `traitement_enfants_roubaix.ipynb`.
+
+## Fichiers Revenus disponibles, Revenus déclarés, Demandeurs d'emploi, CAF, CNAM, Répertoire du logement social
+
+- Aller sur la page **Données sur les quartiers de la politique de la ville (QPV)** : https://www.insee.fr/fr/statistiques/2500477
+- Les données à utiliser sont alors les **données par source**, cliquer sur l'année la plus récente.
+
+![Données par source](doc_images/donnees_par_source.PNG)
+
+- Pour chaque thème, télécharger le fichier **au format CSV**.
+
+Pour savoir quels fichiers garder, regarder le nom des fichiers dans le tableau plus haut.
+
+## Base permanente des équipements
+
+- Il n'y a malheureusement aucune page recensant les BPE par année.
+- Une recherche Google permet néanmoins de retrouver facilement la page la plus récente : https://www.google.com/search?q=bpe+insee+iris
+- Cliquer sur **Ensemble des thèmes** puis télécharger l'**Ensemble des bases au niveau IRIS** **au format CSV**.

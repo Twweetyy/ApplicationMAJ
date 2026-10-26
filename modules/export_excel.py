@@ -375,14 +375,45 @@ def _generer_depuis_modele(
             worksheet.cell(row=2, column=colonne).value
             for colonne in range(1, worksheet.max_column + 1)
         ]
+        derniere_col = max(
+            (c for c, e in enumerate(entetes_modele, start=1) if e is not None),
+            default=0,
+        )
+        
+        if worksheet.max_column > derniere_col:
+            worksheet.delete_cols(derniere_col + 1, worksheet.max_column - derniere_col)
+        entetes_modele = entetes_modele[:derniere_col]
 
         colonnes_nouvelles = [
             col for col in donnees.columns
             if _retrouver_entete_modele(col, entetes_modele) is None
         ]
-        for index, nom_colonne in enumerate(colonnes_nouvelles, start=worksheet.max_column + 1):
-            worksheet.cell(row=2, column=index, value=nom_colonne)
-            entetes_modele.append(nom_colonne)
+        
+        position_insertion = next(
+            (
+                c for c, e in enumerate(entetes_modele, start=1)
+                if _normaliser_nom_colonne(e) == _normaliser_nom_colonne("Superficie en km²")
+            ),
+            len(entetes_modele) + 1,
+        )
+        if colonnes_nouvelles:
+            if position_insertion <= worksheet.max_column:
+                worksheet.insert_cols(position_insertion, len(colonnes_nouvelles))
+            colonne_modele = max(position_insertion - 1, 1)
+            largeur = worksheet.column_dimensions[get_column_letter(colonne_modele)].width
+            for decalage, nom_colonne in enumerate(colonnes_nouvelles):
+                cible = position_insertion + decalage
+                for ligne in range(1, worksheet.max_row + 1):
+                    source = worksheet.cell(row=ligne, column=colonne_modele)
+                    if source.has_style:
+                        worksheet.cell(row=ligne, column=cible)._style = copy(source._style)
+                worksheet.cell(row=2, column=cible, value=nom_colonne)
+                if largeur:
+                    worksheet.column_dimensions[get_column_letter(cible)].width = largeur
+            entetes_modele = [
+                worksheet.cell(row=2, column=colonne).value
+                for colonne in range(1, worksheet.max_column + 1)
+            ]
 
         derniere_ligne = len(donnees) + 2
 
@@ -436,8 +467,11 @@ def _generer_depuis_modele(
     for worksheet in workbook.worksheets:
         for table in worksheet.tables.values():
             min_col, min_row, max_col, max_row = range_boundaries(table.ref)
-            max_col = max(max_col, worksheet.max_column)
-            max_row = max(max_row, worksheet.max_row)
+            max_col = max(
+                (cell.column for cell in worksheet[min_row] if cell.value is not None),
+                default=min_col,
+            )
+            max_row = max(worksheet.max_row, min_row + 1)
             largeur = max_col - min_col + 1
             table_columns = list(table.tableColumns[:largeur])
             while len(table_columns) < largeur:

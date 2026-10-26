@@ -90,6 +90,18 @@ def arrondir_effectifs(fichiers: dict) -> dict:
     return arrondir_variables(fichiers)
 
 
+def _resoudre_table(nom, fichiers: dict):
+    """Retrouve la table d'un thème quel que soit le millésime (ex. 'POP 2022' -> 'POP 2023')."""
+    if not isinstance(nom, str) or nom in fichiers:
+        return nom
+    theme = nom.rsplit(" ", 1)[0]
+    correspondances = [
+        nom_fichier
+        for nom_fichier in fichiers
+        if isinstance(nom_fichier, str) and nom_fichier.rsplit(" ", 1)[0] == theme
+    ]
+    return correspondances[0] if len(correspondances) == 1 else nom
+
 def ajouter_indicateurs_calcules(fichiers: dict, chemin_yaml: str) -> dict:
     """
     Calcule de nouvelles colonnes (taux, parts, évolutions) à partir d'expressions
@@ -113,16 +125,14 @@ def ajouter_indicateurs_calcules(fichiers: dict, chemin_yaml: str) -> dict:
         var3 = params.get("var3")
         var4 = params.get("var4")
         
+        df_name = _resoudre_table(df_name, fichiers)
         if df_name not in fichiers:
-            theme = df_name.rsplit(" ", 1)[0] if isinstance(df_name, str) else None
-            correspondances = [
-                nom_fichier
-                for nom_fichier in fichiers
-                if isinstance(nom_fichier, str) and nom_fichier.rsplit(" ", 1)[0] == theme
-            ]
-            if len(correspondances) != 1:
-                continue
-            df_name = correspondances[0]
+            continue
+        expression = re.sub(
+            r"""files\[\s*["']([^"']+)["']\s*\]""",
+            lambda m: f'files["{_resoudre_table(m.group(1), fichiers)}"]',
+            expression,
+        )
             
         df = fichiers[df_name]
         
