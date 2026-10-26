@@ -11,6 +11,7 @@ from openpyxl.utils.cell import range_boundaries
 from openpyxl.worksheet.table import TableColumn
 import yaml
 from tqdm.auto import tqdm
+from .pages_info import mettre_a_jour_pages_info
 
 def charger_titres_onglets(chemin_yaml: str) -> dict:
     """Charge le dictionnaire contenant les grands titres de chaque onglet."""
@@ -300,6 +301,7 @@ def _generer_depuis_modele(
     chemin_sortie: str,
     chemin_infos_onglets: str,
     chemin_modele: str,
+    chemin_calculs: str | None = None,
 ) -> None:
     """Remplit une copie du classeur modèle sans conserver ses lignes d'exemple."""
     titres = charger_titres_onglets(chemin_infos_onglets)
@@ -508,6 +510,7 @@ def _generer_depuis_modele(
             if table.autoFilter is not None:
                 table.autoFilter.ref = table.ref
 
+    mettre_a_jour_pages_info(workbook, dico_fichiers, chemin_calculs)
     os.makedirs(os.path.dirname(os.path.abspath(chemin_sortie)), exist_ok=True)
     workbook.save(chemin_sortie)
 
@@ -517,6 +520,7 @@ def generer_fichier_bddmas(
     chemin_sortie: str,
     chemin_infos_onglets: str,
     chemin_modele: str = None,
+    chemin_calculs: str | None = None,
 ):
     """
     Génère le classeur Excel final à partir du dictionnaire de DataFrames.
@@ -528,7 +532,7 @@ def generer_fichier_bddmas(
 
     if chemin_modele and os.path.exists(chemin_modele):
         print("GÉNÉRATION DU CLASSEUR À PARTIR DU MODÈLE...")
-        _generer_depuis_modele(dico_fichiers, chemin_sortie, chemin_infos_onglets, chemin_modele)
+        _generer_depuis_modele(dico_fichiers, chemin_sortie, chemin_infos_onglets, chemin_modele, chemin_calculs)
         print(f"Fichier Excel enregistré avec succès sous : {chemin_sortie}")
         return
 

@@ -593,7 +593,7 @@ Part des DEFM ABC de niveau ≤ au BAC dans les DEFM ABC (%) :
   var2: DEFM catégories ABC de niveau de formation CAP-BEP
   var3: DEFM catégories ABC de niveau de formation BAC
   var4: DEFM catégories ABC
-  expression: (files[df][var1] + files[df][var2] + files[df][var3]) / files[df][var4]
+  expression: (files[df][var1] + files[df][var2] + files[df][var3]) * 100 / files[df][var4]
 
 Part des DEFM ABC au chômage depuis plus de 2 ans parmi les DEFM ABC (%) :
   df: DEFM 2024

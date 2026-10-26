@@ -143,7 +143,7 @@ def executer_pipeline(
 
         if progression is not None:
             progression.set_postfix_str("export du classeur")
-        generer_fichier_bddmas(dico_fichiers, chemin_sortie, chemin_infos_onglets, chemin_modele)
+        generer_fichier_bddmas(dico_fichiers, chemin_sortie, chemin_infos_onglets, chemin_modele, chemin_calculs)
         if progression is not None:
             progression.update(1)
 
