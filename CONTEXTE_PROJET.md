@@ -43,7 +43,8 @@ ApplicationMAJ/
 ├─ scripts/
 │  ├─ diag.py                  → Diagnostic des cubes INSEE 2023
 │  ├─ extraire_indcvi_roubaix.py → Extraction FD_INDCVI Roubaix
-│  └─ transformer_2023_roubaix.py → Conversion cubes INSEE 2023 (lit data/data2023/sources_brutes_insee/)
+│  ├─ transformer_2023_roubaix.py → Conversion cubes INSEE 2023 (lit data/data2023/sources_brutes_insee/)
+│  └─ simuler_nouveau_millesime.py → Faux millésime +1 (libellés reformulés) pour tester colonnes_auto + IA
 ├─ doc/
 │  ├─ etat_du_projet_bddmas.md → Rapport d'avancement détaillé
 │  ├─ Fichiers_INSEE_2026.md   → Documentation fichiers INSEE
@@ -146,11 +147,14 @@ ApplicationMAJ/
 - `modules/export_excel.py` : alias DEFM et renommages CNAM sortis en constantes (`ALIAS_ENTETES_DEFM`, `RENOMMAGES_CNAM`) pour être réutilisés
 - `main_bddmas.py` : décisions dans `rapport_precontrole["colonnes_auto"]`, avertissement `colonnes_auto` par onglet, clé `colonnes_auto` dans le résultat
 - `.env.example` (nouveau)
+- `scripts/simuler_nouveau_millesime.py` (nouveau) : copie le lot dans un dossier temporaire, avance d'un an les `base-ic-*`, reformule des libellés méta et en retire un, lance le pipeline avec une copie de `dictionnaires/` ; sorties dans `sorties/simulation/` (classeur, `decisions.json`, cache simulé), vrai dépôt intact
 - `dictionnaires/millesimes_valides.yml` (généré au premier lancement) : le module ne s'active que pour un millésime plus récent ; le lot actuel n'est pas modifié
 
 #### Vérifications
 - Lot de test 2024 simulé (POP) : 4 rattachements sans IA, Hommes/Femmes jamais confondus, IA simulée : 1 rattachement, 1 nouvelle colonne (précision 0, bleue), 1 non résolue (confiance 0,5) ; relance = 0 appel IA (cache)
 - Millésime ≤ validé : colonnes identiques à avant, 0 appel IA
+- Simulation 2024 avec Groq (codes renommés) : 16 rattachements sans IA, 18 par l'IA ; corrigé ensuite : références enrichies des noms du classeur validé (codes de la méta du millésime validé passés dans `preparer_colonnes_thematiques`, donc YAML puis méta, exactement comme au traitement validé ; la méta seule donnait de faux noms, ex. « Pop non scol 15 ans ou plus Aucun diplôme ou CEP »), glossaire des codes INSEE dans la consigne, réponse IA tolérante aux petites variantes, 5 essais sur erreur 429 (quota Groq)
+- Classeur du lot actuel régénéré avec le module : identique à l'original (14 onglets, valeurs, formats, couleurs, largeurs, tableaux)
 - Sans clé : import OK, pipeline continue, avertissement « IA non configurée »
 
 

@@ -8,7 +8,7 @@ import numpy as np
 import yaml
 from tqdm.auto import tqdm
 from .colonnes_auto import (
-    ajouter_vocabulaire_valide,
+    _cle_fichier,
     charger_cache,
     charger_millesimes_valides,
     charger_references,
@@ -565,6 +565,46 @@ def preparer_colonnes_thematiques(
     df.columns = noms_finaux
     return df
 
+def _vocabulaire_valide(dossier_dicos: str, millesimes_valides: dict, mapping_noms: dict) -> dict[str, list[str]]:
+    """Noms de colonnes du classeur validé, par thème : codes de la méta du millésime validé
+    passés dans preparer_colonnes_thematiques (dictionnaires YAML d'abord, puis méta),
+    exactement comme lors du traitement validé. Sert de cible au module colonnes_auto."""
+    dossier_meta = os.path.join(dossier_dicos, "meta")
+    metas = []
+    if os.path.isdir(dossier_meta):
+        for dossier in [dossier_meta] + [os.path.join(dossier_meta, nom) for nom in sorted(os.listdir(dossier_meta))]:
+            if os.path.isdir(dossier):
+                metas += [os.path.join(dossier, nom) for nom in sorted(os.listdir(dossier)) if nom.casefold().endswith(".csv")]
+    dictionnaire_generique = load_mapping(os.path.join(dossier_dicos, "dictionnaire_variables.yml"))
+    vocabulaire = {}
+    for cle_mapping, theme in mapping_noms.items():
+        annee = millesimes_valides.get(theme)
+        cle = _cle_fichier(cle_mapping)
+        chemin_meta = next(
+            (chemin for chemin in metas if annee and annee in os.path.basename(chemin) and cle in _cle_fichier(chemin)),
+            None,
+        )
+        if not chemin_meta:
+            continue
+        try:
+            codes = pd.read_csv(chemin_meta, sep=";", dtype=str, encoding="utf-8-sig", usecols=["COD_VAR"])["COD_VAR"]
+        except (OSError, ValueError, UnicodeError, pd.errors.ParserError):
+            continue
+        codes = [code.strip() for code in codes.dropna().drop_duplicates() if code.strip()]
+        prefixe_dico = theme.split(" ")[0]
+        dict_vars = load_mapping(os.path.join(dossier_dicos, f"dictionnaire_variables_{prefixe_dico}.yml")) \
+            if os.path.exists(os.path.join(dossier_dicos, f"dictionnaire_variables_{prefixe_dico}.yml")) else {}
+        libelles_meta, _ = _charger_metadonnees(chemin_meta, codes)
+        noms = preparer_colonnes_thematiques(
+            pd.DataFrame(columns=codes), prefixe_dico, dict_vars, libelles_meta, dictionnaire_generique, {}
+        ).columns
+        vocabulaire[theme] = [
+            str(nom) for code, nom in zip(codes, noms)
+            if code.upper() not in {"IRIS", "COM", "TYP_IRIS", "LAB_IRIS", "CODGEO"}
+        ]
+    return vocabulaire
+
+
 def ingerer_donnees_thematiques(
     dossier_data: str,
     dossier_dicos: str,
@@ -589,8 +629,7 @@ def ingerer_donnees_thematiques(
     premier_lancement = millesimes_valides is None
     if premier_lancement:
         millesimes_valides = {}
-    elif references is not None:
-        ajouter_vocabulaire_valide(references, dossier_dicos, millesimes_valides)
+    vocabulaire_charge = False
     
     # Récupération du mapping des noms (ex: 'base-ic-evol-struct-pop' -> 'POP')
     mapping_noms = load_mapping(os.path.join(dossier_dicos, "files_names.yml"))
@@ -671,6 +710,12 @@ def ingerer_donnees_thematiques(
         if premier_lancement:
             millesimes_valides[theme_identifie] = annee
         elif references is not None and millesime_a_traiter(theme_identifie, annee, millesimes_valides):
+            if not vocabulaire_charge:
+                # Lu une seule fois, et seulement si un fichier plus récent que le validé est présent
+                for theme, noms in _vocabulaire_valide(dossier_dicos, millesimes_valides, mapping_noms).items():
+                    liste = references.setdefault(theme, [])
+                    liste.extend(nom for nom in noms if nom not in liste)
+                vocabulaire_charge = True
             df_final, decisions, modifie = resoudre_colonnes(
                 df_final,
                 cle_finale,
