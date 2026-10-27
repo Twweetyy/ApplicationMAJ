@@ -152,7 +152,8 @@ ApplicationMAJ/
 #### Vérifications
 - Lots d'exemple 2022 et 2023 convertis en Parquet (tout en texte, typé, et mélange CSV/Parquet) : classeurs identiques cellule par cellule au lot CSV (14 onglets), pré-contrôle identique (IRIS 38/38)
 - Portail (API) : lot mixte → « Prêt » puis classeur généré ; méta `.parquet` refusée ; Parquet corrompu → erreur de pré-contrôle `csv_illisible`, pas de plantage
-- Non traité : `scripts/simuler_nouveau_millesime.py` et `scripts/transformer_2023_roubaix.py` restent en CSV
+- `scripts/transformer_2023_roubaix.py` : cubes bruts lus en CSV ou en Parquet (`chemin_source()`, Parquet préféré, filtrage Roubaix fait par DuckDB) ; `run_portal.bat` lance aussi le transformer si seuls des Parquet sont présents. Testé sur un cube synthétique (mêmes lignes en CSV et en Parquet typé) ; à valider sur les vrais cubes Insee avec `--force`
+- Non traité : `scripts/simuler_nouveau_millesime.py` reste en CSV
 
 ### 📅 27 octobre 2026 (suite) — Module colonnes inconnues (IA)
 

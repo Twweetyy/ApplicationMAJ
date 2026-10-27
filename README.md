@@ -141,7 +141,7 @@ Pendant l'exécution, `tqdm` affiche la progression des étapes du pipeline, la 
 
 Les fichiers Insee 2023 sont des cubes au format long (`GEO`, `SEX`, `AGE`, `RP_MEASURE`, `OBS_VALUE`…). Ils doivent être convertis avant d'être utilisés.
 
-1. Placer les cubes bruts dans `data/data2023/sources_brutes_insee/` : `base-ic-pop-2023.csv`, `base-ic-log-2023.csv`, `base-ic-emp-2023.csv`, `base-ic-men-2023.csv`, `base-ic-dip-2023.csv`.
+1. Placer les cubes bruts dans `data/data2023/sources_brutes_insee/` : `base-ic-pop-2023.csv`, `base-ic-log-2023.csv`, `base-ic-emp-2023.csv`, `base-ic-men-2023.csv`, `base-ic-dip-2023.csv`. Chaque cube peut aussi être fourni en Parquet (`base-ic-pop-2023.parquet`…), environ 10 fois plus léger : si les deux formats sont présents, le Parquet est utilisé.
 2. Lancer :
    ```powershell
    python scripts/transformer_2023_roubaix.py

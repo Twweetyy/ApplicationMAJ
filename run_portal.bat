@@ -19,7 +19,11 @@ if exist .venv\Scripts\activate.bat (
 
 rem Transformer les cubes bruts Insee 2023 s'il y en a
 set "BRUT=data\data2023\sources_brutes_insee"
-if exist "%BRUT%\base-ic-*-2023.csv" (
+rem Cubes bruts en CSV ou en Parquet
+set "CUBES="
+if exist "%BRUT%\base-ic-*-2023.csv" set "CUBES=1"
+if exist "%BRUT%\base-ic-*-2023.parquet" set "CUBES=1"
+if defined CUBES (
     echo ============================================================
     echo  Transformation recensement 2023 - Roubaix
     echo ============================================================
