@@ -5,9 +5,20 @@ Application Python de traitement des données infra-communales de Roubaix et de 
 Le projet contient :
 - un pipeline (`main_bddmas.py`) utilisable en ligne de commande ou depuis une application ;
 - un portail web local (FastAPI / `uvicorn`) pour déposer un lot de fichiers et télécharger le classeur ;
-- un convertisseur des cubes Insee du recensement 2023 (`transformer_2023_roubaix.py`).
+- un convertisseur des cubes Insee du recensement 2023 (`scripts/transformer_2023_roubaix.py`) ;
+- un module qui rattache automatiquement les colonnes inconnues d'un nouveau millésime Insee (`modules/colonnes_auto.py`, IA facultative) ;
+- des lots d'exemple 2022 et 2023 (`exemples/`) pour essayer le portail tout de suite.
 
 Le pipeline fonctionne avec le recensement 2022 (fichiers Insee au format large) et avec le recensement 2023 (cubes Insee au format long, convertis au préalable).
+
+## Essayer en 2 minutes
+
+1. Installer (voir plus bas), puis double-cliquer sur `run_portal.bat`.
+2. Zone **Données** : déposer les fichiers de `exemples/lot2023/data/`.
+3. Zone **Métadonnées** : déposer les fichiers de `exemples/lot2023/meta/`.
+4. **Analyser le lot**, puis **Exécuter le pipeline ETL**, et télécharger le classeur.
+
+Détails dans `exemples/README.md`.
 
 ## Architecture
 
@@ -19,22 +30,33 @@ ApplicationMAJ/
 │  │  └─ sources_brutes_insee/     Cubes Insee 2023 bruts
 │  └─ indcvi_roubaix/              FD_INDCVI filtré sur Roubaix
 ├─ dictionnaires/                  Correspondances de fichiers, variables et onglets (YAML)
+│  ├─ millesimes_valides.yml       Dernier millésime validé à la main, par thème
+│  ├─ correspondances_auto.yml     Décisions du module colonnes (généré, corrigeable)
 │  └─ meta/                        Métadonnées meta_*.csv (dont meta2023/ généré)
 ├─ modules/
 │  ├─ socle_geo.py                 Chargement du référentiel MAS, superficies et jointures
 │  ├─ ingestion.py                 Pré-contrôle, lecture, nettoyage et renommage des sources thématiques
 │  ├─ indicateurs.py               Calculs dérivés, arrondis et répartitions pondérées des enfants
 │  ├─ export_excel.py              Remplissage du modèle et mise en forme Excel
+│  ├─ mise_en_page.py              Formats, largeurs, couleurs d'en-têtes, ordre des colonnes
+│  ├─ pages_info.py                Pages Présentation et Détail calcul générées selon le lot
+│  ├─ colonnes_auto.py             Colonnes inconnues d'un nouveau millésime (sans IA puis IA, cache YAML)
+│  ├─ llm_wrapper.py               Appel d'un modèle compatible OpenAI (Groq, Mistral, Ollama…)
 │  ├─ export_sig.py                Export des tables attributaires CSV pour les SIG
 │  └─ persistence.py               Insertion SQLAlchemy configurable
+├─ scripts/
+│  ├─ transformer_2023_roubaix.py  Conversion des cubes Insee 2023
+│  ├─ extraire_indcvi_roubaix.py   Extraction des lignes Roubaix du FD_INDCVI
+│  ├─ simuler_nouveau_millesime.py Faux millésime +1 pour tester colonnes_auto
+│  └─ diag.py                      Diagnostic des cubes Insee 2023
+├─ exemples/                       Lots 2022 et 2023 prêts à déposer dans le portail
 ├─ web/                            Front du portail (index.html, multi-upload.js, styles.css)
 ├─ exports_sig/                    Exportations SIG (ignoré par Git)
 ├─ main_bddmas.py                  Orchestrateur du pipeline
 ├─ webapp.py                       API FastAPI du portail
 ├─ run_portal.bat                  Lanceur du portail (double-clic)
 ├─ run_portal.py                   Démarrage du serveur Uvicorn
-├─ transformer_2023_roubaix.py     Conversion des cubes Insee 2023
-├─ extraire_indcvi_roubaix.py      Extraction des lignes Roubaix du FD_INDCVI
+├─ .env.example                    Modèle de configuration de l'IA (copier en .env)
 ├─ TAB_BDDMAS_INSEE2022_MODELE.xlsx  Classeur modèle conservé comme gabarit
 ├─ requirements.txt                Dépendances Python
 └─ README.md                       Vous êtes ici
@@ -47,6 +69,8 @@ Prérequis : Python 3.11 ou plus récent. Depuis le dossier du projet :
 ```powershell
 python -m pip install -r requirements.txt
 ```
+
+Optionnel (IA du module colonnes) : copier `.env.example` en `.env` et renseigner la clé. Sans `.env`, ou avec `BDDMAS_LLM=0`, le pipeline fonctionne sans IA.
 
 ## Lancement
 
@@ -105,7 +129,7 @@ Pendant l'exécution, `tqdm` affiche la progression des étapes du pipeline, la 
 - Les métadonnées `meta_*.csv` sont appariées par nom normalisé (année ignorée). Les colonnes `COD_VAR` et `LIB_VAR` fournissent les libellés ; les modalités textuelles sont traduites à partir de `COD_MOD` et `LIB_MOD` lorsqu'elles existent. Les dictionnaires YAML restent utilisés en complément ou en repli.
 - Le fichier individuel du recensement commence par `FD_INDCVI_` et doit contenir `IRIS`, `AGEREV`, `AGED` et `IPONDI`. La méta `varmod_indcvi_AAAA.csv` documente ces champs. Seules les colonnes requises sont lues, par blocs.
 - `dictionnaires/superficies_iris_roubaix.yml` fournit les superficies par code IRIS, utilisées pour les densités et superficies calculées.
-
+  
 ## Recensement 2023 : préparation des données
 
 Les fichiers Insee 2023 sont des cubes au format long (`GEO`, `SEX`, `AGE`, `RP_MEASURE`, `OBS_VALUE`…). Ils doivent être convertis avant d'être utilisés.
@@ -113,7 +137,7 @@ Les fichiers Insee 2023 sont des cubes au format long (`GEO`, `SEX`, `AGE`, `RP_
 1. Placer les cubes bruts dans `data/data2023/sources_brutes_insee/` : `base-ic-pop-2023.csv`, `base-ic-log-2023.csv`, `base-ic-emp-2023.csv`, `base-ic-men-2023.csv`, `base-ic-dip-2023.csv`.
 2. Lancer :
    ```powershell
-   python transformer_2023_roubaix.py
+   python scripts/transformer_2023_roubaix.py
    ```
 3. Le script écrit les 5 CSV au format large dans `data/data2023/` (`base-ic-evol-struct-pop-2023.CSV`, etc.) et leurs métadonnées dans `dictionnaires/meta/meta2023/`.
 4. Vérifier le bloc « Contrôle de cohérence » affiché en fin d'exécution : Population = Hommes + Femmes, Logements = RP + résidences secondaires + vacants, etc.
@@ -131,7 +155,7 @@ Ne plus utiliser `adapt_2023_transform.py` (renommé en `.bak`) : il écrivait l
 Le fichier national (~4 Go) sature le disque C: lors de l'envoi au portail, qui le copie dans `%TEMP%`. Il faut en extraire une fois les lignes de Roubaix :
 
 ```powershell
-python extraire_indcvi_roubaix.py
+python scripts/extraire_indcvi_roubaix.py
 ```
 - Renseigner le chemin du fichier national dans la variable `SOURCE` du script.
 - Sortie : `data/indcvi_roubaix/FD_INDCVI_AAAA.csv` (quelques Mo), même nom et mêmes colonnes que l'original. Aucune modification du pipeline n'est nécessaire.
@@ -150,12 +174,24 @@ Avant les étapes ci-dessous, `analyser_fichiers_entree` vérifie les sources, l
 
 1. `modules/ingestion.py` identifie les CSV thématiques mappés, les nettoie, filtre Roubaix lorsque la source possède une colonne `IRIS` ou `COM`, puis traduit les variables. Chaque table est nommée `THÈME ANNÉE` (ex. `POP 2023`), l'année étant lue dans le nom du fichier.
 2. Le recensement enfants est lu par blocs. `modules/indicateurs.py` filtre les codes IRIS commençant par `59512`, sélectionne les âges inférieurs à 18 ans et additionne le poids `IPONDI` par IRIS et par âge.
-3. Deux répartitions sont produites : âge révolu (`AGEREV`) et âge au millésime (`AGED`). Elles alimentent les onglets `PETITE ENFANCE 2022` et `PETITE ENFANCE MILLÉSIME`, avec les colonnes `Age : 0` à `Age : 17`. Les effectifs sont des estimations pondérées de l'échantillon du recensement. La colonne `Crèches` du modèle reste vide tant qu'aucune source de crèches n'est configurée.
+3. Deux répartitions sont produites : âge révolu (`AGEREV`) et âge au millésime (`AGED`). Elles alimentent les onglets `PETITE ENFANCE {année du FD_INDCVI}` et `PETITE ENFANCE MILLÉSIME`, avec les colonnes `Age : 0` à `Age : 17`. Les effectifs sont des estimations pondérées de l'échantillon du recensement. La colonne `Crèches` du modèle reste vide tant qu'aucune source de crèches n'est configurée.
 4. `modules/socle_geo.py` rattache le référentiel `Perimetres_MAS.csv` et les superficies par IRIS. Les indicateurs configurés dans `calculated_columns.yml` sont ensuite calculés.
 5. `modules/indicateurs.py` applique les règles de `r_gles_d_arrondis_compl_tes.md` à toutes les colonnes : volumes à l'entier le plus proche (les demis vers le haut), parts/taux à 1 décimale, indices/densités/moyennes/superficies à 2 décimales, variables RPLS `TX…` et `…LOY` à 2 décimales. Les identifiants et libellés restent textuels ; toute autre colonne numérique est arrondie à l'entier.
 6. `modules/export_excel.py` remplit les onglets du classeur modèle en conservant leurs en-têtes et leur mise en forme, et écrit les formules de sous-totaux adaptées au nombre de lignes. Les onglets de données du modèle sont vidés avant écriture. Les colonnes du modèle absentes du lot sont supprimées sans laisser de colonnes vides ; les variables nouvelles sont insérées avant `Superficie en km²`, avec le style des colonnes de données.
 7. `modules/export_sig.py` crée un CSV par thème dans `exports_sig/`, avec `IRIS` en première colonne sur 9 caractères. Ces exports contiennent des attributs à joindre aux couches IRIS existantes, sans géométrie. (Ligne de commande uniquement.)
 8. `modules/persistence.py` insère les tables dans la base configurée uniquement si `BDDMAS_DATABASE_URL` est définie. (Ligne de commande uniquement.)
+
+## Nouveau millésime : colonnes inconnues
+
+Quand l'Insee renomme ou ajoute des variables (fichiers 2024, 2025…), `modules/colonnes_auto.py` décide seul où les placer dans le classeur, sans intervention manuelle.
+
+- **Quand** : seulement pour un fichier plus récent que le millésime validé de son thème (`dictionnaires/millesimes_valides.yml`). Les lots 2022 et 2023, vérifiés à la main, ne sont jamais modifiés.
+- **Comment**, dans l'ordre : correspondance exacte, cache des décisions passées, correspondance approchée (libellés quasi identiques), puis IA si elle est configurée. Une décision peu sûre laisse la colonne sous son libellé source, marquée « non résolue ».
+- **Où voir** : tableau « Colonnes auto » dans le portail après génération, et avertissement dans le rapport.
+- **Corriger** : dans `dictionnaires/correspondances_auto.yml`, changer `entete` puis mettre `methode: manuel`. L'entrée ne sera plus jamais recalculée.
+- **Tester** : `python scripts/simuler_nouveau_millesime.py --lot <dossier du lot 2023>` fabrique un faux lot 2024 (codes renommés, libellés reformulés) et écrit le classeur et `decisions.json` dans `sorties/simulation/`, sans toucher au dépôt.
+
+Configuration de l'IA (`.env`, jamais versionné) : `OPENAI_API_KEY`, `OPENAI_BASE_URL`, `OPENAI_MODEL` (tout fournisseur compatible OpenAI : Groq, Mistral, Gemini, Ollama en local), `BDDMAS_LLM` (0 pour désactiver), `BDDMAS_LLM_CONFIANCE_MIN` (0,8 par défaut).
 
 ## Utilisation depuis une application
 
@@ -204,13 +240,14 @@ Avertissements attendus avec le recensement 2023 (variables absentes des cubes I
 
 Les indicateurs concernés restent vides ; le reste du classeur est calculé.
 
-L'onglet petite enfance s'appelle toujours `PETITE ENFANCE 2022`, quelle que soit l'année du fichier FD_INDCVI (nom codé en dur dans `main_bddmas.py`).
+Depuis le poste de la mairie, les appels HTTPS vers les API d'IA sont bloqués : y laisser `BDDMAS_LLM=0`. Le module colonnes fonctionne alors sans IA (les colonnes non reconnues sont à corriger une fois dans `correspondances_auto.yml`).
 
 ## Gestion du dépôt Git
 
 - Les dossiers `build/`, `dist/`, `*.spec`, `*.exe` et les caches Python sont ignorés via `.gitignore`.
 - Les dossiers de données (`data/`, `exports_sig/`) sont également exclus.
-- Un hook `pre-commit` empêche d'ajouter accidentellement des fichiers volumineux ou les dossiers de données.
+- Un hook `pre-commit` empêche d'ajouter accidentellement des fichiers volumineux (plus de 5 Mo) ou les dossiers de données. `exemples/*/data/` est ré-autorisé dans `.gitignore` ; pour un fichier d'exemple plus lourd, commit avec `git commit --no-verify`.
+- `.env` (clés API) n'est jamais versionné.
 
 ## Créer une release
 
