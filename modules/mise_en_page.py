@@ -1,7 +1,8 @@
 """Mise en page des onglets de données : formats de nombres, largeurs, volets figés."""
-import math
 import re
+from copy import copy
 
+from openpyxl.styles import PatternFill
 from openpyxl.utils import get_column_letter, range_boundaries
 
 from .indicateurs import _precision_arrondi
@@ -9,7 +10,13 @@ from .indicateurs import _precision_arrondi
 FEUILLES_FIXES = {"Présentation", "Detail calcul"}
 FORMATS = {0: "#,##0", 1: "#,##0.0", 2: "#,##0.00"}
 LARGEUR_MIN, LARGEUR_MAX = 11, 32
+LARGEUR_TEXTE_MAX = 45
 LIGNES_ENTETE_MAX = 5
+LIGNES_TEXTE_MAX = 2
+# Largeur Excel consommée par caractère, et place prise par le bouton de filtre
+LARGEUR_CARACTERE, MARGE_FILTRE = 1.1, 2
+# En-tête orange = indicateur (taux, part, médiane...) : pas de total
+REMPLISSAGE_INDICATEUR = PatternFill(start_color="F8CBAD", end_color="F8CBAD", fill_type="solid")
 # Thèmes dont aucune colonne ne s'additionne (quartiles, médianes, taux Filosofi)
 THEMES_NON_ADDITIFS = ("REV DEC", "REV DISP")
 # Colonnes du modèle sans source de données : supprimées si vides
@@ -26,6 +33,63 @@ def _est_additive(nom_colonne: str, nom_feuille: str, precision: int) -> bool:
     if precision >= 1:
         return False
     return not re.search(r"moyen|médian|median|quartile|décile|decile|loyer|€", nom)
+
+
+def _nb_lignes(texte: str, largeur: float) -> int:
+    """Nombre de lignes d'un texte renvoyé à la ligne dans une colonne de cette largeur."""
+    capacite = max((largeur - MARGE_FILTRE) / LARGEUR_CARACTERE, 1)
+    lignes, longueur = 1, 0
+    for mot in texte.split():
+        if longueur and longueur + 1 + len(mot) > capacite:
+            lignes += 1
+            longueur = len(mot)
+        else:
+            longueur += len(mot) + (1 if longueur else 0)
+    return lignes
+
+
+def _largeur_pour(texte: str, largeur: int, lignes_max: int, largeur_max: int) -> int:
+    """Élargit la colonne jusqu'à ce que le texte tienne sur lignes_max lignes."""
+    while largeur < largeur_max and _nb_lignes(texte, largeur) > lignes_max:
+        largeur += 1
+    return largeur
+
+
+def _est_orange(cellule) -> bool:
+    couleur = cellule.fill.fgColor.rgb
+    return isinstance(couleur, str) and couleur[-6:].upper() == "F8CBAD"
+
+
+def _regrouper_colonnes(ws, premiere_colonne: int) -> None:
+    """Colonnes bleues (effectifs) à gauche, orange (indicateurs) à droite, ordre conservé."""
+    colonnes = list(range(premiere_colonne, ws.max_column + 1))
+    ordre = sorted(colonnes, key=lambda c: _est_orange(ws.cell(row=2, column=c)))
+    if ordre == colonnes:
+        return
+    derniere_ligne = ws.max_row
+    contenu = {
+        c: [(ws.cell(row=l, column=c).value, copy(ws.cell(row=l, column=c)._style)) for l in range(1, derniere_ligne + 1)]
+        for c in colonnes
+    }
+    largeurs = {c: ws.column_dimensions[get_column_letter(c)].width for c in colonnes}
+    for nouvelle, ancienne in zip(colonnes, ordre):
+        lettre = get_column_letter(nouvelle)
+        for ligne, (valeur, style) in enumerate(contenu[ancienne], start=1):
+            cellule = ws.cell(row=ligne, column=nouvelle)
+            cellule.value = valeur
+            cellule._style = style
+        ws.column_dimensions[lettre].width = largeurs[ancienne]
+        total = ws.cell(row=1, column=nouvelle)
+        if isinstance(total.value, str) and total.value.startswith("=SUBTOTAL"):
+            total.value = re.sub(r"[A-Z]+(\d+):[A-Z]+(\d+)", rf"{lettre}\1:{lettre}\2", total.value)
+    # Tableau Excel : ses colonnes doivent suivre le même ordre que les en-têtes
+    for tableau in ws.tables.values():
+        min_col, _, max_col, _ = range_boundaries(tableau.ref)
+        if not (min_col <= premiere_colonne and colonnes[-1] <= max_col):
+            continue
+        anciennes = list(tableau.tableColumns)
+        debut = premiere_colonne - min_col
+        tableau.tableColumns = anciennes[:debut] + [anciennes[c - min_col] for c in ordre] + anciennes[debut + len(ordre):]
 
 
 def _derniere_ligne(ws) -> int:
@@ -87,6 +151,25 @@ def _mettre_en_page_onglet(ws) -> None:
         if entete in (None, ""):
             continue
         entete = str(entete)
+        lettre = get_column_letter(colonne)
+
+        # Colonne de texte (ex. « Incertitude » REV DEC) : large, 2 lignes max par IRIS
+        textes = [
+            str(ws.cell(row=ligne, column=colonne).value)
+            for ligne in range(3, derniere_ligne + 1)
+            if isinstance(ws.cell(row=ligne, column=colonne).value, str)
+        ]
+        if textes:
+            plus_long_texte = max(textes, key=len)
+            largeur = _largeur_pour(plus_long_texte, LARGEUR_MIN, LIGNES_TEXTE_MAX, LARGEUR_TEXTE_MAX)
+            largeur = _largeur_pour(entete, largeur, LIGNES_ENTETE_MAX, LARGEUR_TEXTE_MAX)
+            ws.column_dimensions[lettre].width = largeur
+            lignes_entete = max(lignes_entete, _nb_lignes(entete, largeur))
+            total = ws.cell(row=1, column=colonne)
+            if isinstance(total.value, str) and total.value.startswith("=SUBTOTAL"):
+                total.value = None
+            continue
+
         precision = _precision_arrondi(entete, ws.title)
         if precision is None:
             continue
@@ -109,21 +192,25 @@ def _mettre_en_page_onglet(ws) -> None:
             cellule.number_format = format_nombre
             longueur_valeurs = max(longueur_valeurs, len(f"{cellule.value:,.{precision}f}"))
 
+        additive = _est_additive(entete, ws.title, precision)
         total = ws.cell(row=1, column=colonne)
         if isinstance(total.value, str) and total.value.startswith("=SUBTOTAL"):
-            if _est_additive(entete, ws.title, precision):
+            if additive:
                 total.number_format = format_nombre
             else:
                 total.value = None
+        if not additive:
+            ws.cell(row=2, column=colonne).fill = REMPLISSAGE_INDICATEUR
 
         # Largeur : l'en-tête doit tenir sur 5 lignes, les nombres sur une seule
         plus_long_mot = max((len(mot) for mot in entete.split()), default=0)
-        largeur = max(math.ceil(len(entete) / LIGNES_ENTETE_MAX) + 2, plus_long_mot + 2, longueur_valeurs + 3)
-        largeur = min(max(largeur, LARGEUR_MIN), LARGEUR_MAX)
-        ws.column_dimensions[get_column_letter(colonne)].width = largeur
-        lignes_entete = max(lignes_entete, math.ceil(len(entete) * 1.1 / largeur))
+        largeur = min(max(plus_long_mot + MARGE_FILTRE + 1, longueur_valeurs + 3, LARGEUR_MIN), LARGEUR_MAX)
+        largeur = _largeur_pour(entete, largeur, LIGNES_ENTETE_MAX, LARGEUR_MAX)
+        ws.column_dimensions[lettre].width = largeur
+        lignes_entete = max(lignes_entete, _nb_lignes(entete, largeur))
 
-    ws.row_dimensions[2].height = min(lignes_entete, LIGNES_ENTETE_MAX + 1) * 15 + 5
+    ws.row_dimensions[2].height = lignes_entete * 15 + 5
+    _regrouper_colonnes(ws, nombre_colonnes_geo + 1)
 
 
 def appliquer_mise_en_page(workbook) -> None:
