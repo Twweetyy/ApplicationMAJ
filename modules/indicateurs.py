@@ -171,6 +171,10 @@ def ajouter_indicateurs_calcules(fichiers: dict, chemin_yaml: str) -> dict:
             # Gestion des divisions par zéro (ex: population de référence = 0)
             df[indicateur_nom] = 100 * df[var1].div(df[var2].replace(0, np.nan))
             
+        except KeyError as e:
+            # Variable absente des fichiers du lot (ex. « Pop 60-74 ans », absente du recensement 2023)
+            print(f"Indicateur non calculé '{indicateur_nom}' : variable absente de ce millésime ({e.args[0]})")
+
         except Exception as e:
             print(f"Erreur lors du calcul de '{indicateur_nom}' : {e}")
             

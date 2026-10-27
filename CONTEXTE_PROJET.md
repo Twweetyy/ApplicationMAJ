@@ -115,6 +115,7 @@ ApplicationMAJ/
 | 27/10/2026 | Module actif seulement pour un millésime plus récent que `millesimes_valides.yml` (créé au premier lancement avec le lot actuel) | Le lot 2022/2023 validé à la main reste strictement identique |
 | 27/10/2026 | Sans clé / sans réseau : étape sans IA seule + avertissement ; seuil `BDDMAS_LLM_CONFIANCE_MIN` (0,8) | Le pipeline fonctionne toujours |
 | 27/10/2026 | Données acceptées en CSV ou Parquet, mélangeables dans un lot ; lecture centralisée dans `modules/lecture.py` (Parquet via DuckDB, importé seulement si besoin) ; métadonnées toujours en CSV | Fichiers plus légers et plus rapides à lire (FD_INDCVI : 4 colonnes lues seulement), sans casser les lots CSV existants |
+| 27/10/2026 | Indicateur dont une variable manque au millésime (`KeyError`) : message « Indicateur non calculé … variable absente de ce millésime », affiché en encadré jaune repliable dans le portail ; seules les autres erreurs de calcul restent en rouge et passent le job en « avec avertissements » | Les 13 indicateurs vides attendus en 2023 ne font plus croire à un échec |
 | Oct 2026 | Suppression de `demarrer_portail.ps1` au profit de `run_portal.bat` + `run_portal.py` | Simplification : un seul clic, pas de politique d'exécution PowerShell |
 
 ---
