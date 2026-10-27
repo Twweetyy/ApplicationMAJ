@@ -27,6 +27,8 @@ sorties/
 dictionnaires/meta/meta2022/
 dictionnaires/meta/meta2023/
 
+dictionnaires/meta/*/sources_brutes_meta/
+
 # ===== Fichiers sensibles =====
 .env
 .gitmessage
