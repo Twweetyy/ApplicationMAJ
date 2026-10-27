@@ -61,6 +61,8 @@ def sorties_a_jour():
         if len(df) != NB_IRIS_ROUBAIX:
             return False
     return True
+
+
 # Load allowed GEO codes from grand_quartier.yml (full IRIS codes for Roubaix)
 GRAND_QUARTIER_PATH = os.path.join(DOSSIER_RACINE, "dictionnaires", "grand_quartier.yml")
 with open(GRAND_QUARTIER_PATH, "r", encoding="utf-8") as f:
