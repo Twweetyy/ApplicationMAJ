@@ -1,24 +1,32 @@
 #!/usr/bin/env python3
 """
-transformer_2023_roubaix.py
-===========================
-Convertit les cubes multidimensionnels Insee RP 2023 (format long / SDMX)
-en tables plates infracommunales (format large) pour la Ville de Roubaix (38 IRIS).
+transformer_recensement.py
+==========================
+Convertit les cubes multidimensionnels Insee du recensement (format long / SDMX,
+publié depuis le RP 2023) en tables plates infracommunales (format large) pour la
+Ville de Roubaix (38 IRIS).
 
-Chaque cube brut peut être fourni en CSV ou en Parquet (base-ic-pop-2023.csv ou
-base-ic-pop-2023.parquet) ; le Parquet est préféré s'il est présent (lecture DuckDB).
+Le millésime n'est pas fixé : chaque dossier data/dataAAAA/sources_brutes_insee/
+contenant des cubes base-ic-{pop,log,emp,men,dip}-AAAA est traité. Les codes de
+variables prennent le préfixe de l'année (P23_, P24_…).
 
-Produit les 5 fichiers de données requis par le portail BDDMAS :
-  - base-ic-evol-struct-pop-2023.CSV
-  - base-ic-activite-residents-2023.CSV
-  - base-ic-logement-2023.CSV
-  - base-ic-couples-familles-menages-2023.CSV
-  - base-ic-diplomes-formation-2023.CSV
-ainsi que leurs 5 métadonnées correspondantes :
-  - meta_base-ic-evol-struct-pop-2023.csv
-  - etc.
+Chaque cube brut peut être fourni en CSV ou en Parquet (base-ic-pop-AAAA.csv ou
+base-ic-pop-AAAA.parquet) ; le Parquet est préféré s'il est présent (lecture DuckDB).
+
+Produit, dans data/dataAAAA/, les 5 fichiers de données requis par le portail BDDMAS :
+  - base-ic-evol-struct-pop-AAAA.CSV
+  - base-ic-activite-residents-AAAA.CSV
+  - base-ic-logement-AAAA.CSV
+  - base-ic-couples-familles-menages-AAAA.CSV
+  - base-ic-diplomes-formation-AAAA.CSV
+et leurs 5 métadonnées dans dictionnaires/meta/metaAAAA/.
+
+    python scripts/transformer_recensement.py              # tous les millésimes présents
+    python scripts/transformer_recensement.py --annee 2024 # un seul millésime
+    python scripts/transformer_recensement.py --force      # recalcule même si à jour
 """
 
+import argparse
 import os
 import re
 import pandas as pd
@@ -30,40 +38,77 @@ import sys
 # Dossiers
 # ---------------------------------------------------------------------------
 DOSSIER_RACINE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DOSSIER_SOURCES_2023 = os.path.join(DOSSIER_RACINE, "data", "data2023", "sources_brutes_insee")
-DOSSIER_OUTPUT_DATA = os.path.join(DOSSIER_RACINE, "data", "data2023")
-DOSSIER_OUTPUT_META = os.path.join(DOSSIER_RACINE, "dictionnaires", "meta", "meta2023")
+DOSSIER_DATA = os.path.join(DOSSIER_RACINE, "data")
 
 NB_IRIS_ROUBAIX = 38
-THEMES_SOURCES_2023 = ["pop", "log", "emp", "men", "dip"]
-SORTIES_2023 = [
-    ("base-ic-evol-struct-pop-2023.CSV", "meta_base-ic-evol-struct-pop-2023.csv"),
-    ("base-ic-logement-2023.CSV", "meta_base-ic-logement-2023.csv"),
-    ("base-ic-activite-residents-2023.CSV", "meta_base-ic-activite-residents-2023.csv"),
-    ("base-ic-couples-familles-menages-2023.CSV", "meta_base-ic-couples-familles-menages-2023.csv"),
-    ("base-ic-diplomes-formation-2023.CSV", "meta_base-ic-diplomes-formation-2023.csv"),
+THEMES_SOURCES = ["pop", "log", "emp", "men", "dip"]
+# Noms des fichiers produits, sans l'année (ordre : POP, LOG, ACT RES, COU FAM, DIP)
+BASES_SORTIES = [
+    "base-ic-evol-struct-pop",
+    "base-ic-logement",
+    "base-ic-activite-residents",
+    "base-ic-couples-familles-menages",
+    "base-ic-diplomes-formation",
 ]
 
 
-def sorties_a_jour():
+def dossier_sources(annee):
+    return os.path.join(DOSSIER_DATA, f"data{annee}", "sources_brutes_insee")
+
+
+def dossier_sortie_data(annee):
+    return os.path.join(DOSSIER_DATA, f"data{annee}")
+
+
+def dossier_sortie_meta(annee):
+    return os.path.join(DOSSIER_RACINE, "dictionnaires", "meta", f"meta{annee}")
+
+
+def noms_sorties(annee):
+    """(fichier de données, fichier méta) produits pour un millésime."""
+    return [(f"{base}-{annee}.CSV", f"meta_{base}-{annee}.csv") for base in BASES_SORTIES]
+
+
+def millesimes_disponibles():
+    """Années ayant au moins un cube brut dans data/dataAAAA/sources_brutes_insee/."""
+    annees = set()
+    if not os.path.isdir(DOSSIER_DATA):
+        return []
+    for nom_dossier in os.listdir(DOSSIER_DATA):
+        trouve = re.fullmatch(r"data(\d{4})", nom_dossier)
+        if not trouve or not os.path.isdir(dossier_sources(trouve.group(1))):
+            continue
+        annee = trouve.group(1)
+        motif = re.compile(rf"base-ic-({'|'.join(THEMES_SOURCES)})-{annee}\.(csv|parquet)", re.IGNORECASE)
+        if any(motif.fullmatch(nom) for nom in os.listdir(dossier_sources(annee))):
+            annees.add(annee)
+    return sorted(annees)
+
+
+def avec_millesime(code, annee):
+    """P23_POP -> P24_POP pour le millésime 2024 : les codes sont écrits pour 2023 dans ce script."""
+    return re.sub(r"^([PC])23_", lambda m: f"{m.group(1)}{int(annee) % 100:02d}_", str(code))
+
+
+def sorties_a_jour(annee):
     """Vrai si les 10 fichiers produits existent, comptent 38 IRIS et sont plus
     récents que les sources Insee et que ce script."""
     sorties = []
-    for nom_data, nom_meta in SORTIES_2023:
-        sorties.append(os.path.join(DOSSIER_OUTPUT_DATA, nom_data))
-        sorties.append(os.path.join(DOSSIER_OUTPUT_META, nom_meta))
+    for nom_data, nom_meta in noms_sorties(annee):
+        sorties.append(os.path.join(dossier_sortie_data(annee), nom_data))
+        sorties.append(os.path.join(dossier_sortie_meta(annee), nom_meta))
     if not all(os.path.exists(chemin) for chemin in sorties):
         return False
     entrees = [
-        os.path.join(DOSSIER_SOURCES_2023, f"base-ic-{theme}-2023{extension}")
-        for theme in THEMES_SOURCES_2023
+        os.path.join(dossier_sources(annee), f"base-ic-{theme}-{annee}{extension}")
+        for theme in THEMES_SOURCES
         for extension in (".csv", ".parquet")
     ]
     entrees = [c for c in entrees if os.path.exists(c)] + [os.path.abspath(__file__)]
     if min(map(os.path.getmtime, sorties)) < max(map(os.path.getmtime, entrees)):
         return False
-    for nom_data, _ in SORTIES_2023:
-        df = pd.read_csv(os.path.join(DOSSIER_OUTPUT_DATA, nom_data), sep=";", dtype=str, encoding="utf-8-sig")
+    for nom_data, _ in noms_sorties(annee):
+        df = pd.read_csv(os.path.join(dossier_sortie_data(annee), nom_data), sep=";", dtype=str, encoding="utf-8-sig")
         if len(df) != NB_IRIS_ROUBAIX:
             return False
     return True
@@ -102,9 +147,9 @@ def valeur_cube(iris_df, res, filtre):
     s = sub.groupby("GEO")["OBS_VALUE"].sum()
     return res["IRIS"].map(s).fillna(0.0)
 
-def chemin_source(theme):
+def chemin_source(theme, annee):
     """Cube brut du thème : le Parquet s'il existe (plus léger et plus rapide), sinon le CSV."""
-    base = os.path.join(DOSSIER_SOURCES_2023, f"base-ic-{theme}-2023")
+    base = os.path.join(dossier_sources(annee), f"base-ic-{theme}-{annee}")
     return base + ".parquet" if os.path.exists(base + ".parquet") else base + ".csv"
 
 
@@ -589,15 +634,24 @@ def transformer_diplomes(df_raw, socle):
     meta_rows = [(col_mapping.get(col, col), lib) for col, lib in meta_rows]
     return res, meta_rows
 
-def main():
-    if "--force" not in sys.argv and sorties_a_jour():
-        print("=== Fichiers Insee 2023 déjà transformés et à jour : rien à refaire ===")
-        print("  (pour tout recalculer : python transformer_2023_roubaix.py --force)")
+def transformer_millesime(annee, force=False):
+    if not force and sorties_a_jour(annee):
+        print(f"=== Fichiers Insee {annee} déjà transformés et à jour : rien à refaire ===")
+        print("  (pour tout recalculer : python scripts/transformer_recensement.py --force)")
         return
-    print("=== Démarrage de la transformation Insee 2023 pour Roubaix ===")
-    
+    print(f"=== Démarrage de la transformation Insee {annee} pour Roubaix ===")
+    manquants = [
+        theme for theme in THEMES_SOURCES
+        if not os.path.exists(chemin_source(theme, annee))
+    ]
+    if manquants:
+        raise FileNotFoundError(
+            f"Cubes {annee} manquants dans {dossier_sources(annee)} : "
+            + ", ".join(f"base-ic-{theme}-{annee}" for theme in manquants)
+        )
+
     # 1. Chargement de POP pour initialiser le socle géographique
-    fichier_pop = chemin_source("pop")
+    fichier_pop = chemin_source("pop", annee)
     df_pop_raw = charger_roubaix(fichier_pop)
     socle = extraire_socle_geo(df_pop_raw)
     print(f"Socle géographique : {len(socle)} IRIS trouvés pour Roubaix.")
@@ -606,32 +660,32 @@ def main():
     df_pop, meta_pop = transformer_population(df_pop_raw, socle)
     
     # 2. LOG
-    fichier_log = chemin_source("log")
+    fichier_log = chemin_source("log", annee)
     df_log_raw = charger_roubaix(fichier_log)
     df_log, meta_log = transformer_logement(df_log_raw, socle)
 
     # 3. EMP
-    fichier_emp = chemin_source("emp")
+    fichier_emp = chemin_source("emp", annee)
     df_emp_raw = charger_roubaix(fichier_emp)
     df_emp, meta_emp = transformer_activite(df_emp_raw, socle)
 
     # 4. MEN
-    fichier_men = chemin_source("men")
+    fichier_men = chemin_source("men", annee)
     df_men_raw = charger_roubaix(fichier_men)
     df_men, meta_men = transformer_menages(df_men_raw, socle, df_log_raw)
 
     # 5. DIP
-    fichier_dip = chemin_source("dip")
+    fichier_dip = chemin_source("dip", annee)
     df_dip_raw = charger_roubaix(fichier_dip)
     df_dip, meta_dip = transformer_diplomes(df_dip_raw, socle)
 
-    # Sauvegardes
+    # Sauvegardes (même ordre que BASES_SORTIES)
     sorties = [
-        ("base-ic-evol-struct-pop-2023.CSV", df_pop, "meta_base-ic-evol-struct-pop-2023.csv", meta_pop),
-        ("base-ic-logement-2023.CSV", df_log, "meta_base-ic-logement-2023.csv", meta_log),
-        ("base-ic-activite-residents-2023.CSV", df_emp, "meta_base-ic-activite-residents-2023.csv", meta_emp),
-        ("base-ic-couples-familles-menages-2023.CSV", df_men, "meta_base-ic-couples-familles-menages-2023.csv", meta_men),
-        ("base-ic-diplomes-formation-2023.CSV", df_dip, "meta_base-ic-diplomes-formation-2023.csv", meta_dip),
+        (nom_data, df_res, nom_meta, meta_tuples)
+        for (nom_data, nom_meta), (df_res, meta_tuples) in zip(
+            noms_sorties(annee),
+            [(df_pop, meta_pop), (df_log, meta_log), (df_emp, meta_emp), (df_men, meta_men), (df_dip, meta_dip)],
+        )
     ]
 
     print("\n=== Contrôle de cohérence (somme Roubaix) ===")
@@ -650,11 +704,31 @@ def main():
         ("Pop non scol 15+", df_dip["NSCOL15P"].sum()),
     ]:
         print(f"  {libelle:<28} {valeur:>12,.0f}")
+    if df_pop["POP"].sum() == 0:
+        # Codes de dimensions changés par l'Insee : aucun filtre ne trouve de ligne
+        raise ValueError(
+            f"Population nulle pour {annee} : les dimensions des cubes ont probablement changé "
+            "(voir doc/nouveau_millesime.md)."
+        )
+    colonnes_nulles = [
+        avec_millesime(colonne, annee)
+        for _, df_res, _, _ in sorties
+        for colonne in df_res.columns
+        if colonne not in {"IRIS", "COM", "TYP_IRIS", "LAB_IRIS"}
+        and pd.api.types.is_numeric_dtype(df_res[colonne]) and df_res[colonne].sum() == 0
+    ]
+    if colonnes_nulles:
+        print(f"\n  [À VÉRIFIER] Colonnes à 0 sur tout Roubaix : {', '.join(colonnes_nulles)}")
 
     print("\n=== Écriture des fichiers de données et métadonnées ===")
+    os.makedirs(dossier_sortie_data(annee), exist_ok=True)
+    os.makedirs(dossier_sortie_meta(annee), exist_ok=True)
     for nom_csv, df_res, nom_meta, meta_tuples in sorties:
+        # Codes au préfixe du millésime (P23_ -> P24_…) ; sans effet pour 2023
+        df_res = df_res.rename(columns=lambda colonne: avec_millesime(colonne, annee))
+        meta_tuples = [(avec_millesime(code, annee), libelle) for code, libelle in meta_tuples]
         # Données CSV
-        path_csv = os.path.join(DOSSIER_OUTPUT_DATA, nom_csv)
+        path_csv = os.path.join(dossier_sortie_data(annee), nom_csv)
         try:
             df_res.to_csv(path_csv, sep=";", index=False, encoding="utf-8-sig")
             taille_ko = os.path.getsize(path_csv) / 1024
@@ -664,12 +738,27 @@ def main():
             raise
 
         # Méta CSV
-        path_meta = os.path.join(DOSSIER_OUTPUT_META, nom_meta)
+        path_meta = os.path.join(dossier_sortie_meta(annee), nom_meta)
         df_meta = pd.DataFrame(meta_tuples, columns=["COD_VAR", "LIB_VAR"])
         df_meta.to_csv(path_meta, sep=";", index=False, encoding="utf-8-sig")
         print(f"  [META] {nom_meta} ({len(df_meta)} variables documentees)")
 
     print("\n=== Terminé avec succès ! ===")
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Conversion des cubes Insee du recensement pour Roubaix.")
+    parser.add_argument("--annee", help="millésime à traiter (par défaut : tous ceux présents dans data/)")
+    parser.add_argument("--force", action="store_true", help="recalcule même si les fichiers produits sont à jour")
+    arguments = parser.parse_args()
+
+    annees = [arguments.annee] if arguments.annee else millesimes_disponibles()
+    if not annees:
+        print("Aucun cube brut dans data/dataAAAA/sources_brutes_insee/ : rien à transformer.")
+        return
+    for annee in annees:
+        transformer_millesime(annee, force=arguments.force)
+        print()
 
 if __name__ == "__main__":
     main()

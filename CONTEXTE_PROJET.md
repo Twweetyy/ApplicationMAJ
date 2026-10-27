@@ -20,7 +20,7 @@
 ApplicationMAJ/
 ├─ main_bddmas.py              → Orchestrateur du pipeline ETL
 ├─ webapp.py                   → API FastAPI (gestion des jobs web)
-├─ run_portal.bat / .py        → Lanceur du portail (double-clic, lance d'abord le transformer 2023)
+├─ run_portal.bat / .py        → Lanceur du portail (double-clic, lance d'abord le transformer du recensement)
 ├─ modules/
 │  ├─ socle_geo.py             → Référentiel MAS, superficies, jointures
 │  ├─ ingestion.py             → Pré-contrôle, lecture, nettoyage sources
@@ -44,7 +44,7 @@ ApplicationMAJ/
 ├─ scripts/
 │  ├─ diag.py                  → Diagnostic des cubes INSEE 2023
 │  ├─ extraire_indcvi_roubaix.py → Extraction FD_INDCVI Roubaix
-│  ├─ transformer_2023_roubaix.py → Conversion cubes INSEE 2023 (lit data/data2023/sources_brutes_insee/)
+│  ├─ transformer_recensement.py → Conversion cubes INSEE 2023 et suivants (lit data/dataAAAA/sources_brutes_insee/)
 │  └─ simuler_nouveau_millesime.py → Faux millésime +1 (libellés reformulés) pour tester colonnes_auto + IA
 ├─ doc/
 │  ├─ etat_du_projet_bddmas.md → Rapport d'avancement détaillé
@@ -116,6 +116,7 @@ ApplicationMAJ/
 | 27/10/2026 | Sans clé / sans réseau : étape sans IA seule + avertissement ; seuil `BDDMAS_LLM_CONFIANCE_MIN` (0,8) | Le pipeline fonctionne toujours |
 | 27/10/2026 | Données acceptées en CSV ou Parquet, mélangeables dans un lot ; lecture centralisée dans `modules/lecture.py` (Parquet via DuckDB, importé seulement si besoin) ; métadonnées toujours en CSV | Fichiers plus légers et plus rapides à lire (FD_INDCVI : 4 colonnes lues seulement), sans casser les lots CSV existants |
 | 27/10/2026 | Indicateur dont une variable manque au millésime (`KeyError`) : message « Indicateur non calculé … variable absente de ce millésime », affiché en encadré jaune repliable dans le portail ; seules les autres erreurs de calcul restent en rouge et passent le job en « avec avertissements » | Les 13 indicateurs vides attendus en 2023 ne font plus croire à un échec |
+| 27/10/2026 | Transformer renommé `transformer_recensement.py` et indépendant de l'année : traite chaque `data/dataAAAA/sources_brutes_insee/` trouvé, codes `P23_` → `P{aa}_` ; arrêt « Population nulle » si les dimensions des cubes changent ; `extraire_indcvi_roubaix.py` prend le chemin du fichier national en argument ; guide `doc/nouveau_millesime.md` | Un nouveau millésime = déposer les fichiers, sans modifier le code ; sorties 2023 identiques octet pour octet |
 | Oct 2026 | Suppression de `demarrer_portail.ps1` au profit de `run_portal.bat` + `run_portal.py` | Simplification : un seul clic, pas de politique d'exécution PowerShell |
 
 ---
@@ -126,7 +127,7 @@ ApplicationMAJ/
 - **Liens Présentation** : une année absente de `liens_presentation.yml` garde le lien du modèle Excel (à compléter à chaque nouveau millésime)
 - **Formule « actifs travaillant dans la commune de résidence »** : divise par « Salariés 15 ans ou plus » au lieu de « Actifs occupés 15 ans ou plus » ; sans effet en 2023 (variable absente), à revoir si un millésime la contient
 - **Colonne « Crèches »** (onglet petite enfance) : aucune source ; retirée du classeur tant qu'elle est vide. Si une source arrive, la renseigner suffit : la colonne réapparaît
-- **Transformer 2023** : après remplacement d'un CSV INSEE, la date de modification déclenche le recalcul ; en cas de doute, `python scripts/transformer_2023_roubaix.py --force`
+- **Transformer du recensement** : après remplacement d'un cube INSEE, la date de modification déclenche le recalcul ; en cas de doute, `python scripts/transformer_recensement.py --force`
 - **Couleurs d'en-têtes** : déterminées par `_est_additive()` de `mise_en_page.py` (règles d'arrondi + mots-clés) ; une nouvelle colonne mal classée se corrige là
 - **Ligne de commande** : `python main_bddmas.py` lit `data/` à plat ; depuis le rangement par sous-dossiers, le portail est le mode recommandé
 - **Écarts d'arrondi** : totaux du classeur légèrement inférieurs au contrôle du transformer (ex. 98 284 vs 98 286 habitants) car arrondi par IRIS
@@ -138,6 +139,22 @@ ApplicationMAJ/
 ---
 
 ## 6. Historique des Sessions de Travail
+
+### 📅 27 octobre 2026 (soir) — Application indépendante du millésime
+
+**Auteur** : Bilal (assisté par IA)
+
+#### Modifications effectuées
+- `scripts/transformer_2023_roubaix.py` → `scripts/transformer_recensement.py` : chemins et noms calculés à partir de l'année (`dossier_sources`, `noms_sorties`), `millesimes_disponibles()` détecte les cubes `base-ic-{pop,log,emp,men,dip}-AAAA`, options `--annee` et `--force` ; codes de variables renommés à l'écriture (`avec_millesime`) ; arrêt si population nulle, alerte sur les colonnes à 0 sur tout Roubaix
+- `run_portal.bat` : lance le transformer à chaque démarrage (il ne fait rien s'il n'y a pas de cube ou si tout est à jour)
+- `scripts/extraire_indcvi_roubaix.py` : chemin du FD_INDCVI national en argument (CSV ou Parquet), plus de variable `SOURCE` à modifier
+- `doc/nouveau_millesime.md` (nouveau) : marche à suivre, messages du pré-contrôle, que faire si l'Insee change la structure des cubes
+- README : sections recensement et FD_INDCVI mises à jour
+
+#### Vérifications
+- Cubes synthétiques 2023 : ancien et nouveau transformer produisent les 10 fichiers identiques octet pour octet ; relance sans `--force` sautée
+- Cubes 2024 en Parquet : sorties `data/data2024/…-2024.CSV`, codes `P24_`/`C24_`
+- Pipeline complet sur `exemples/lot2023` : classeur identique cellule par cellule à celui de `main`
 
 ### 📅 27 octobre 2026 (fin) — Données au format Parquet
 

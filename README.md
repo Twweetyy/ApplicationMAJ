@@ -89,7 +89,8 @@ Réalisé par Bilal ([@Twweetyy](https://github.com/Twweetyy)) en alternance au 
 Le projet contient :
 - un pipeline (`main_bddmas.py`) utilisable en ligne de commande ou depuis une application ;
 - un portail web local (FastAPI / `uvicorn`) pour déposer un lot de fichiers et télécharger le classeur ;
-- un convertisseur des cubes Insee du recensement 2023 (`scripts/transformer_2023_roubaix.py`) ;
+- un convertisseur des cubes Insee du recensement, valable pour 2023 et les millésimes suivants (`scripts/transformer_recensement.py`) ;
+- un guide pour intégrer un nouveau millésime sans toucher au code ([`doc/nouveau_millesime.md`](doc/nouveau_millesime.md)) ;
 - un module qui rattache automatiquement les colonnes inconnues d'un nouveau millésime Insee (`modules/colonnes_auto.py`, IA facultative) ;
 - des lots d'exemple 2022 et 2023 (`exemples/`) pour essayer le portail tout de suite.
 
@@ -129,7 +130,7 @@ ApplicationMAJ/
 │  ├─ export_sig.py                Export des tables attributaires CSV pour les SIG
 │  └─ persistence.py               Insertion SQLAlchemy configurable
 ├─ scripts/
-│  ├─ transformer_2023_roubaix.py  Conversion des cubes Insee 2023
+│  ├─ transformer_recensement.py   Conversion des cubes Insee (2023 et suivants)
 │  ├─ extraire_indcvi_roubaix.py   Extraction des lignes Roubaix du FD_INDCVI
 │  ├─ simuler_nouveau_millesime.py Faux millésime +1 pour tester colonnes_auto
 │  └─ diag.py                      Diagnostic des cubes Insee 2023
@@ -221,16 +222,18 @@ Pendant l'exécution, `tqdm` affiche la progression des étapes du pipeline, la 
 - Le fichier individuel du recensement commence par `FD_INDCVI_` et doit contenir `IRIS`, `AGEREV`, `AGED` et `IPONDI`. La méta `varmod_indcvi_AAAA.csv` documente ces champs. Seules les colonnes requises sont lues, par blocs.
 - `dictionnaires/superficies_iris_roubaix.yml` fournit les superficies par code IRIS, utilisées pour les densités et superficies calculées.
   
-## Recensement 2023 : préparation des données
+## Recensement (2023 et suivants) : préparation des données
 
-Les fichiers Insee 2023 sont des cubes au format long (`GEO`, `SEX`, `AGE`, `RP_MEASURE`, `OBS_VALUE`…). Ils doivent être convertis avant d'être utilisés.
+Depuis 2023, les fichiers Insee sont des cubes au format long (`GEO`, `SEX`, `AGE`, `RP_MEASURE`, `OBS_VALUE`…). Ils doivent être convertis avant d'être utilisés.
 
-1. Placer les cubes bruts dans `data/data2023/sources_brutes_insee/` : `base-ic-pop-2023.csv`, `base-ic-log-2023.csv`, `base-ic-emp-2023.csv`, `base-ic-men-2023.csv`, `base-ic-dip-2023.csv`. Chaque cube peut aussi être fourni en Parquet (`base-ic-pop-2023.parquet`…), environ 10 fois plus léger : si les deux formats sont présents, le Parquet est utilisé.
-2. Lancer :
+1. Placer les cubes bruts dans `data/dataAAAA/sources_brutes_insee/` (AAAA = millésime) : `base-ic-pop-AAAA.csv`, `base-ic-log-AAAA.csv`, `base-ic-emp-AAAA.csv`, `base-ic-men-AAAA.csv`, `base-ic-dip-AAAA.csv`. Chaque cube peut aussi être fourni en Parquet (`base-ic-pop-AAAA.parquet`…), environ 10 fois plus léger : si les deux formats sont présents, le Parquet est utilisé.
+2. `run_portal.bat` lance la conversion à chaque démarrage, pour tous les millésimes trouvés. À la main :
    ```powershell
-   python scripts/transformer_2023_roubaix.py
+   python scripts/transformer_recensement.py            # tous les millésimes présents
+   python scripts/transformer_recensement.py --annee 2024
+   python scripts/transformer_recensement.py --force    # régénère même si les sorties sont à jour
    ```
-3. Le script écrit les 5 CSV au format large dans `data/data2023/` (`base-ic-evol-struct-pop-2023.CSV`, etc.) et leurs métadonnées dans `dictionnaires/meta/meta2023/`.
+3. Le script écrit les 5 CSV au format large dans `data/dataAAAA/` (`base-ic-evol-struct-pop-AAAA.CSV`, etc.) et leurs métadonnées dans `dictionnaires/meta/metaAAAA/`. Les codes de variables portent l'année du millésime (`P24_POP`, `C24_MEN`…).
 4. Vérifier le bloc « Contrôle de cohérence » affiché en fin d'exécution : Population = Hommes + Femmes, Logements = RP + résidences secondaires + vacants, etc.
 
 Points clés du transformer :
@@ -238,6 +241,7 @@ Points clés du transformer :
 - Chaque thème fixe sa mesure (`RP_MEASURE`) : `DWELLINGS` pour le logement, `POP` pour les autres.
 - Le nombre de ménages (COU FAM) est repris des résidences principales du cube logement, le cube ménages n'ayant pas de mesure « ménages ».
 - Pas de tranche 25-29 ans dans le cube 2023 : `Pop 15-29 ans` est remplacée par `Pop 15-24 ans`.
+- Si l'Insee change les codes des dimensions, le script s'arrête (« Population nulle ») ou signale les colonnes à 0 : voir [`doc/nouveau_millesime.md`](doc/nouveau_millesime.md), section 3.
 
 Ne plus utiliser `adapt_2023_transform.py` (renommé en `.bak`) : il écrivait les cubes bruts sous les mêmes noms et écrasait les fichiers transformés.
 
@@ -246,9 +250,9 @@ Ne plus utiliser `adapt_2023_transform.py` (renommé en `.bak`) : il écrivait l
 Le fichier national (~4 Go) sature le disque C: lors de l'envoi au portail, qui le copie dans `%TEMP%`. Il faut en extraire une fois les lignes de Roubaix :
 
 ```powershell
-python scripts/extraire_indcvi_roubaix.py
+python scripts/extraire_indcvi_roubaix.py "chemin\vers\FD_INDCVI_AAAA.csv"
 ```
-- Renseigner le chemin du fichier national dans la variable `SOURCE` du script.
+- Le fichier national peut être en CSV ou en Parquet.
 - Sortie : `data/indcvi_roubaix/FD_INDCVI_AAAA.csv` (quelques Mo), même nom et mêmes colonnes que l'original. Aucune modification du pipeline n'est nécessaire.
 - En cas d'erreur `No space left on device`, vider `%TEMP%\bddmas-web-jobs`.
 
