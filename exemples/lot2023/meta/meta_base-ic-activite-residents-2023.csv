@@ -1,0 +1,48 @@
+﻿COD_VAR;LIB_VAR
+COM;Commune ou ARM
+TYP_IRIS;Type d'Iris
+LAB_IRIS;Label de l'Iris
+POP1564;Pop 15-64 ans
+POP1524;Pop 15-24 ans
+POP2554;Pop 25-54 ans
+POP5564;Pop 55-64 ans
+H1564;Pop 15-64 ans Hommes
+H1524;Pop 15-24 ans Hommes
+H2554;Pop 25-54 ans Hommes
+H5564;Pop 55-64 ans Hommes
+F1564;Pop 15-64 ans Femmes
+F1524;Pop 15-24 ans Femmes
+F2554;Pop 25-54 ans Femmes
+F5564;Pop 55-64 ans Femmes
+ACT1564;Actifs 15-64 ans
+ACT1524;Actifs 15-24 ans
+ACT2554;Actifs 25-54 ans
+ACT5564;Actifs 55-64 ans
+HACT1564;Actifs 15-64 ans Hommes
+HACT1524;Actifs 15-24 ans Hommes
+HACT2554;Actifs 25-54 ans Hommes
+HACT5564;Actifs 55-64 ans Hommes
+FACT1564;Actifs 15-64 ans Femmes
+FACT1524;Actifs 15-24 ans Femmes
+FACT2554;Actifs 25-54 ans Femmes
+FACT5564;Actifs 55-64 ans Femmes
+ACTOCC1564;Actifs occupés 15-64 ans
+ACTOCC1524;Actifs occupés 15-24 ans
+ACTOCC2554;Actifs occupés 25-54 ans
+ACTOCC5564;Actifs occupés 55-64 ans
+HACTOCC1564;Actifs occupés 15-64 ans Hommes
+HACTOCC1524;Actifs occupés 15-24 ans Hommes
+HACTOCC2554;Actifs occupés 25-54 ans Hommes
+HACTOCC5564;Actifs occupés 55-64 ans Hommes
+FACTOCC1564;Actifs occupés 15-64 ans Femmes
+FACTOCC1524;Actifs occupés 15-24 ans Femmes
+FACTOCC2554;Actifs occupés 25-54 ans Femmes
+FACTOCC5564;Actifs occupés 55-64 ans Femmes
+CHOM1564;Chômeurs 15-64 ans
+CHOM1524;Chômeurs 15-24 ans
+CHOM2554;Chômeurs 25-54 ans
+CHOM5564;Chômeurs 55-64 ans
+INACT1564;Inactifs 15-64 ans
+ETUD1564;Élèves, étudiants 15-64 ans
+RETR1564;Retraités 15-64 ans
+AINACT1564;Autres inactifs 15-64 ans

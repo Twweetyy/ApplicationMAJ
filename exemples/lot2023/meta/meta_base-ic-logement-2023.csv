@@ -1,0 +1,47 @@
+﻿COD_VAR;LIB_VAR
+COM;Commune ou ARM
+TYP_IRIS;Type d'Iris
+LAB_IRIS;Label de l'Iris
+LOG;Logements
+RP;Résidences principales
+MEN;Ménages
+PMEN;Pop Ménages
+RSECOCC;Rés secondaires et logts occasionnels
+LOGVAC;Logements vacants
+MAISON;Maisons
+APPART;Appartements
+RP_1P;Rés princ 1 pièce
+RP_2P;Rés princ 2 pièces
+RP_3P;Rés princ 3 pièces
+RP_4P;Rés princ 4 pièces
+RP_5PP;Rés princ 5 pièces ou plus
+RP_M30M2;Rés princ moins de 30 m²
+RP_3040M2;Rés princ 30 à moins de 40 m²
+RP_4060M2;Rés princ 40 à moins de 60 m²
+RP_6080M2;Rés princ 60 à moins de 80 m²
+RP_80100M2;Rés princ 80 à moins de 100 m²
+RP_100120M2;Rés princ 100 à moins de 120 m²
+RP_120M2P;Rés princ 120 m² ou plus
+RP_ACH1919;Rés princ construites avant 1919
+RP_ACH1945;Rés princ construites de 1919 à 1945
+RP_ACH1970;Rés princ construites de 1946 à 1970
+RP_ACH1990;Rés princ construites de 1971 à 1990
+RP_ACH2005;Rés princ construites de 1991 à 2005
+RP_ACH2019;Rés princ construites de 2006 à 2021
+MEN_ANEM0002;Emménagement de moins de 2 ans
+MEN_ANEM0204;Emménagement de 2 à 4 ans
+MEN_ANEM0509;Emménagement de 5 à 9 ans
+MEN_ANEM10P;Emménagement de 10 ans ou plus
+RP_PROP;Propriétaires
+RP_LOC;Locataires
+RP_LOCHLMV;Locataires HLM
+RP_GRAT;Logés gratuitement
+RP_VOIT1;Ménages avec 1 voiture
+RP_VOIT2P;Ménages avec 2 voitures ou plus
+RP_VOIT1P;Ménages avec au moins 1 voiture
+RP_GARL;Ménages avec garage ou parking
+RP_CGAZV;Chauffage gaz de ville
+RP_CFIOUL;Chauffage fioul
+RP_CELEC;Chauffage électrique
+RP_CGAZB;Chauffage gaz en bouteille
+RP_CAUT;Autre chauffage

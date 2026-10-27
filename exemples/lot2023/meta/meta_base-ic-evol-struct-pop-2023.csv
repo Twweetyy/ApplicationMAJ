@@ -1,0 +1,37 @@
+﻿COD_VAR;LIB_VAR
+COM;Commune ou ARM
+TYP_IRIS;Type d'Iris
+LAB_IRIS;Label de l'Iris
+POP;Population
+POP0002;Pop 0-2 ans
+POP0305;Pop 3-5 ans
+POP0610;Pop 6-10 ans
+POP1117;Pop 11-17 ans
+POP1824;Pop 18-24 ans
+POP2539;Pop 25-39 ans
+POP4054;Pop 40-54 ans
+POP5564;Pop 55-64 ans
+POP6579;Pop 65-79 ans
+POP80P;Pop 80 ans ou plus
+POP0014;Pop 0-14 ans
+POP1524;Pop 15-24 ans
+POP0019;Pop 0-19 ans
+POP2064;Pop 20-64 ans
+POP65P;Pop 65 ans ou plus
+POPH;Pop Hommes
+H0014;Pop Hommes 0-14 ans
+H1524;Pop Hommes 15-24 ans
+H0019;Pop Hommes 0-19 ans
+H2064;Pop Hommes 20-64 ans
+H65P;Pop Hommes 65 ans ou plus
+POPF;Pop Femmes
+F0014;Pop Femmes 0-14 ans
+F1524;Pop Femmes 15-24 ans
+F0019;Pop Femmes 0-19 ans
+F2064;Pop Femmes 20-64 ans
+F65P;Pop Femmes 65 ans ou plus
+POP_FR;Pop Français
+POP_ETR;Pop Etrangers
+POP_IMM;Pop Immigrés
+PMEN;Pop ménages
+PHORMEN;Pop hors ménages

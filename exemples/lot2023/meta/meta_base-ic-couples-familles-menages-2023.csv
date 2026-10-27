@@ -1,0 +1,12 @@
+﻿COD_VAR;LIB_VAR
+COM;Commune ou ARM
+TYP_IRIS;Type d'Iris
+LAB_IRIS;Label de l'Iris
+C23_MEN;Ménages
+C23_MENPSEUL;Ménages 1 personne
+POP15P_MARIEE;Pop 15 ans ou plus Mariée
+POP15P_PACSEE;Pop 15 ans ou plus Pacsée
+POP15P_CONCUB_UNION_LIBRE;Pop 15 ans ou plus Concubinage
+POP15P_VEUFS;Pop 15 ans ou plus Veufs
+POP15P_DIVORCEE;Pop 15 ans ou plus Divorcée
+POP15P_CELIBATAIRE;Pop 15 ans ou plus Célibataire

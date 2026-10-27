@@ -1,0 +1,20 @@
+﻿COD_VAR;LIB_VAR
+COM;Commune ou ARM
+TYP_IRIS;Type d'Iris
+LAB_IRIS;Label de l'Iris
+NSCOL15P;Pop non scolarisée 15 ans ou plus
+NSCOL15P_DIPLMIN;Pop non scol 15 ans ou plus Aucun diplôme ou CEP
+NSCOL15P_BEPC;Pop non scol 15 ans ou plus Brevet des collèges
+NSCOL15P_CAPBEP;Pop non scol 15 ans ou plus CAP, BEP
+NSCOL15P_BAC;Pop non scol 15 ans ou plus Baccalauréat
+NSCOL15P_SUP2;Pop non scol 15 ans ou plus Enseignement court Bac+2
+NSCOL15P_SUP34;Pop non scol 15 ans ou plus Bac+3 ou Bac+4
+NSCOL15P_SUP5;Pop non scol 15 ans ou plus Bac+5 ou plus
+HNSCOL15P;Pop non scolarisée 15 ans ou plus Hommes
+HNSCOL15P_DIPLMIN;Pop non scol 15P Hommes Aucun diplôme ou CEP
+HNSCOL15P_CAPBEP;Pop non scol 15P Hommes CAP, BEP
+HNSCOL15P_BAC;Pop non scol 15P Hommes Baccalauréat
+FNSCOL15P;Pop non scolarisée 15 ans ou plus Femmes
+FNSCOL15P_DIPLMIN;Pop non scol 15P Femmes Aucun diplôme ou CEP
+FNSCOL15P_CAPBEP;Pop non scol 15P Femmes CAP, BEP
+FNSCOL15P_BAC;Pop non scol 15P Femmes Baccalauréat
