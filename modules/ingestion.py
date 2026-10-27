@@ -172,6 +172,8 @@ def _charger_metadonnees(
 
     metadonnees["COD_VAR"] = metadonnees["COD_VAR"].astype("string").str.strip()
     metadonnees["CODE_NORMALISE"] = metadonnees["COD_VAR"].map(_normaliser_identifiant)
+    toutes_metadonnees = metadonnees
+    codes_requis = None
     if colonnes_variables is not None:
         codes_requis = {_normaliser_identifiant(colonne) for colonne in colonnes_variables}
         metadonnees = metadonnees[metadonnees["CODE_NORMALISE"].isin(codes_requis)]
@@ -185,10 +187,10 @@ def _charger_metadonnees(
 
     colonnes_modalites = {"COD_MOD", "LIB_MOD", "TYPE_VAR"}
     modalites = {}
-    if colonnes_modalites.issubset(metadonnees.columns):
-        variables_a_modalites = metadonnees[
-            metadonnees["TYPE_VAR"].astype("string").str.upper().eq("CHAR")
-            & ~metadonnees["CODE_NORMALISE"].isin({"iris", "codgeo", "com"})
+    if colonnes_modalites.issubset(toutes_metadonnees.columns):
+        variables_a_modalites = toutes_metadonnees[
+            toutes_metadonnees["TYPE_VAR"].astype("string").str.upper().eq("CHAR")
+            & ~toutes_metadonnees["CODE_NORMALISE"].isin({"iris", "codgeo", "com"})
         ][["CODE_NORMALISE", "COD_MOD", "LIB_MOD"]].dropna()
         modalites = {
             (code, _normaliser_modalite(modalite)): libelle.strip()
@@ -199,7 +201,28 @@ def _charger_metadonnees(
             )
             if str(libelle).strip()
         }
+        if codes_requis is not None:
+            modalites = _modalites_des_codes(modalites, codes_requis)
     return libelles, modalites
+
+
+def _modalites_des_codes(modalites: dict, codes_requis: set) -> dict:
+    """Modalités des codes demandés. Un code sans modalité reprend celles d'un code de même
+    suffixe (méta DISP de l'Insee : la note de précaution y est documentée sous DEC_NOTE21
+    au lieu de DISP_NOTE21)."""
+    retenues = {cle: libelle for cle, libelle in modalites.items() if cle[0] in codes_requis}
+    codes_documentes = {code for code, _ in modalites}
+    for code in codes_requis - {code for code, _ in retenues}:
+        if "_" not in code:
+            continue
+        suffixe = code.split("_", 1)[1]
+        voisins = [autre for autre in codes_documentes if "_" in autre and autre.split("_", 1)[1] == suffixe]
+        if len(voisins) == 1:
+            retenues.update({
+                (code, modalite): libelle
+                for (autre, modalite), libelle in modalites.items() if autre == voisins[0]
+            })
+    return retenues
 
 
 def _identifier_theme_fichier(nom_fichier: str, mapping_noms: dict) -> tuple[str | None, str]:
