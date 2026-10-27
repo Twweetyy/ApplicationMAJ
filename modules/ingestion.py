@@ -97,7 +97,8 @@ def _iris_roubaix_presents(chemin: str, colonne: str, separateur: str) -> set[st
     )
     for bloc in lecteur:
         valeurs = bloc[colonne].dropna().str.strip()
-        presents.update(valeurs[valeurs.str.startswith("59512")])
+        # Codes IRIS à 9 caractères uniquement : la ligne « 59512 » (commune entière) est ignorée
+        presents.update(valeurs[valeurs.str.fullmatch(r"59512\w{4}")])
     return presents
 
 
