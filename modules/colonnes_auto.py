@@ -29,7 +29,7 @@ ENTETE_CACHE = (
 SEUIL_APPROCHE = 0.92
 ECART_AMBIGU = 0.02
 TAILLE_LOT_LLM = 40
-ESSAIS_LLM = 3
+ESSAIS_LLM = 2
 CONFIANCE_SANS_LIBELLE = 0.95
 FEUILLES_FIXES = {"Présentation", "Detail calcul"}
 # Colonnes ajoutées par le pipeline (périmètre, superficies, petite enfance) : jamais une cible
@@ -327,12 +327,19 @@ def _demander_llm(onglet: str, inconnues: list[dict], candidats: list[str]) -> d
             f"En-têtes existants disponibles : {json.dumps(candidats, ensure_ascii=False)}\n"
             f"Variables inconnues : {json.dumps(lot, ensure_ascii=False, default=str)}"
         )
+        numero = debut // TAILLE_LOT_LLM + 1
+        total = (len(inconnues) - 1) // TAILLE_LOT_LLM + 1
         for essai in range(1, ESSAIS_LLM + 1):
+            # Trace console : un appel peut prendre une minute (quota Groq), on montre qu'il avance
+            print(f"  IA {onglet} : lot {numero}/{total} ({len(lot)} variables), essai {essai}…", flush=True)
+            depart = time.monotonic()
             try:
                 texte = appeler_llm(prompt, systeme=CONSIGNES_LLM, temperature=0, max_tokens=4000, format_json=True)
                 elements = _extraire_json(texte).get("colonnes", [])
+                print(f"  IA {onglet} : réponse en {time.monotonic() - depart:.0f} s", flush=True)
                 break
-            except (RuntimeError, ValueError):
+            except (RuntimeError, ValueError) as exception:
+                print(f"  IA {onglet} : échec après {time.monotonic() - depart:.0f} s ({exception})", flush=True)
                 # Coupure réseau ou réponse illisible : nouvel essai après une pause
                 if essai == ESSAIS_LLM:
                     raise

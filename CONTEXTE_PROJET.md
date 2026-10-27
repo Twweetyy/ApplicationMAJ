@@ -129,6 +129,7 @@ ApplicationMAJ/
 - **Écarts d'arrondi** : totaux du classeur légèrement inférieurs au contrôle du transformer (ex. 98 284 vs 98 286 habitants) car arrondi par IRIS
 - **Exports SIG et SQL** : disponibles uniquement en ligne de commande, pas depuis le portail web
 - **Colonnes auto** : une décision fausse se corrige dans `dictionnaires/correspondances_auto.yml` (changer `entete`, mettre `methode: manuel`). Une colonne « non résolue » garde son libellé méta. Le premier lot traité avec l'IA envoie aussi les colonnes absentes du modèle 2022 (une seule fois, ensuite cache)
+- **Accès IA bloqué au bureau** : depuis le poste de la mairie, toute connexion HTTPS vers une API d'IA (Groq, Mistral…) est coupée pendant la poignée de main TLS, même en partage de connexion (filtrage côté poste). Au bureau : `BDDMAS_LLM=0` dans `.env` ; le module garde correspondance exacte, approchée et cache, les colonnes restantes sont « non résolues » à corriger dans `correspondances_auto.yml`. IA utilisable hors du poste de la mairie (ex. à domicile), sans changement de code
 - **Avertissement UNC** : « Les chemins d'accès UNC ne sont pas pris en charge » au démarrage → sans conséquence
 
 ---
@@ -269,7 +270,8 @@ ApplicationMAJ/
 - [x] `.gitignore` : `data/`, `meta2022/`, `meta2023/` et `sources_brutes_meta/` exclus (27/10)
 - [x] Intégrer le module LLM dans le pipeline : colonnes inconnues rattachées ou créées automatiquement (27/10)
 - [x] Afficher les décisions `colonnes_auto` dans le portail (27/10)
-- [ ] Chatbot du portail (chantier séparé)
+- [ ] Tester l'IA hors poste mairie (simulation `scripts/simuler_nouveau_millesime.py`), réseau bloqué au bureau
+- [ ] Chatbot du portail (chantier séparé, même blocage réseau au bureau)
 
 ---
 
