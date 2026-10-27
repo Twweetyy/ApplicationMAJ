@@ -8,6 +8,7 @@ import numpy as np
 import yaml
 from tqdm.auto import tqdm
 from .colonnes_auto import (
+    ajouter_vocabulaire_valide,
     charger_cache,
     charger_millesimes_valides,
     charger_references,
@@ -588,6 +589,8 @@ def ingerer_donnees_thematiques(
     premier_lancement = millesimes_valides is None
     if premier_lancement:
         millesimes_valides = {}
+    elif references is not None:
+        ajouter_vocabulaire_valide(references, dossier_dicos, millesimes_valides)
     
     # Récupération du mapping des noms (ex: 'base-ic-evol-struct-pop' -> 'POP')
     mapping_noms = load_mapping(os.path.join(dossier_dicos, "files_names.yml"))

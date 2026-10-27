@@ -1,0 +1,14 @@
+# Dernier millésime traité et validé à la main, par thème (créé au premier lancement).
+# Le module colonnes_auto ne touche pas un fichier de ce millésime ou plus ancien :
+# il ne s'active que pour un millésime plus récent (ou un thème absent de cette liste).
+REV DEC: '2021'
+REV DISP: '2021'
+ACT RES: '2023'
+COU FAM: '2023'
+DIP FORMATION: '2023'
+POP: '2023'
+LOG: '2023'
+CAF: '2024'
+CNAM: '2025'
+DEFM: '2024'
+RPLS: '2024'

@@ -201,6 +201,71 @@ def millesime_a_traiter(theme: str, annee: str | None, millesimes_valides: dict)
         return False
 
 
+def _cle_fichier(nom: str) -> str:
+    """Nom de fichier comparable : sans extension, préfixe meta_/data_, année, accents ni ponctuation."""
+    nom = os.path.splitext(os.path.basename(str(nom)))[0]
+    nom = re.sub(r"^(meta|data)_", "", nom, flags=re.IGNORECASE)
+    return re.sub(r"[^a-z0-9]", "", re.sub(r"\d{4}", "", _sans_accents(nom)))
+
+
+def ajouter_vocabulaire_valide(references: dict, dossier_dicos: str, millesimes_valides: dict) -> None:
+    """Ajoute aux références les libellés qui ont produit le classeur validé : dictionnaires
+    dictionnaire_variables_<THEME>.yml puis méta du dernier millésime validé de chaque thème.
+    Sans eux, une variable absente du modèle 2022 mais présente dans le classeur validé
+    (ajoutée en fin de tableau) ne pourrait jamais être retrouvée."""
+    chemin_noms = os.path.join(dossier_dicos, "files_names.yml")
+    if not os.path.isfile(chemin_noms):
+        return
+    with open(chemin_noms, "r", encoding="UTF-8") as fichier:
+        noms_fichiers = yaml.safe_load(fichier) or {}
+    dossier_meta = os.path.join(dossier_dicos, "meta")
+    metas = []
+    if os.path.isdir(dossier_meta):
+        for dossier in [dossier_meta] + [os.path.join(dossier_meta, nom) for nom in sorted(os.listdir(dossier_meta))]:
+            if os.path.isdir(dossier):
+                metas += [os.path.join(dossier, nom) for nom in sorted(os.listdir(dossier)) if nom.casefold().endswith(".csv")]
+
+    for cle_fichier, theme in noms_fichiers.items():
+        theme = str(theme)
+        liste = references.setdefault(theme, [])
+
+        def ajouter(libelle):
+            libelle = str(libelle).strip()
+            if libelle and libelle not in liste and libelle not in ENTETES_HORS_SOURCE:
+                liste.append(libelle)
+
+        chemin_dico = os.path.join(dossier_dicos, f"dictionnaire_variables_{theme.split(' ', 1)[0]}.yml")
+        if os.path.isfile(chemin_dico):
+            with open(chemin_dico, "r", encoding="UTF-8") as fichier:
+                for libelle in (yaml.safe_load(fichier) or {}).values():
+                    ajouter(libelle)
+
+        annee = millesimes_valides.get(theme)
+        cle = _cle_fichier(cle_fichier)
+        meta = next(
+            (chemin for chemin in metas if annee and annee in os.path.basename(chemin) and cle in _cle_fichier(chemin)),
+            None,
+        )
+        if not meta:
+            continue
+        try:
+            libelles = _lire_libelles_meta(meta)
+        except (OSError, ValueError, UnicodeError):
+            continue
+        for libelle in libelles:
+            ajouter(libelle)
+
+
+def _lire_libelles_meta(chemin: str) -> list[str]:
+    import pandas as pd
+
+    meta = pd.read_csv(chemin, sep=";", dtype=str, encoding="utf-8-sig", usecols=lambda c: str(c).strip().upper() in {"COD_VAR", "LIB_VAR"})
+    meta.columns = [str(colonne).strip().upper() for colonne in meta.columns]
+    meta = meta.dropna().drop_duplicates("COD_VAR")
+    meta = meta[~meta["COD_VAR"].str.strip().str.upper().isin(COLONNES_GEO)]
+    return meta["LIB_VAR"].tolist()
+
+
 # --------------------------------------------------------------------------- cache
 
 
@@ -274,6 +339,10 @@ Règles :
 - "precision" : nombre de décimales, 0 pour un effectif, 1 pour un taux ou une part en %, 2 pour une densité, un indice ou un loyer.
 - "confiance" : entre 0 et 1.
 - "justification" : une phrase courte.
+Codes INSEE (utile si le libellé manque) : P=population, H=hommes, F=femmes, ACT=actifs, ACTOCC=actifs occupés,
+CHOM=chômeurs, ETUD=élèves/étudiants, SAL=salariés, NSCOL=non scolarisés, DIPLMIN=sans diplôme ou CEP,
+CAPBEP=CAP-BEP, SUP2=bac+2, RP=résidences principales, ACH=achevées (période de construction), LOC=locataires,
+PROP=propriétaires, MEN=ménages, FAM=familles ; 4 chiffres = tranche d'âge (2554 = 25-54 ans), P final = ou plus.
 Réponds uniquement en JSON : {"colonnes": [{"code": ..., "correspondance": ..., "nouvel_entete": ...,
 "additive": ..., "precision": ..., "confiance": ..., "justification": ...}]}"""
 
@@ -321,8 +390,15 @@ def _valider_reponse(reponse: dict, candidats: list[str]) -> dict:
     """Ne garde que des valeurs sûres : correspondance prise dans la liste, précision 0-2."""
     correspondance = reponse.get("correspondance")
     if correspondance is not None:
-        index = {_normaliser_simple(candidat): candidat for candidat in candidats}
-        correspondance = index.get(_normaliser_simple(correspondance))
+        # L'IA recopie parfois l'en-tête avec une petite variante (espace, point, casse)
+        index = {_normaliser(candidat): candidat for candidat in candidats}
+        texte = str(correspondance)
+        correspondance = index.get(_normaliser(texte))
+        if correspondance is None:
+            _, nombres, sensibles = _signature(texte)
+            compatibles = [cle for cle in index if _signature(cle)[1:] == (nombres, sensibles)]
+            proches = difflib.get_close_matches(_normaliser(texte), compatibles, n=1, cutoff=0.9)
+            correspondance = index[proches[0]] if proches else None
     nouvel_entete = reponse.get("nouvel_entete")
     nouvel_entete = re.sub(r"\s+", " ", str(nouvel_entete)).strip()[:120] if nouvel_entete else None
     try:

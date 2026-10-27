@@ -24,7 +24,9 @@ def _obtenir_client() -> openai.OpenAI:
     """Client compatible OpenAI / Groq / Ollama, créé au premier appel (l'import ne plante pas sans clé)."""
     global _client
     if _client is None:
-        kwargs = {"timeout": 60, "max_retries": 1}
+        # Plusieurs essais : le quota gratuit Groq (tokens par minute) renvoie vite une erreur 429,
+        # le SDK attend alors le délai indiqué par le serveur avant de réessayer
+        kwargs = {"timeout": 120, "max_retries": 5}
         if BASE_URL:
             kwargs["base_url"] = BASE_URL
         # Ollama n'exige pas de clé, mais le SDK en veut une
