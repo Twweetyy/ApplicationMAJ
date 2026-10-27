@@ -343,6 +343,3 @@ Depuis le poste de la mairie, les appels HTTPS vers les API d'IA sont bloqués :
 ## Créer une release
 
 Après chaque version stable, créez une **release** GitHub (ex. `v1.0`) et ajoutez le fichier `run_portal.bat` en tant qu'actif.
-
----
-*Ce README a été rédigé en français conformément à la convention de messages de commit du projet.*
