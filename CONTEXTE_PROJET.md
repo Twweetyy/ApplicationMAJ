@@ -27,6 +27,7 @@ ApplicationMAJ/
 │  ├─ indicateurs.py           → Calculs dérivés, arrondis, répartitions
 │  ├─ export_excel.py          → Remplissage du modèle Excel + mise en forme
 │  ├─ pages_info.py            → Pages Présentation et Detail calcul générées selon le lot
+│  ├─ mise_en_page.py          → Formats, largeurs, couleurs d'en-têtes, ordre des colonnes, volets figés
 │  ├─ export_sig.py            → Export CSV pour SIG
 │  ├─ persistence.py           → Insertion SQLAlchemy
 │  └─ llm_wrapper.py           → Wrapper OpenAI/Groq/Ollama (nouveau)
@@ -98,6 +99,12 @@ ApplicationMAJ/
 | 26/10/2026 | Pages Présentation et Detail calcul régénérées à chaque classeur (`modules/pages_info.py`) | Titre, années, dates et liens suivent le lot ; Detail calcul toujours aligné sur `calculated_columns.yml` |
 | 26/10/2026 | Liens INSEE de la Présentation dans `liens_presentation.yml` (thème → année → URL) | Nouveau millésime = une ligne à ajouter, pas de modification du modèle Excel |
 | 26/10/2026 | « Part des DEFM hommes/femmes » conservées rapportées à la population de l'IRIS | Choix de définition (part de la population), pas une erreur |
+| 27/10/2026 | En-tête orange = indicateur sans total (taux, part, médiane, quartile, loyer…), bleu = effectif avec total ; bleues à gauche, orange à droite | Lecture plus simple : l'utilisateur sait où trouver les indicateurs, qu'ils soient calculés ou fournis par l'INSEE |
+| 27/10/2026 | Ligne Total : `SUBTOTAL` gardé uniquement pour les colonnes additives (effectifs, superficie) | Une somme de taux ou de médianes n'a pas de sens |
+| 27/10/2026 | Colonne « Crèches » retirée automatiquement si vide (`mise_en_page.py`), modèle Excel inchangé | Aucune source disponible (absente des deux versions de `Périmètres_MAS.csv`) |
+| 27/10/2026 | Nombre de colonnes géo = position de « Libellé de l'Iris » (plus de `8 if "Age : 0"`) | Robuste au retrait de Crèches et aux évolutions du modèle |
+| 27/10/2026 | Transformer 2023 sauté si les 10 fichiers produits existent, comptent 38 IRIS et sont plus récents que les sources et le script (`--force` pour recalculer) | Démarrage du portail en quelques secondes au lieu de relire les cubes INSEE |
+| 27/10/2026 | Audit IRIS : le code commune seul « 59512 » (« Non localisé à l'iris ») n'est pas signalé comme inconnu | Ligne légitime du référentiel, pas une erreur |
 | Oct 2026 | Suppression de `demarrer_portail.ps1` au profit de `run_portal.bat` + `run_portal.py` | Simplification : un seul clic, pas de politique d'exécution PowerShell |
 
 ---
@@ -107,7 +114,9 @@ ApplicationMAJ/
 - **Recensement 2023** : certaines variables absentes des cubes INSEE (salariés CDI, familles monoparentales, pop 60-74 ans) → indicateurs vides dans le classeur
 - **Liens Présentation** : une année absente de `liens_presentation.yml` garde le lien du modèle Excel (à compléter à chaque nouveau millésime)
 - **Formule « actifs travaillant dans la commune de résidence »** : divise par « Salariés 15 ans ou plus » au lieu de « Actifs occupés 15 ans ou plus » ; sans effet en 2023 (variable absente), à revoir si un millésime la contient
-- **Colonne « Crèches »** (onglet petite enfance) : vide sur les 38 IRIS, aucune source dans `Périmètres_MAS.csv`
+- **Colonne « Crèches »** (onglet petite enfance) : aucune source ; retirée du classeur tant qu'elle est vide. Si une source arrive, la renseigner suffit : la colonne réapparaît
+- **Transformer 2023** : après remplacement d'un CSV INSEE, la date de modification déclenche le recalcul ; en cas de doute, `python scripts/transformer_2023_roubaix.py --force`
+- **Couleurs d'en-têtes** : déterminées par `_est_additive()` de `mise_en_page.py` (règles d'arrondi + mots-clés) ; une nouvelle colonne mal classée se corrige là
 - **Ligne de commande** : `python main_bddmas.py` lit `data/` à plat ; depuis le rangement par sous-dossiers, le portail est le mode recommandé
 - **Écarts d'arrondi** : totaux du classeur légèrement inférieurs au contrôle du transformer (ex. 98 284 vs 98 286 habitants) car arrondi par IRIS
 - **Exports SIG et SQL** : disponibles uniquement en ligne de commande, pas depuis le portail web
@@ -116,6 +125,25 @@ ApplicationMAJ/
 ---
 
 ## 6. Historique des Sessions de Travail
+
+### 📅 27 octobre 2026 — Audit IRIS, mise en page Excel, démarrage rapide
+
+**Auteur** : Bilal (assisté par IA)
+
+#### Modifications effectuées
+- `modules/ingestion.py` : audit des IRIS au pré-contrôle (`_charger_iris_reference`, `_iris_roubaix_presents`, `_auditer_iris`) ; signale les IRIS manquants ou inconnus par source, en ignorant « 59512 » seul
+- `modules/mise_en_page.py` (nouveau, appelé après `mettre_a_jour_pages_info` dans `export_excel.py`) :
+  - formats de nombres selon `_precision_arrondi`, décimales affichées limitées à celles de la source (RPLS : 9,3 et non 9,30)
+  - ligne Total : `SUBTOTAL` conservé seulement pour les colonnes additives
+  - en-têtes orange pour les indicateurs, bleus pour les effectifs ; colonnes bleues regroupées à gauche, orange à droite (valeurs, styles, tableau Excel et `SUBTOTAL` déplacés ensemble)
+  - largeurs calculées mot par mot (en-têtes sur 5 lignes max, bouton de filtre compris) ; colonnes de texte (« Incertitude… » REV DEC/REV DISP) élargies à 2 lignes max par IRIS
+  - colonne « Crèches » vide supprimée (tableau, largeurs, `SUBTOTAL` recalés) ; vue réinitialisée en A1 et volet figé après « Libellé de l'Iris »
+- `scripts/transformer_2023_roubaix.py` : `sorties_a_jour()` + option `--force` ; la transformation est sautée si rien n'a changé
+
+#### Vérifications
+- Arrondis : aucune colonne du classeur 9 ne dépasse sa règle (`doc/r_gles_d_arrondis_compl_tes.md`) → conforme
+- Mise en page testée sur le classeur 9 : 12 onglets, valeurs identiques par en-tête après déplacement, tableaux Excel et totaux cohérents
+- Crèches : absente du `Périmètres_MAS.csv` actuel et de celui de l'ancien alternant → pas de source
 
 ### 📅 26 octobre 2026 (fin d'après-midi) — Pages Présentation et Detail calcul dynamiques
 
@@ -197,12 +225,14 @@ ApplicationMAJ/
 
 - [x] Validation bout-en-bout du portail avec données réelles 2023 (26/10)
 - [x] Adapter les deux premières pages en fonction des données (2022, 2023, nouveaux calculs, etc) (26/10)
-- [ ] Harmoniser les arrondis selon les directives strictes (cf. `doc/r_gles_d_arrondis_compl_tes.md`)
-- [ ] Audit de complétude des 38 IRIS roubaisiens avant traitement
-- [ ] Mise en page Excel automatisée (largeurs auto, séparateurs de milliers)
+- [x] Harmoniser les arrondis selon les directives strictes (vérifié conforme le 27/10)
+- [x] Audit de complétude des 38 IRIS roubaisiens avant traitement (27/10)
+- [x] Mise en page Excel automatisée (largeurs auto, séparateurs de milliers, couleurs, ordre des colonnes) (27/10)
 - [x] Dynamiser le nom de l'onglet petite enfance selon le millésime (26/10)
 - [x] Titres d'onglets indépendants du millésime (`info_pages.yml`) (26/10)
-- [ ] Source pour la colonne « Crèches » de l'onglet petite enfance (vide actuellement)
+- [ ] Source pour la colonne « Crèches » de l'onglet petite enfance (retirée tant qu'elle est vide)
+- [x] Transformer 2023 sauté si déjà à jour (27/10)
+- [x] `.gitignore` : `data/`, `meta2022/`, `meta2023/` et `sources_brutes_meta/` exclus (27/10)
 - [ ] Intégrer le module LLM dans le pipeline (ex: Si des colonnes avec un nom non explicite, alors l'ia définit cette colonne pour permettre de mieux l'intégrer)
 
 ---
