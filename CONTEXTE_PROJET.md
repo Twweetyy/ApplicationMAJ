@@ -24,6 +24,7 @@ ApplicationMAJ/
 ├─ modules/
 │  ├─ socle_geo.py             → Référentiel MAS, superficies, jointures
 │  ├─ ingestion.py             → Pré-contrôle, lecture, nettoyage sources
+│  ├─ lecture.py               → Lecture des données CSV (pandas) ou Parquet (DuckDB)
 │  ├─ indicateurs.py           → Calculs dérivés, arrondis, répartitions
 │  ├─ export_excel.py          → Remplissage du modèle Excel + mise en forme
 │  ├─ pages_info.py            → Pages Présentation et Detail calcul générées selon le lot
@@ -113,6 +114,7 @@ ApplicationMAJ/
 | 27/10/2026 | Décisions mises en cache dans `dictionnaires/correspondances_auto.yml` (`methode: manuel` = verrouillé) | Une variable n'est envoyée qu'une fois à l'IA ; correction humaine possible |
 | 27/10/2026 | Module actif seulement pour un millésime plus récent que `millesimes_valides.yml` (créé au premier lancement avec le lot actuel) | Le lot 2022/2023 validé à la main reste strictement identique |
 | 27/10/2026 | Sans clé / sans réseau : étape sans IA seule + avertissement ; seuil `BDDMAS_LLM_CONFIANCE_MIN` (0,8) | Le pipeline fonctionne toujours |
+| 27/10/2026 | Données acceptées en CSV ou Parquet, mélangeables dans un lot ; lecture centralisée dans `modules/lecture.py` (Parquet via DuckDB, importé seulement si besoin) ; métadonnées toujours en CSV | Fichiers plus légers et plus rapides à lire (FD_INDCVI : 4 colonnes lues seulement), sans casser les lots CSV existants |
 | Oct 2026 | Suppression de `demarrer_portail.ps1` au profit de `run_portal.bat` + `run_portal.py` | Simplification : un seul clic, pas de politique d'exécution PowerShell |
 
 ---
@@ -135,6 +137,22 @@ ApplicationMAJ/
 ---
 
 ## 6. Historique des Sessions de Travail
+
+### 📅 27 octobre 2026 (fin) — Données au format Parquet
+
+**Auteur** : Bilal (assisté par IA)
+
+#### Modifications effectuées
+- `modules/lecture.py` (nouveau, remplace l'ébauche `modules/utils.py`) : `est_fichier_donnees`, `lire_entetes`, `lire_table`, `lire_par_blocs`, `compter_lignes` ; CSV par pandas comme avant, Parquet par DuckDB (colonnes demandées seulement, types `str`/`float64` convertis par DuckDB, erreurs DuckDB transformées en `ValueError`)
+- `modules/ingestion.py` : pré-contrôle (en-têtes, audit IRIS désormais aussi pour les Parquet), ingestion des thèmes et lecture par blocs du FD_INDCVI passent par `lecture.py` ; correction du nom de base (`fichier[:-4]` → `os.path.splitext`) qui cassait l'année et le thème des `.parquet`
+- `modules/socle_geo.py` : `Périmètres_MAS` lisible en Parquet
+- `webapp.py`, `web/multi-upload.js`, `web/index.html` : zone Données accepte `.parquet` ; une méta en Parquet est refusée avec un message clair
+- `requirements.txt` : ajout de `duckdb`
+
+#### Vérifications
+- Lots d'exemple 2022 et 2023 convertis en Parquet (tout en texte, typé, et mélange CSV/Parquet) : classeurs identiques cellule par cellule au lot CSV (14 onglets), pré-contrôle identique (IRIS 38/38)
+- Portail (API) : lot mixte → « Prêt » puis classeur généré ; méta `.parquet` refusée ; Parquet corrompu → erreur de pré-contrôle `csv_illisible`, pas de plantage
+- Non traité : `scripts/simuler_nouveau_millesime.py` et `scripts/transformer_2023_roubaix.py` restent en CSV
 
 ### 📅 27 octobre 2026 (suite) — Module colonnes inconnues (IA)
 

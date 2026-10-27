@@ -1,6 +1,7 @@
 # Fichier requirements.txt pour le projet BDDMAS
 
 dotenv
+duckdb
 openai
 pandas
 pyyaml

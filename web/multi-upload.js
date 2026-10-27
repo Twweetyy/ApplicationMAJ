@@ -162,9 +162,12 @@ function renderFiles() {
 
 function addFiles(group, fileList) {
   const files = Array.from(fileList);
-  const invalid = files.filter((file) => !file.name.toLowerCase().endsWith(".csv"));
+  // Données : CSV ou Parquet ; métadonnées : CSV uniquement
+  const extensions = group === "data" ? [".csv", ".parquet"] : [".csv"];
+  const invalid = files.filter((file) => !extensions.some((ext) => file.name.toLowerCase().endsWith(ext)));
   if (invalid.length) {
-    showError($("#uploadError"), `Format CSV requis : ${invalid.map((file) => file.name).join(", ")}`);
+    const formats = group === "data" ? "CSV ou Parquet" : "CSV";
+    showError($("#uploadError"), `Format ${formats} requis : ${invalid.map((file) => file.name).join(", ")}`);
     return;
   }
   const misplaced = files.filter((file) => isMetaFile(file.name) !== (group === "meta"));

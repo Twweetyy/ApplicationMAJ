@@ -36,6 +36,7 @@ ApplicationMAJ/
 ├─ modules/
 │  ├─ socle_geo.py                 Chargement du référentiel MAS, superficies et jointures
 │  ├─ ingestion.py                 Pré-contrôle, lecture, nettoyage et renommage des sources thématiques
+│  ├─ lecture.py                   Lecture des données en CSV (pandas) ou Parquet (DuckDB)
 │  ├─ indicateurs.py               Calculs dérivés, arrondis et répartitions pondérées des enfants
 │  ├─ export_excel.py              Remplissage du modèle et mise en forme Excel
 │  ├─ mise_en_page.py              Formats, largeurs, couleurs d'en-têtes, ordre des colonnes
@@ -116,6 +117,12 @@ Pendant l'exécution, `tqdm` affiche la progression des étapes du pipeline, la 
 **Zone B – Métadonnées**
 - Un `meta_<nom du fichier>.csv` par fichier de données, et `varmod_indcvi_AAAA.csv`.
 - Obligatoire : le portail n'utilise pas le dossier `dictionnaires/meta` du disque.
+
+**Formats acceptés**
+- Données : CSV ou Parquet (`.parquet`), au choix pour chaque fichier. Un lot peut mélanger les deux (ex. recensement en Parquet, CAF en CSV). Le nom du fichier suit les mêmes règles, seule l'extension change : `base-ic-logement-2023.parquet`, `Périmètres_MAS.parquet`, `FD_INDCVI_2022.parquet`…
+- Un Parquet doit contenir les mêmes colonnes que le CSV équivalent. Les colonnes peuvent y être typées (nombres) ou en texte : le résultat est identique.
+- Métadonnées : CSV uniquement.
+- Les Parquet sont lus avec DuckDB (`modules/lecture.py`). Pour le FD_INDCVI, seules les 4 colonnes utiles sont lues et la progression affiche le nombre exact de lignes.
 
 **Règles**
 - Un seul fichier par thème dans un lot (ex. pas de POP 2022 et POP 2023 ensemble : erreur bloquante `versions_multiples_theme`).
