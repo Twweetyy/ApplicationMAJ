@@ -8,6 +8,7 @@ import difflib
 import json
 import os
 import re
+import time
 import unicodedata
 from datetime import date
 
@@ -28,6 +29,8 @@ ENTETE_CACHE = (
 SEUIL_APPROCHE = 0.92
 ECART_AMBIGU = 0.02
 TAILLE_LOT_LLM = 40
+ESSAIS_LLM = 3
+CONFIANCE_SANS_LIBELLE = 0.95
 FEUILLES_FIXES = {"Présentation", "Detail calcul"}
 # Colonnes ajoutées par le pipeline (périmètre, superficies, petite enfance) : jamais une cible
 ENTETES_HORS_SOURCE = {"Superficie en km²", "TOTAL 0-17", "Crèches"}
@@ -37,7 +40,8 @@ COLONNES_TECHNIQUES = {
     "code geographique", "code commune", "libelle geographique", "libelle de la commune",
     "note", "note de diffusion",
 }
-MOTS_VIDES = {"de", "des", "du", "la", "le", "les", "l", "d", "en", "au", "aux", "a", "et"}
+# « Nombre de » n'apporte rien : « Nombre de rés princ 3 pièces » = « Rés princ 3 pièces »
+MOTS_VIDES = {"de", "des", "du", "la", "le", "les", "l", "d", "en", "au", "aux", "a", "et", "nombre", "nb"}
 # Deux libellés qui diffèrent sur l'un de ces mots ne sont jamais rapprochés sans IA
 MOTS_SENSIBLES = {
     "homme", "femme", "moin", "plu", "hor", "non", "san", "avec", "francai", "etranger", "immigre",
@@ -273,8 +277,10 @@ CONSIGNES_LLM = """Tu ranges des variables INSEE (données par IRIS, ville de Ro
 Pour chaque variable inconnue, dis si elle correspond à un en-tête existant de l'onglet (même notion,
 même population, même tranche d'âge ; seul le libellé ou le code a changé). Sinon propose un nouvel en-tête.
 Règles :
-- "correspondance" : un en-tête EXACTEMENT copié de la liste fournie, ou null. Dans le doute, null.
-- "nouvel_entete" : si pas de correspondance, libellé court en français dans le style des en-têtes existants
+- "correspondance" : un en-tête EXACTEMENT copié de la liste fournie, ou null. La liste contient les noms
+  du classeur validé : quand la notion est la même, reprends TOUJOURS l'en-tête existant, même formulé
+  autrement (« Nombre de locataires » = « Rés princ occupées Locataires »). Dans le doute réel, null.
+- "nouvel_entete" : seulement si aucun en-tête de la liste ne porte la même notion, libellé court en français dans le style des en-têtes existants
   (ex. « Pop 0-14 ans », « Rés princ 1 pièce », « Ménages au moins une voiture »).
 - "additive" : true si c'est un effectif qui s'additionne entre IRIS (personnes, logements, ménages),
   false pour un taux, une part, une moyenne, une médiane, un quartile, un indice, un loyer, un montant moyen.
@@ -321,8 +327,17 @@ def _demander_llm(onglet: str, inconnues: list[dict], candidats: list[str]) -> d
             f"En-têtes existants disponibles : {json.dumps(candidats, ensure_ascii=False)}\n"
             f"Variables inconnues : {json.dumps(lot, ensure_ascii=False, default=str)}"
         )
-        texte = appeler_llm(prompt, systeme=CONSIGNES_LLM, temperature=0, max_tokens=4000, format_json=True)
-        for element in _extraire_json(texte).get("colonnes", []):
+        for essai in range(1, ESSAIS_LLM + 1):
+            try:
+                texte = appeler_llm(prompt, systeme=CONSIGNES_LLM, temperature=0, max_tokens=4000, format_json=True)
+                elements = _extraire_json(texte).get("colonnes", [])
+                break
+            except (RuntimeError, ValueError):
+                # Coupure réseau ou réponse illisible : nouvel essai après une pause
+                if essai == ESSAIS_LLM:
+                    raise
+                time.sleep(20 * essai)
+        for element in elements:
             if isinstance(element, dict) and element.get("code") is not None:
                 reponses[str(element["code"])] = element
     return reponses
@@ -485,7 +500,17 @@ def resoudre_colonnes(
             correspondance = valide["correspondance"]
             if correspondance in pris:
                 correspondance = None
-            if valide["confiance"] < seuil:
+            libres = [ref for ref in disponibles if ref not in pris]
+            if not correspondance and valide["nouvel_entete"]:
+                # L'IA invente parfois une variante d'un en-tête existant (« Pop Ménages nb »)
+                correspondance = _correspondance_approchee(valide["nouvel_entete"], libres)[0]
+            # Sans libellé méta, l'IA ne voit que le code : plus d'exigence, et pas de nouveau nom inventé
+            sans_libelle = (
+                str(code).strip().casefold() not in libelles_meta
+                and str(code).casefold().endswith(str(nom).casefold())
+            )
+            seuil_variable = max(seuil, CONFIANCE_SANS_LIBELLE) if sans_libelle else seuil
+            if valide["confiance"] < seuil_variable or (sans_libelle and not correspondance):
                 entete, decision = nom, "non_resolue"
             elif correspondance:
                 entete, decision = correspondance, "correspondance"

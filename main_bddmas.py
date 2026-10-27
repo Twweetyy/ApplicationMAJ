@@ -45,6 +45,7 @@ def executer_pipeline(
     persister_sql: bool = False,
     afficher_progression: bool = False,
     afficher_messages: bool = False,
+    dossier_dicos_reference: str | None = None,
 ) -> dict:
     """Exécute un lot fourni par l'appelant et retourne les résultats du traitement."""
     debut = perf_counter()
@@ -103,6 +104,7 @@ def executer_pipeline(
             chemin_modele=chemin_modele,
             chemin_calculs=chemin_calculs,
             decisions_colonnes=decisions_colonnes,
+            dossier_reference=dossier_dicos_reference,
         )
         # Colonnes inconnues du modèle : décisions tracées dans le rapport de pré-contrôle
         avertissements_colonnes = resumer_decisions(decisions_colonnes)

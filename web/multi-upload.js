@@ -363,6 +363,39 @@ function showGenerationState(status, error = "", warnings = []) {
   if (finished && currentJobId) downloadButton.href = `/api/jobs/${currentJobId}/download`;
 }
 
+const LIBELLES_DECISION = {
+  correspondance: "Rattachée à un en-tête existant",
+  nouvelle: "Nouvelle colonne",
+  non_resolue: "À vérifier : gardée sous son nom",
+};
+
+function showColonnesAuto(decisions) {
+  const bloc = $("#colonnesAuto");
+  const lignes = $("#colonnesAutoRows");
+  lignes.replaceChildren();
+  bloc.hidden = !decisions.length;
+  if (!decisions.length) return;
+  const aVerifier = decisions.filter((decision) => decision.decision === "non_resolue").length;
+  $("#colonnesAutoNote").textContent =
+    `${decisions.length} colonne(s) inconnue(s) du modèle traitée(s) automatiquement` +
+    (aVerifier ? `, dont ${aVerifier} à vérifier.` : ".") +
+    " Corrections possibles dans dictionnaires/correspondances_auto.yml (methode: manuel).";
+  for (const decision of decisions) {
+    const ligne = document.createElement("tr");
+    const confiance = decision.confiance == null ? "-" : `${Math.round(decision.confiance * 100)} %`;
+    const methode = decision.methode === "llm" ? " (IA)" : decision.methode === "approchee" ? " (sans IA)" : "";
+    [decision.onglet, decision.libelle_source, decision.entete,
+      `${LIBELLES_DECISION[decision.decision] || decision.decision}${methode}`, confiance].forEach((valeur, index) => {
+      const cellule = document.createElement("td");
+      cellule.textContent = valeur;
+      if (index === 3) cellule.className = decision.decision === "non_resolue" ? "meta-missing" : "meta-present";
+      ligne.append(cellule);
+    });
+    if (decision.justification) ligne.title = decision.justification;
+    lignes.append(ligne);
+  }
+}
+
 async function pollJob() {
   if (polling) return;
   polling = true;
@@ -373,6 +406,7 @@ async function pollJob() {
       if (!response.ok) throw new Error(job.detail || "Impossible de suivre le traitement.");
       if (job.status === "done" || job.status === "done_with_warnings") {
         showGenerationState(job.status, "", job.avertissements_calcul || []);
+        showColonnesAuto(job.colonnes_auto || []);
         break;
       }
       if (job.status === "failed" || job.status === "invalid") {
@@ -419,6 +453,7 @@ async function resetJob() {
   metaZone.classList.remove("success");
   reportSection.hidden = true;
   progressSection.hidden = true;
+  showColonnesAuto([]);
   $("#analyzeProgress").hidden = true;
   showError($("#uploadError"), "");
   showError($("#generationError"), "");

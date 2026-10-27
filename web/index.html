@@ -7,7 +7,7 @@
   <title>Portail Data SIG | BDDMAS Roubaix</title>
   <link rel="icon" type="image/png" href="/static/logo_institutionnel.png">
   <link rel="stylesheet" href="/static/styles.css?v=5">
-  <script src="/static/multi-upload.js?v=6" defer></script>
+  <script src="/static/multi-upload.js?v=7" defer></script>
 </head>
 <body>
   <div class="application-shell">
@@ -133,6 +133,14 @@
         <div class="progress-track"><span id="progressBar"></span></div>
         <p class="progress-copy" id="progressCopy">Traitement local des fichiers.</p>
         <p class="inline-error" id="generationError" role="alert" hidden></p>
+        <div class="report-table-wrap colonnes-auto" id="colonnesAuto" style="margin-top: 1.5rem" hidden>
+          <h3>Colonnes renommées ou ajoutées automatiquement</h3>
+          <p class="action-note" id="colonnesAutoNote"></p>
+          <div class="table-scroll"><table>
+            <thead><tr><th>Onglet</th><th>Libellé source</th><th>En-tête dans le classeur</th><th>Décision</th><th>Confiance</th></tr></thead>
+            <tbody id="colonnesAutoRows"></tbody>
+          </table></div>
+        </div>
         <div class="download-row" id="downloadRow" hidden>
           <a class="button button-success" id="downloadButton" href="#">Télécharger le classeur <span aria-hidden="true">↓</span></a>
           <button class="button button-secondary" id="newJobButton" type="button">Nouveau lot</button>

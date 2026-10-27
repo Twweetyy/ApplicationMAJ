@@ -74,6 +74,10 @@ def _job_public(job: dict) -> dict:
         "rapport": job["rapport"],
         "fichiers": job["fichiers"],
         "avertissements_calcul": job.get("avertissements_calcul", []),
+        # Colonnes inconnues traitées par modules/colonnes_auto.py (sauf correspondances exactes)
+        "colonnes_auto": [
+            decision for decision in job.get("colonnes_auto", []) if decision.get("methode") != "exacte"
+        ],
         "erreur": job.get("erreur"),
         "classeur_disponible": bool(job.get("classeur") and Path(job["classeur"]).is_file()),
     }
@@ -107,6 +111,8 @@ def _generer_classeur(job_id: str) -> None:
                 persister_sql=False,
                 afficher_progression=False,
                 afficher_messages=False,
+                # Copie du lot sans méta : millésimes validés, vocabulaire et cache lus dans le vrai dépôt
+                dossier_dicos_reference=str(DOSSIER_DICOS),
             )
         avertissements = [
             ligne.strip()
@@ -117,6 +123,7 @@ def _generer_classeur(job_id: str) -> None:
             job["classeur"] = resultat["classeur"]
             job["themes"] = resultat["themes"]
             job["avertissements_calcul"] = avertissements
+            job["colonnes_auto"] = resultat.get("colonnes_auto", [])
             job["status"] = "done_with_warnings" if avertissements else "done"
     except ErreurPrecontrole as erreur:
         with _VERROU_JOBS:

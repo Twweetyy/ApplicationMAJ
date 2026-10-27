@@ -154,6 +154,8 @@ ApplicationMAJ/
 - Lot de test 2024 simulé (POP) : 4 rattachements sans IA, Hommes/Femmes jamais confondus, IA simulée : 1 rattachement, 1 nouvelle colonne (précision 0, bleue), 1 non résolue (confiance 0,5) ; relance = 0 appel IA (cache)
 - Millésime ≤ validé : colonnes identiques à avant, 0 appel IA
 - Simulation 2024 avec Groq (codes renommés) : 16 rattachements sans IA, 18 par l'IA ; corrigé ensuite : références enrichies des noms du classeur validé (codes de la méta du millésime validé passés dans `preparer_colonnes_thematiques`, donc YAML puis méta, exactement comme au traitement validé ; la méta seule donnait de faux noms, ex. « Pop non scol 15 ans ou plus Aucun diplôme ou CEP »), glossaire des codes INSEE dans la consigne, réponse IA tolérante aux petites variantes, 5 essais sur erreur 429 (quota Groq)
+- Simulation 5 : POP sans écart ; ensuite : « Nombre de » ignoré à la comparaison, consigne IA « reprendre l'en-tête existant », nouvel en-tête proche d'un existant ramené à l'existant, variable sans libellé méta : confiance 0,95 exigée et jamais de nom inventé, 3 essais par lot sur coupure réseau
+- Portail : `executer_pipeline(..., dossier_dicos_reference)` ; `webapp.py` passe le vrai `dictionnaires/` (le job travaille sur une copie sans méta) → cache et millésimes validés persistants ; tableau « Colonnes renommées ou ajoutées automatiquement » sous le classeur généré (`index.html`, `multi-upload.js`, champ `colonnes_auto` du job)
 - Classeur du lot actuel régénéré avec le module : identique à l'original (14 onglets, valeurs, formats, couleurs, largeurs, tableaux)
 - Sans clé : import OK, pipeline continue, avertissement « IA non configurée »
 
@@ -266,7 +268,7 @@ ApplicationMAJ/
 - [x] Transformer 2023 sauté si déjà à jour (27/10)
 - [x] `.gitignore` : `data/`, `meta2022/`, `meta2023/` et `sources_brutes_meta/` exclus (27/10)
 - [x] Intégrer le module LLM dans le pipeline : colonnes inconnues rattachées ou créées automatiquement (27/10)
-- [ ] Afficher les décisions `colonnes_auto` dans le portail (`webapp.py` / `index.html`)
+- [x] Afficher les décisions `colonnes_auto` dans le portail (27/10)
 - [ ] Chatbot du portail (chantier séparé)
 
 ---

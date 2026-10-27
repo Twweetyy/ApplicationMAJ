@@ -611,6 +611,7 @@ def ingerer_donnees_thematiques(
     chemin_modele: str | None = None,
     chemin_calculs: str | None = None,
     decisions_colonnes: list | None = None,
+    dossier_reference: str | None = None,
 ) -> dict:
     """
     Fonction principale d'ingestion. Lit tous les CSV du dossier, 
@@ -620,12 +621,15 @@ def ingerer_donnees_thematiques(
     ou nommées par modules/colonnes_auto.py ; les décisions sont ajoutées à decisions_colonnes.
     Seuls les millésimes plus récents que ceux de millesimes_valides.yml sont concernés : au premier
     lancement, ce fichier est créé avec le lot fourni, qui reste donc traité comme avant.
+    dossier_reference : vrai dossier dictionnaires/ du dépôt (le portail travaille sur une copie
+    sans méta) ; on y lit millesimes_valides.yml, le vocabulaire validé, et on y écrit le cache.
     """
+    dossier_reference = dossier_reference or dossier_dicos
     dico_dataframes = {}
     references = charger_references(chemin_modele, chemin_calculs) if (chemin_modele or chemin_calculs) else None
-    cache_colonnes = charger_cache(dossier_dicos) if references is not None else {}
+    cache_colonnes = charger_cache(dossier_reference) if references is not None else {}
     cache_modifie = False
-    millesimes_valides = charger_millesimes_valides(dossier_dicos) if references is not None else {}
+    millesimes_valides = charger_millesimes_valides(dossier_reference) if references is not None else {}
     premier_lancement = millesimes_valides is None
     if premier_lancement:
         millesimes_valides = {}
@@ -712,7 +716,7 @@ def ingerer_donnees_thematiques(
         elif references is not None and millesime_a_traiter(theme_identifie, annee, millesimes_valides):
             if not vocabulaire_charge:
                 # Lu une seule fois, et seulement si un fichier plus récent que le validé est présent
-                for theme, noms in _vocabulaire_valide(dossier_dicos, millesimes_valides, mapping_noms).items():
+                for theme, noms in _vocabulaire_valide(dossier_reference, millesimes_valides, mapping_noms).items():
                     liste = references.setdefault(theme, [])
                     liste.extend(nom for nom in noms if nom not in liste)
                 vocabulaire_charge = True
@@ -730,9 +734,9 @@ def ingerer_donnees_thematiques(
         dico_dataframes[cle_finale] = df_final
 
     if cache_modifie:
-        enregistrer_cache(dossier_dicos, cache_colonnes)
+        enregistrer_cache(dossier_reference, cache_colonnes)
     if premier_lancement and references is not None and millesimes_valides:
-        enregistrer_millesimes_valides(dossier_dicos, millesimes_valides)
+        enregistrer_millesimes_valides(dossier_reference, millesimes_valides)
         print("Colonnes auto : millésimes actuels enregistrés comme validés (dictionnaires/millesimes_valides.yml).")
     return dico_dataframes
 
