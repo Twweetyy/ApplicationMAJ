@@ -14,6 +14,7 @@ from modules.indicateurs import calculer_repartition_enfants
 from modules.export_excel import generer_fichier_bddmas
 from modules.export_sig import exporter_tables_sig
 from modules.persistence import persister_dans_bddmas
+from modules.colonnes_auto import resumer_decisions
 
 DOSSIER_COURANT = os.path.dirname(os.path.abspath(__file__))
 DOSSIER_DATA = os.path.join(DOSSIER_COURANT, "data")
@@ -91,11 +92,27 @@ def executer_pipeline(
     )
     exports_sig = []
     tables_sql = []
+    decisions_colonnes = []
 
     with progression_context as progression:
         if progression is not None:
             progression.set_postfix_str("ingestion des thèmes")
-        dico_fichiers = ingerer_donnees_thematiques(dossier_data, dossier_dicos)
+        dico_fichiers = ingerer_donnees_thematiques(
+            dossier_data,
+            dossier_dicos,
+            chemin_modele=chemin_modele,
+            chemin_calculs=chemin_calculs,
+            decisions_colonnes=decisions_colonnes,
+        )
+        # Colonnes inconnues du modèle : décisions tracées dans le rapport de pré-contrôle
+        avertissements_colonnes = resumer_decisions(decisions_colonnes)
+        rapport_precontrole["avertissements"].extend(avertissements_colonnes)
+        rapport_precontrole["colonnes_auto"] = decisions_colonnes
+        if avertissements_colonnes and rapport_precontrole["statut"] == "ok":
+            rapport_precontrole["statut"] = "attention"
+        if afficher_messages:
+            for avertissement in avertissements_colonnes:
+                print(f"COLONNES {avertissement['theme']} : {avertissement['message']}")
         if progression is not None:
             progression.update(1)
 
@@ -170,6 +187,7 @@ def executer_pipeline(
         "exports_sig": [str(chemin) for chemin in exports_sig],
         "tables_sql": tables_sql,
         "themes": list(dico_fichiers),
+        "colonnes_auto": decisions_colonnes,
         "duree_secondes": perf_counter() - debut,
     }
 

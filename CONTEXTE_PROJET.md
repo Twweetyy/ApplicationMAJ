@@ -30,12 +30,15 @@ ApplicationMAJ/
 │  ├─ mise_en_page.py          → Formats, largeurs, couleurs d'en-têtes, ordre des colonnes, volets figés
 │  ├─ export_sig.py            → Export CSV pour SIG
 │  ├─ persistence.py           → Insertion SQLAlchemy
-│  └─ llm_wrapper.py           → Wrapper OpenAI/Groq/Ollama (nouveau)
+│  ├─ colonnes_auto.py         → Colonnes inconnues d'un nouveau millésime (sans IA puis IA, cache YAML)
+│  └─ llm_wrapper.py           → Wrapper OpenAI/Groq/Ollama
 ├─ dictionnaires/
 │  ├─ files_names.yml          → Correspondances fichier → nom d'onglet
 │  ├─ calculated_columns.yml   → Formules de colonnes calculées
 │  ├─ info_pages.yml           → Titres des onglets (clés par thème, sans année)
 │  ├─ liens_presentation.yml   → Liens INSEE de la page Présentation (par thème et millésime)
+│  ├─ correspondances_auto.yml → Cache des décisions du module colonnes (généré, relisible, versionné)
+│  ├─ millesimes_valides.yml   → Dernier millésime validé à la main par thème (créé au 1er lancement)
 │  └─ meta/                    → Métadonnées CSV (meta2022/, meta2023/)
 ├─ scripts/
 │  ├─ diag.py                  → Diagnostic des cubes INSEE 2023
@@ -105,6 +108,10 @@ ApplicationMAJ/
 | 27/10/2026 | Nombre de colonnes géo = position de « Libellé de l'Iris » (plus de `8 if "Age : 0"`) | Robuste au retrait de Crèches et aux évolutions du modèle |
 | 27/10/2026 | Transformer 2023 sauté si les 10 fichiers produits existent, comptent 38 IRIS et sont plus récents que les sources et le script (`--force` pour recalculer) | Démarrage du portail en quelques secondes au lieu de relire les cubes INSEE |
 | 27/10/2026 | Audit IRIS : le code commune seul « 59512 » (« Non localisé à l'iris ») n'est pas signalé comme inconnu | Ligne légitime du référentiel, pas une erreur |
+| 27/10/2026 | Module `colonnes_auto.py` : colonne inconnue du modèle → correspondance exacte/normalisée, puis approchée (`difflib`, mêmes nombres et mêmes mots sensibles), puis IA (un appel par onglet, JSON validé) | Nouveau millésime intégré sans intervention ; l'IA ne touche jamais aux valeurs |
+| 27/10/2026 | Décisions mises en cache dans `dictionnaires/correspondances_auto.yml` (`methode: manuel` = verrouillé) | Une variable n'est envoyée qu'une fois à l'IA ; correction humaine possible |
+| 27/10/2026 | Module actif seulement pour un millésime plus récent que `millesimes_valides.yml` (créé au premier lancement avec le lot actuel) | Le lot 2022/2023 validé à la main reste strictement identique |
+| 27/10/2026 | Sans clé / sans réseau : étape sans IA seule + avertissement ; seuil `BDDMAS_LLM_CONFIANCE_MIN` (0,8) | Le pipeline fonctionne toujours |
 | Oct 2026 | Suppression de `demarrer_portail.ps1` au profit de `run_portal.bat` + `run_portal.py` | Simplification : un seul clic, pas de politique d'exécution PowerShell |
 
 ---
@@ -120,11 +127,32 @@ ApplicationMAJ/
 - **Ligne de commande** : `python main_bddmas.py` lit `data/` à plat ; depuis le rangement par sous-dossiers, le portail est le mode recommandé
 - **Écarts d'arrondi** : totaux du classeur légèrement inférieurs au contrôle du transformer (ex. 98 284 vs 98 286 habitants) car arrondi par IRIS
 - **Exports SIG et SQL** : disponibles uniquement en ligne de commande, pas depuis le portail web
+- **Colonnes auto** : une décision fausse se corrige dans `dictionnaires/correspondances_auto.yml` (changer `entete`, mettre `methode: manuel`). Une colonne « non résolue » garde son libellé méta. Le premier lot traité avec l'IA envoie aussi les colonnes absentes du modèle 2022 (une seule fois, ensuite cache)
 - **Avertissement UNC** : « Les chemins d'accès UNC ne sont pas pris en charge » au démarrage → sans conséquence
 
 ---
 
 ## 6. Historique des Sessions de Travail
+
+### 📅 27 octobre 2026 (suite) — Module colonnes inconnues (IA)
+
+**Auteur** : Bilal (assisté par IA)
+
+#### Modifications effectuées
+- `modules/colonnes_auto.py` (nouveau) : références par thème (ligne 2 du modèle + `var1..var4` de `calculated_columns.yml`, indicateurs calculés exclus) ; correspondance exacte normalisée (« Population de 0 à 14 ans » = « Pop 0-14 ans », casse, « et plus » / « ou plus », « (princ) », « en 2022 ») ; approchée `difflib` ≥ 0,92 si mêmes nombres et mêmes mots sensibles (hommes/femmes…) ; IA pour le reste (correspondance, nouvel en-tête, `additive`, `precision`, confiance) ; cache `correspondances_auto.yml` ; `resumer_decisions()` pour le pré-contrôle
+- `modules/llm_wrapper.py` : client créé au premier appel (l'import ne plante plus sans clé), `llm_disponible()`, options `systeme` et `format_json`
+- `modules/ingestion.py` : `ingerer_donnees_thematiques(..., chemin_modele, chemin_calculs, decisions_colonnes)` appelle le module par onglet
+- `modules/indicateurs.py` / `modules/mise_en_page.py` : `_precision_arrondi` et `_est_additive` utilisent d'abord les règles du module pour les colonnes qu'il a créées
+- `modules/export_excel.py` : alias DEFM et renommages CNAM sortis en constantes (`ALIAS_ENTETES_DEFM`, `RENOMMAGES_CNAM`) pour être réutilisés
+- `main_bddmas.py` : décisions dans `rapport_precontrole["colonnes_auto"]`, avertissement `colonnes_auto` par onglet, clé `colonnes_auto` dans le résultat
+- `.env.example` (nouveau)
+- `dictionnaires/millesimes_valides.yml` (généré au premier lancement) : le module ne s'active que pour un millésime plus récent ; le lot actuel n'est pas modifié
+
+#### Vérifications
+- Lot de test 2024 simulé (POP) : 4 rattachements sans IA, Hommes/Femmes jamais confondus, IA simulée : 1 rattachement, 1 nouvelle colonne (précision 0, bleue), 1 non résolue (confiance 0,5) ; relance = 0 appel IA (cache)
+- Millésime ≤ validé : colonnes identiques à avant, 0 appel IA
+- Sans clé : import OK, pipeline continue, avertissement « IA non configurée »
+
 
 ### 📅 27 octobre 2026 — Audit IRIS, mise en page Excel, démarrage rapide
 
@@ -233,7 +261,9 @@ ApplicationMAJ/
 - [ ] Source pour la colonne « Crèches » de l'onglet petite enfance (retirée tant qu'elle est vide)
 - [x] Transformer 2023 sauté si déjà à jour (27/10)
 - [x] `.gitignore` : `data/`, `meta2022/`, `meta2023/` et `sources_brutes_meta/` exclus (27/10)
-- [ ] Intégrer le module LLM dans le pipeline (ex: Si des colonnes avec un nom non explicite, alors l'ia définit cette colonne pour permettre de mieux l'intégrer)
+- [x] Intégrer le module LLM dans le pipeline : colonnes inconnues rattachées ou créées automatiquement (27/10)
+- [ ] Afficher les décisions `colonnes_auto` dans le portail (`webapp.py` / `index.html`)
+- [ ] Chatbot du portail (chantier séparé)
 
 ---
 

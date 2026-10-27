@@ -5,6 +5,7 @@ from copy import copy
 from openpyxl.styles import PatternFill
 from openpyxl.utils import get_column_letter, range_boundaries
 
+from .colonnes_auto import regle_colonne
 from .indicateurs import _precision_arrondi
 
 FEUILLES_FIXES = {"Présentation", "Detail calcul"}
@@ -27,6 +28,10 @@ def _est_additive(nom_colonne: str, nom_feuille: str, precision: int) -> bool:
     """Une somme sur Roubaix n'a de sens que pour des effectifs (et la superficie)."""
     if nom_feuille.startswith(THEMES_NON_ADDITIFS):
         return False
+    # Colonne créée par modules/colonnes_auto.py : additivité donnée par le module
+    regle = regle_colonne(nom_colonne, nom_feuille)
+    if regle and regle.get("additive") is not None:
+        return regle["additive"]
     nom = nom_colonne.strip().casefold()
     if nom.startswith("superficie"):
         return True

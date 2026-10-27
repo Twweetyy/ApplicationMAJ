@@ -14,6 +14,35 @@ from tqdm.auto import tqdm
 from .pages_info import mettre_a_jour_pages_info
 from .mise_en_page import appliquer_mise_en_page
 
+# En-têtes du modèle DEFM renommés selon les libellés des données (clé = en-tête normalisé)
+ALIAS_ENTETES_DEFM = {
+    "nombre total d allocataires": "DEFM catégorie A",
+    "defm categories abc dont motif d inscription est une 1ere entree sur marche du travail":
+        "DEFM catégories ABC dont le motif d'inscription est une 1ère entrée sur le marché du travail",
+    "defm categories abc dont motif d inscription est un licenciement":
+        "DEFM catégories ABC dont le motif d'inscription est un licenciement",
+    "defm categories abc dont motif d inscription est une fin de contrat a duree determinee":
+        "DEFM catégories ABC dont le motif d'inscription est une fin de CDD",
+    "defm categories abc dont motif d inscription est une fin de mission d interim":
+        "DEFM catégories ABC dont le motif d'inscription est une fin de mission d'intérim",
+    "defm categories abc dont motif d inscription est autre":
+        "DEFM catégories ABC dont le motif d'inscription est autre",
+}
+
+# Libellés CNAM des données -> en-têtes du modèle
+RENOMMAGES_CNAM = {
+    "Population couverte bénéficiaire du régime général": "Population couverte",
+    "Hommes bénéficiaires du régime général": "Hommes",
+    "Femmes bénéficiaires du régime général": "Femmes",
+    "Bénéficiaires du régime général de moins de 18 ans": "Moins de 18 ans",
+    "Bénéficiaires du régime général  de 18 ans à moins de 25 ans": "de 18 ans à moins de 25 ans",
+    "Bénéficiaires du régime général  de 25 ans à moins de 50 ans": "de 25 ans à moins de 50 ans",
+    "Bénéficiaires du régime général  de 50 ans à moins de 60 ans": "de 50 ans à moins de 60 ans",
+    "Bénéficiaires du régime général  de 60 ans à moins de 75 ans": "de 60 ans à moins de 75 ans",
+    "Bénéficiaires du régime général  de 75 ans ou plus": "75 ans ou plus",
+}
+
+
 def charger_titres_onglets(chemin_yaml: str) -> dict:
     """Charge le dictionnaire contenant les grands titres de chaque onglet."""
     if not os.path.exists(chemin_yaml):
@@ -166,18 +195,7 @@ def preparer_dataframe_modele(nom_onglet: str, dataframe: pd.DataFrame) -> pd.Da
             "Pop 25-54 ans en 2022 (princ)": "Pop 25-54 ans",
         })
     if nom_onglet.startswith("CNAM"):
-        renommages_cnam = {
-            "Population couverte bénéficiaire du régime général": "Population couverte",
-            "Hommes bénéficiaires du régime général": "Hommes",
-            "Femmes bénéficiaires du régime général": "Femmes",
-            "Bénéficiaires du régime général de moins de 18 ans": "Moins de 18 ans",
-            "Bénéficiaires du régime général  de 18 ans à moins de 25 ans": "de 18 ans à moins de 25 ans",
-            "Bénéficiaires du régime général  de 25 ans à moins de 50 ans": "de 25 ans à moins de 50 ans",
-            "Bénéficiaires du régime général  de 50 ans à moins de 60 ans": "de 50 ans à moins de 60 ans",
-            "Bénéficiaires du régime général  de 60 ans à moins de 75 ans": "de 60 ans à moins de 75 ans",
-            "Bénéficiaires du régime général  de 75 ans ou plus": "75 ans ou plus",
-        }
-        resultat = resultat.rename(columns=renommages_cnam)
+        resultat = resultat.rename(columns=RENOMMAGES_CNAM)
         resultat = resultat.rename(columns={
             colonne: re.sub(r" \(ex-(?:CMUC|ACS)\)", "", colonne)
             for colonne in resultat.columns
@@ -351,23 +369,10 @@ def _generer_depuis_modele(
         ]
 
         if nom_onglet.startswith("DEFM"):
-            alias_entetes_defm = {
-                "nombre total d allocataires": "DEFM catégorie A",
-                "defm categories abc dont motif d inscription est une 1ere entree sur marche du travail":
-                    "DEFM catégories ABC dont le motif d'inscription est une 1ère entrée sur le marché du travail",
-                "defm categories abc dont motif d inscription est un licenciement":
-                    "DEFM catégories ABC dont le motif d'inscription est un licenciement",
-                "defm categories abc dont motif d inscription est une fin de contrat a duree determinee":
-                    "DEFM catégories ABC dont le motif d'inscription est une fin de CDD",
-                "defm categories abc dont motif d inscription est une fin de mission d interim":
-                    "DEFM catégories ABC dont le motif d'inscription est une fin de mission d'intérim",
-                "defm categories abc dont motif d inscription est autre":
-                    "DEFM catégories ABC dont le motif d'inscription est autre",
-            }
             for colonne, entete in enumerate(entetes_modele, start=1):
                 entete_normalise = _normaliser_nom_colonne(entete)
-                if entete_normalise in alias_entetes_defm:
-                    worksheet.cell(row=2, column=colonne, value=alias_entetes_defm[entete_normalise])
+                if entete_normalise in ALIAS_ENTETES_DEFM:
+                    worksheet.cell(row=2, column=colonne, value=ALIAS_ENTETES_DEFM[entete_normalise])
             entetes_modele = [
                 worksheet.cell(row=2, column=colonne).value
                 for colonne in range(1, worksheet.max_column + 1)

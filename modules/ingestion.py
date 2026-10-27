@@ -7,6 +7,15 @@ from .utils import lire_fichier
 import numpy as np
 import yaml
 from tqdm.auto import tqdm
+from .colonnes_auto import (
+    charger_cache,
+    charger_millesimes_valides,
+    charger_references,
+    enregistrer_cache,
+    enregistrer_millesimes_valides,
+    millesime_a_traiter,
+    resoudre_colonnes,
+)
 
 def load_mapping(chemin_fichier: str) -> dict:
     """Charge un dictionnaire YAML (variables, renommages, etc.)."""
@@ -555,13 +564,30 @@ def preparer_colonnes_thematiques(
     df.columns = noms_finaux
     return df
 
-def ingerer_donnees_thematiques(dossier_data: str, dossier_dicos: str) -> dict:
+def ingerer_donnees_thematiques(
+    dossier_data: str,
+    dossier_dicos: str,
+    chemin_modele: str | None = None,
+    chemin_calculs: str | None = None,
+    decisions_colonnes: list | None = None,
+) -> dict:
     """
     Fonction principale d'ingestion. Lit tous les CSV du dossier, 
     filtre sur Roubaix, nettoie et renomme les variables.
     Retourne un dictionnaire { 'POP 2022': DataFrame, ... }
+    Avec le modèle et/ou calculated_columns.yml, les colonnes inconnues sont rattachées
+    ou nommées par modules/colonnes_auto.py ; les décisions sont ajoutées à decisions_colonnes.
+    Seuls les millésimes plus récents que ceux de millesimes_valides.yml sont concernés : au premier
+    lancement, ce fichier est créé avec le lot fourni, qui reste donc traité comme avant.
     """
     dico_dataframes = {}
+    references = charger_references(chemin_modele, chemin_calculs) if (chemin_modele or chemin_calculs) else None
+    cache_colonnes = charger_cache(dossier_dicos) if references is not None else {}
+    cache_modifie = False
+    millesimes_valides = charger_millesimes_valides(dossier_dicos) if references is not None else {}
+    premier_lancement = millesimes_valides is None
+    if premier_lancement:
+        millesimes_valides = {}
     
     # Récupération du mapping des noms (ex: 'base-ic-evol-struct-pop' -> 'POP')
     mapping_noms = load_mapping(os.path.join(dossier_dicos, "files_names.yml"))
@@ -629,6 +655,8 @@ def ingerer_donnees_thematiques(dossier_data: str, dossier_dicos: str) -> dict:
             chemin_meta,
             df_propre.columns.tolist(),
         )
+        # preparer_colonnes_thematiques renomme df_propre sur place : codes source gardés avant
+        codes_source = df_propre.columns.tolist()
         df_final = preparer_colonnes_thematiques(
             df_propre,
             prefixe_dico,
@@ -637,8 +665,27 @@ def ingerer_donnees_thematiques(dossier_data: str, dossier_dicos: str) -> dict:
             dictionnaire_generique,
             modalites_metadonnees,
         )
+        if premier_lancement:
+            millesimes_valides[theme_identifie] = annee
+        elif references is not None and millesime_a_traiter(theme_identifie, annee, millesimes_valides):
+            df_final, decisions, modifie = resoudre_colonnes(
+                df_final,
+                cle_finale,
+                codes_source,
+                libelles_metadonnees,
+                references,
+                cache_colonnes,
+            )
+            cache_modifie = cache_modifie or modifie
+            if decisions_colonnes is not None:
+                decisions_colonnes.extend(decisions)
         dico_dataframes[cle_finale] = df_final
-            
+
+    if cache_modifie:
+        enregistrer_cache(dossier_dicos, cache_colonnes)
+    if premier_lancement and references is not None and millesimes_valides:
+        enregistrer_millesimes_valides(dossier_dicos, millesimes_valides)
+        print("Colonnes auto : millésimes actuels enregistrés comme validés (dictionnaires/millesimes_valides.yml).")
     return dico_dataframes
 
 

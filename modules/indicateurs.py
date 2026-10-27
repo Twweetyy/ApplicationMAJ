@@ -3,6 +3,7 @@ import numpy as np
 import yaml
 import os
 import re
+from .colonnes_auto import regle_colonne
 
 
 COLONNES_IDENTIFIANTS_TEXTE = {
@@ -19,6 +20,11 @@ def _precision_arrondi(nom_colonne: str, nom_table: str = ""):
 
     if nom in COLONNES_IDENTIFIANTS_TEXTE:
         return None
+
+    # Colonne créée par modules/colonnes_auto.py : précision donnée par le module
+    regle = regle_colonne(nom_colonne, nom_table)
+    if regle and regle.get("precision") is not None:
+        return regle["precision"]
 
     rpls = "rpls" in nom_table.casefold()
     if rpls and (code.startswith("TX") or code.endswith("LOY")):
