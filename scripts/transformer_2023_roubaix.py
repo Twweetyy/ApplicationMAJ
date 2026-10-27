@@ -21,6 +21,7 @@ import re
 import pandas as pd
 import numpy as np
 import yaml
+import sys
 
 # ---------------------------------------------------------------------------
 # Dossiers
@@ -30,6 +31,36 @@ DOSSIER_SOURCES_2023 = os.path.join(DOSSIER_RACINE, "data", "data2023", "sources
 DOSSIER_OUTPUT_DATA = os.path.join(DOSSIER_RACINE, "data", "data2023")
 DOSSIER_OUTPUT_META = os.path.join(DOSSIER_RACINE, "dictionnaires", "meta", "meta2023")
 
+NB_IRIS_ROUBAIX = 38
+SOURCES_2023 = ["base-ic-pop-2023.csv", "base-ic-log-2023.csv", "base-ic-emp-2023.csv",
+                "base-ic-men-2023.csv", "base-ic-dip-2023.csv"]
+SORTIES_2023 = [
+    ("base-ic-evol-struct-pop-2023.CSV", "meta_base-ic-evol-struct-pop-2023.csv"),
+    ("base-ic-logement-2023.CSV", "meta_base-ic-logement-2023.csv"),
+    ("base-ic-activite-residents-2023.CSV", "meta_base-ic-activite-residents-2023.csv"),
+    ("base-ic-couples-familles-menages-2023.CSV", "meta_base-ic-couples-familles-menages-2023.csv"),
+    ("base-ic-diplomes-formation-2023.CSV", "meta_base-ic-diplomes-formation-2023.csv"),
+]
+
+
+def sorties_a_jour():
+    """Vrai si les 10 fichiers produits existent, comptent 38 IRIS et sont plus
+    récents que les sources Insee et que ce script."""
+    sorties = []
+    for nom_data, nom_meta in SORTIES_2023:
+        sorties.append(os.path.join(DOSSIER_OUTPUT_DATA, nom_data))
+        sorties.append(os.path.join(DOSSIER_OUTPUT_META, nom_meta))
+    if not all(os.path.exists(chemin) for chemin in sorties):
+        return False
+    entrees = [os.path.join(DOSSIER_SOURCES_2023, nom) for nom in SOURCES_2023]
+    entrees = [c for c in entrees if os.path.exists(c)] + [os.path.abspath(__file__)]
+    if min(map(os.path.getmtime, sorties)) < max(map(os.path.getmtime, entrees)):
+        return False
+    for nom_data, _ in SORTIES_2023:
+        df = pd.read_csv(os.path.join(DOSSIER_OUTPUT_DATA, nom_data), sep=";", dtype=str, encoding="utf-8-sig")
+        if len(df) != NB_IRIS_ROUBAIX:
+            return False
+    return True
 # Load allowed GEO codes from grand_quartier.yml (full IRIS codes for Roubaix)
 GRAND_QUARTIER_PATH = os.path.join(DOSSIER_RACINE, "dictionnaires", "grand_quartier.yml")
 with open(GRAND_QUARTIER_PATH, "r", encoding="utf-8") as f:
@@ -530,6 +561,10 @@ def transformer_diplomes(df_raw, socle):
     return res, meta_rows
 
 def main():
+    if "--force" not in sys.argv and sorties_a_jour():
+        print("=== Fichiers Insee 2023 déjà transformés et à jour : rien à refaire ===")
+        print("  (pour tout recalculer : python transformer_2023_roubaix.py --force)")
+        return
     print("=== Démarrage de la transformation Insee 2023 pour Roubaix ===")
     
     # 1. Chargement de POP pour initialiser le socle géographique
