@@ -17,27 +17,18 @@ if exist .venv\Scripts\activate.bat (
     exit /b 1
 )
 
-rem Transformer les cubes bruts Insee 2023 s'il y en a
-set "BRUT=data\data2023\sources_brutes_insee"
-rem Cubes bruts en CSV ou en Parquet
-set "CUBES="
-if exist "%BRUT%\base-ic-*-2023.csv" set "CUBES=1"
-if exist "%BRUT%\base-ic-*-2023.parquet" set "CUBES=1"
-if defined CUBES (
-    echo ============================================================
-    echo  Transformation recensement 2023 - Roubaix
-    echo ============================================================
-    python scripts\transformer_2023_roubaix.py
-    if errorlevel 1 (
-        echo.
-        echo [ATTENTION] Le transformer a echoue, le portail demarre quand meme.
-        pause
-    )
+rem Transformer les cubes bruts Insee du recensement (data\dataAAAA\sources_brutes_insee),
+rem quel que soit le millesime ; le script ne fait rien s'il n'y a pas de cube ou s'il est a jour
+echo ============================================================
+echo  Transformation recensement - Roubaix
+echo ============================================================
+python scripts\transformer_recensement.py
+if errorlevel 1 (
     echo.
-) else (
-    echo [INFO] Aucun cube brut 2023 dans %BRUT%, transformation ignoree.
-    echo.
+    echo [ATTENTION] Le transformer a echoue, le portail demarre quand meme.
+    pause
 )
+echo.
 
 rem Lancer le superviseur Python en premier plan (il gere l'attente du serveur,
 rem l'ouverture unique du navigateur, l'affichage des logs et l'arret propre).
