@@ -25,19 +25,29 @@
 
 ## Aperçu
 
-| Dépôt du lot | Pré-contrôle |
-|---|---|
-| ![Portail : dépôt des fichiers et statut de chaque source](doc/img/portail-lot.png) | ![Portail : rapport de pré-contrôle du lot](doc/img/portail-precontrole.png) |
+### 1. Dépôt du lot
 
-**Classeur généré** : en-têtes bleus pour les effectifs (avec total), orange pour les indicateurs (taux, densités, indices), regroupés à droite.
+Les fichiers sont glissés dans deux zones (données, métadonnées). Le statut de chaque source attendue s'affiche aussitôt.
+
+![Portail : dépôt des fichiers et statut de chaque source](doc/img/portail-lot.png)
+
+### 2. Pré-contrôle
+
+Avant tout calcul, l'application vérifie le lot : thème et millésime reconnus, métadonnée associée, colonnes non documentées, IRIS manquants. Une erreur bloquante empêche la génération.
+
+![Portail : rapport de pré-contrôle du lot](doc/img/portail-precontrole.png)
+
+### 3. Classeur généré
+
+La page **Présentation** est générée selon le lot : millésime de chaque source et lien vers sa documentation Insee.
+
+![Classeur : page Présentation](doc/img/excel-presentation.png)
+
+Chaque onglet thématique contient une ligne par IRIS. Les en-têtes bleus sont les effectifs (avec total), les orange les indicateurs (taux, densités, indices), regroupés à droite.
 
 ![Classeur : onglet Population, effectifs](doc/img/excel-effectifs.png)
 
 ![Classeur : onglet Population, indicateurs calculés](doc/img/excel-indicateurs.png)
-
-**Page de présentation** générée selon le lot : millésime de chaque source et lien vers sa documentation Insee.
-
-![Classeur : page Présentation](doc/img/excel-presentation.png)
 
 ## Comment ça marche
 
