@@ -14,6 +14,7 @@ from fastapi.staticfiles import StaticFiles
 
 from main_bddmas import DOSSIER_DICOS, FICHIER_MODELE, ErreurPrecontrole, executer_pipeline
 from modules.ingestion import analyser_fichiers_entree
+from modules.lecture import EXTENSIONS_DONNEES
 
 
 DOSSIER_APPLICATION = Path(__file__).resolve().parent
@@ -52,8 +53,10 @@ def _nom_fichier_securise(nom: str | None) -> str:
     if not nom:
         raise HTTPException(status_code=400, detail="Un fichier envoyé n’a pas de nom.")
     nom = nom.replace("\\", "/").rsplit("/", 1)[-1].strip()
-    if nom in {"", ".", ".."} or not nom.lower().endswith(".csv"):
+    if nom in {"", ".", ".."} or not nom.lower().endswith(EXTENSIONS_DONNEES):
         raise HTTPException(status_code=400, detail=f"Format non pris en charge : {nom or 'fichier sans nom'}")
+    if _est_metadonnee(nom) and not nom.lower().endswith(".csv"):
+        raise HTTPException(status_code=400, detail=f"Les métadonnées doivent être au format CSV : {nom}")
     return nom
 
 

@@ -7,7 +7,7 @@
   <title>Portail Data SIG | BDDMAS Roubaix</title>
   <link rel="icon" type="image/png" href="/static/logo_institutionnel.png">
   <link rel="stylesheet" href="/static/styles.css?v=5">
-  <script src="/static/multi-upload.js?v=7" defer></script>
+  <script src="/static/multi-upload.js?v=8" defer></script>
 </head>
 <body>
   <div class="application-shell">
@@ -44,7 +44,7 @@
       <section class="card source-card" id="sources" aria-labelledby="sourceTitle">
         <div class="card-heading">
           <div><p class="section-kicker">01 / FICHIERS</p><h2 id="sourceTitle">Constituer le lot</h2></div>
-          <span class="file-limit">CSV · 60 fichiers maximum</span>
+          <span class="file-limit">CSV ou Parquet · 60 fichiers maximum</span>
         </div>
 
         <div class="upload-grid">
@@ -53,7 +53,7 @@
               <div><p class="section-kicker">SOURCES</p><h3 id="dataUploadTitle">Données</h3></div>
               <span class="panel-index">A</span>
             </div>
-            <input class="file-input" id="dataInput" type="file" accept=".csv,text/csv" multiple>
+            <input class="file-input" id="dataInput" type="file" accept=".csv,.parquet,text/csv" multiple>
             <div class="upload-zone" id="uploadData" role="button" tabindex="0" aria-controls="dataInput">
               <span class="upload-icon" aria-hidden="true">CSV</span>
               <span class="upload-title">Déposer les fichiers de données ici</span>

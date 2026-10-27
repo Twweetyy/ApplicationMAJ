@@ -2,11 +2,10 @@ import os
 import re
 import unicodedata
 import pandas as pd
-# Unified file reader (CSV + Parquet via DuckDB)
-from .utils import lire_fichier
 import numpy as np
 import yaml
 from tqdm.auto import tqdm
+from .lecture import compter_lignes, est_fichier_donnees, est_parquet, lire_entetes, lire_par_blocs, lire_table
 from .colonnes_auto import (
     _cle_fichier,
     charger_cache,
@@ -96,14 +95,14 @@ def _charger_iris_reference(dossier_dicos: str) -> set[str]:
 def _iris_roubaix_presents(chemin: str, colonne: str, separateur: str) -> set[str]:
     """Lit uniquement la colonne IRIS, par blocs, et garde les codes de Roubaix."""
     presents = set()
-    lecteur = pd.read_csv(
+    lecteur = lire_par_blocs(
         chemin,
+        500_000,
         sep=separateur,
         usecols=[colonne],
-        dtype=str,
+        dtype={colonne: str},
         encoding="utf-8-sig",
         encoding_errors="replace",
-        chunksize=500_000,
     )
     for bloc in lecteur:
         valeurs = bloc[colonne].dropna().str.strip()
@@ -114,7 +113,7 @@ def _iris_roubaix_presents(chemin: str, colonne: str, separateur: str) -> set[st
 
 def _auditer_iris(rapport: dict, source: dict, chemin: str, entetes: list, separateur: str, iris_reference: set) -> None:
     """Ajoute un avertissement si le fichier n'a pas exactement les IRIS de Roubaix attendus."""
-    if not iris_reference or chemin.casefold().endswith(".parquet"):
+    if not iris_reference:
         return
     colonne_iris = next(
         (entete for entete in entetes if _normaliser_identifiant(entete) in {"iris", "codgeo"}),
@@ -240,7 +239,7 @@ def analyser_fichiers_entree(dossier_data: str, dossier_dicos: str) -> dict:
     iris_reference = _charger_iris_reference(dossier_dicos)
 
     for fichier in sorted(os.listdir(dossier_data)):
-        if not (fichier.casefold().endswith(".csv") or fichier.casefold().endswith(".parquet")) or fichier.casefold().startswith("meta_"):
+        if not est_fichier_donnees(fichier):
             continue
 
         cle_fichier = _normaliser_nom_fichier(os.path.splitext(fichier)[0])
@@ -267,27 +266,14 @@ def analyser_fichiers_entree(dossier_data: str, dossier_dicos: str) -> dict:
             continue
 
         chemin = os.path.join(dossier_data, fichier)
+        separateur = "," if role == "perimetre" else ";"
         try:
-            # Unified header reader that supports CSV and Parquet via DuckDB.
-            separateur = "," if role == "perimetre" else ";"
-            try:
-                df_header = lire_fichier(chemin, nrows=0, sep=separateur, encoding="utf-8-sig")
-                entetes = list(df_header.columns)
-            except Exception as e:
-                # Fallback to pandas CSV reader if DuckDB fails or file is not Parquet.
-                entetes = list(
-                    pd.read_csv(
-                        chemin,
-                        sep=separateur,
-                        nrows=0,
-                        encoding="utf-8-sig",
-                    ).columns
-                )
-        except (OSError, pd.errors.ParserError, pd.errors.EmptyDataError, UnicodeError) as erreur:
+            entetes = lire_entetes(chemin, sep=separateur)
+        except (OSError, ValueError, pd.errors.ParserError, pd.errors.EmptyDataError, UnicodeError) as erreur:
             rapport["erreurs"].append({
                 "code": "csv_illisible",
                 "fichier": fichier,
-                "message": f"Impossible de lire l'en-tête du CSV : {erreur}",
+                "message": f"Impossible de lire l'en-tête du fichier : {erreur}",
             })
             continue
 
@@ -412,12 +398,12 @@ def analyser_fichiers_entree(dossier_data: str, dossier_dicos: str) -> dict:
     if not perimetre_trouve:
         rapport["erreurs"].append({
             "code": "perimetre_absent",
-            "message": "Le fichier Périmètres_MAS.csv est requis pour joindre les données géographiques.",
+            "message": "Le fichier Périmètres_MAS (CSV ou Parquet) est requis pour joindre les données géographiques.",
         })
     if not sources_par_theme:
         rapport["erreurs"].append({
             "code": "aucun_theme_reconnu",
-            "message": "Aucun CSV thématique ne correspond aux entrées de files_names.yml.",
+            "message": "Aucun fichier thématique ne correspond aux entrées de files_names.yml.",
         })
     if not individus_trouves:
         rapport["avertissements"].append({
@@ -614,7 +600,7 @@ def ingerer_donnees_thematiques(
     dossier_reference: str | None = None,
 ) -> dict:
     """
-    Fonction principale d'ingestion. Lit tous les CSV du dossier, 
+    Fonction principale d'ingestion. Lit tous les CSV et Parquet du dossier, 
     filtre sur Roubaix, nettoie et renomme les variables.
     Retourne un dictionnaire { 'POP 2022': DataFrame, ... }
     Avec le modèle et/ou calculated_columns.yml, les colonnes inconnues sont rattachées
@@ -639,10 +625,10 @@ def ingerer_donnees_thematiques(
     mapping_noms = load_mapping(os.path.join(dossier_dicos, "files_names.yml"))
     
     for fichier in os.listdir(dossier_data):
-        if not (fichier.lower().endswith(".csv") or fichier.lower().endswith(".parquet")) or fichier.lower().startswith("meta_"):
+        if not est_fichier_donnees(fichier):
             continue
 
-        nom_base = fichier[:-4]
+        nom_base = os.path.splitext(fichier)[0]
         theme_identifie = None
         annee = re.search(r'\d{4}', nom_base).group() if re.search(r'\d{4}', nom_base) else "2022"
         nom_base_normalise = _normaliser_nom_fichier(nom_base)
@@ -655,7 +641,7 @@ def ingerer_donnees_thematiques(
             continue
 
         chemin_complet = os.path.join(dossier_data, fichier)
-        df_brut = lire_fichier(
+        df_brut = lire_table(
             chemin_complet,
             sep=";",
             dtype={'IRIS': str, 'CODGEO': str, 'CodGeo': str, 'COM': str, 'LAB_IRIS': str},
@@ -787,18 +773,19 @@ def lire_individus_recensement(
         "AGED": "float64",
         "IPONDI": "float64",
     }
-    total_estime = _estimer_nombre_lignes_csv(chemin_fichier)
-    lecteur = pd.read_csv(
+    # Parquet : nombre exact lu dans ses métadonnées ; CSV : estimation
+    total_estime = compter_lignes(chemin_fichier) if est_parquet(chemin_fichier) else _estimer_nombre_lignes_csv(chemin_fichier)
+    lecteur = lire_par_blocs(
         chemin_fichier,
+        taille_bloc,
         sep=";",
         usecols=colonnes,
         dtype=types,
-        chunksize=taille_bloc,
     )
 
     with tqdm(
         total=total_estime,
-        desc="Lecture recensement enfants (lignes estimées)",
+        desc="Lecture recensement enfants" + ("" if est_parquet(chemin_fichier) else " (lignes estimées)"),
         unit="lignes",
         unit_scale=True,
         dynamic_ncols=True,

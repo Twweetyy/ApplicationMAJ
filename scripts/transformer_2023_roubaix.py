@@ -5,6 +5,9 @@ transformer_2023_roubaix.py
 Convertit les cubes multidimensionnels Insee RP 2023 (format long / SDMX)
 en tables plates infracommunales (format large) pour la Ville de Roubaix (38 IRIS).
 
+Chaque cube brut peut être fourni en CSV ou en Parquet (base-ic-pop-2023.csv ou
+base-ic-pop-2023.parquet) ; le Parquet est préféré s'il est présent (lecture DuckDB).
+
 Produit les 5 fichiers de données requis par le portail BDDMAS :
   - base-ic-evol-struct-pop-2023.CSV
   - base-ic-activite-residents-2023.CSV
@@ -32,8 +35,7 @@ DOSSIER_OUTPUT_DATA = os.path.join(DOSSIER_RACINE, "data", "data2023")
 DOSSIER_OUTPUT_META = os.path.join(DOSSIER_RACINE, "dictionnaires", "meta", "meta2023")
 
 NB_IRIS_ROUBAIX = 38
-SOURCES_2023 = ["base-ic-pop-2023.csv", "base-ic-log-2023.csv", "base-ic-emp-2023.csv",
-                "base-ic-men-2023.csv", "base-ic-dip-2023.csv"]
+THEMES_SOURCES_2023 = ["pop", "log", "emp", "men", "dip"]
 SORTIES_2023 = [
     ("base-ic-evol-struct-pop-2023.CSV", "meta_base-ic-evol-struct-pop-2023.csv"),
     ("base-ic-logement-2023.CSV", "meta_base-ic-logement-2023.csv"),
@@ -52,7 +54,11 @@ def sorties_a_jour():
         sorties.append(os.path.join(DOSSIER_OUTPUT_META, nom_meta))
     if not all(os.path.exists(chemin) for chemin in sorties):
         return False
-    entrees = [os.path.join(DOSSIER_SOURCES_2023, nom) for nom in SOURCES_2023]
+    entrees = [
+        os.path.join(DOSSIER_SOURCES_2023, f"base-ic-{theme}-2023{extension}")
+        for theme in THEMES_SOURCES_2023
+        for extension in (".csv", ".parquet")
+    ]
     entrees = [c for c in entrees if os.path.exists(c)] + [os.path.abspath(__file__)]
     if min(map(os.path.getmtime, sorties)) < max(map(os.path.getmtime, entrees)):
         return False
@@ -96,16 +102,37 @@ def valeur_cube(iris_df, res, filtre):
     s = sub.groupby("GEO")["OBS_VALUE"].sum()
     return res["IRIS"].map(s).fillna(0.0)
 
-def charger_roubaix(chemin_csv):
-    """Charge et filtre uniquement les lignes de Roubaix (GEO dans ALLOWED_GEO)."""
-    chunks = []
-    print(f"  -> Lecture et filtrage de {os.path.basename(chemin_csv)}...")
-    for chunk in pd.read_csv(chemin_csv, sep=";", chunksize=100000, dtype=str):
-        m = chunk[chunk["GEO"].astype(str).isin(ALLOWED_GEO)]
-        if not m.empty:
-            chunks.append(m)
+def chemin_source(theme):
+    """Cube brut du thème : le Parquet s'il existe (plus léger et plus rapide), sinon le CSV."""
+    base = os.path.join(DOSSIER_SOURCES_2023, f"base-ic-{theme}-2023")
+    return base + ".parquet" if os.path.exists(base + ".parquet") else base + ".csv"
+
+
+def _lire_roubaix_parquet(chemin_parquet):
+    """Lignes de Roubaix d'un cube Parquet, filtrées par DuckDB, toutes les colonnes en texte (comme le CSV)."""
+    import duckdb
+
+    codes = ", ".join("'" + code.replace("'", "''") + "'" for code in sorted(ALLOWED_GEO))
+    source = chemin_parquet.replace("'", "''")
+    return duckdb.sql(
+        f"SELECT COLUMNS(*)::VARCHAR FROM read_parquet('{source}') WHERE CAST(GEO AS VARCHAR) IN ({codes})"
+    ).df()
+
+
+def charger_roubaix(chemin_source):
+    """Charge et filtre uniquement les lignes de Roubaix (GEO dans ALLOWED_GEO), depuis un CSV ou un Parquet."""
+    print(f"  -> Lecture et filtrage de {os.path.basename(chemin_source)}...")
+    if chemin_source.casefold().endswith(".parquet"):
+        chunks = [_lire_roubaix_parquet(chemin_source)]
+        chunks = [m for m in chunks if not m.empty]
+    else:
+        chunks = []
+        for chunk in pd.read_csv(chemin_source, sep=";", chunksize=100000, dtype=str):
+            m = chunk[chunk["GEO"].astype(str).isin(ALLOWED_GEO)]
+            if not m.empty:
+                chunks.append(m)
     if not chunks:
-        raise ValueError(f"Aucune ligne pour Roubaix dans {chemin_csv}")
+        raise ValueError(f"Aucune ligne pour Roubaix dans {chemin_source}")
     df = pd.concat(chunks, ignore_index=True)
     df["GEO"] = df["GEO"].astype(str)
     df["OBS_VALUE"] = pd.to_numeric(df["OBS_VALUE"], errors="coerce").fillna(0.0)
@@ -570,7 +597,7 @@ def main():
     print("=== Démarrage de la transformation Insee 2023 pour Roubaix ===")
     
     # 1. Chargement de POP pour initialiser le socle géographique
-    fichier_pop = os.path.join(DOSSIER_SOURCES_2023, "base-ic-pop-2023.csv")
+    fichier_pop = chemin_source("pop")
     df_pop_raw = charger_roubaix(fichier_pop)
     socle = extraire_socle_geo(df_pop_raw)
     print(f"Socle géographique : {len(socle)} IRIS trouvés pour Roubaix.")
@@ -579,22 +606,22 @@ def main():
     df_pop, meta_pop = transformer_population(df_pop_raw, socle)
     
     # 2. LOG
-    fichier_log = os.path.join(DOSSIER_SOURCES_2023, "base-ic-log-2023.csv")
+    fichier_log = chemin_source("log")
     df_log_raw = charger_roubaix(fichier_log)
     df_log, meta_log = transformer_logement(df_log_raw, socle)
 
     # 3. EMP
-    fichier_emp = os.path.join(DOSSIER_SOURCES_2023, "base-ic-emp-2023.csv")
+    fichier_emp = chemin_source("emp")
     df_emp_raw = charger_roubaix(fichier_emp)
     df_emp, meta_emp = transformer_activite(df_emp_raw, socle)
 
     # 4. MEN
-    fichier_men = os.path.join(DOSSIER_SOURCES_2023, "base-ic-men-2023.csv")
+    fichier_men = chemin_source("men")
     df_men_raw = charger_roubaix(fichier_men)
     df_men, meta_men = transformer_menages(df_men_raw, socle, df_log_raw)
 
     # 5. DIP
-    fichier_dip = os.path.join(DOSSIER_SOURCES_2023, "base-ic-dip-2023.csv")
+    fichier_dip = chemin_source("dip")
     df_dip_raw = charger_roubaix(fichier_dip)
     df_dip, meta_dip = transformer_diplomes(df_dip_raw, socle)
 

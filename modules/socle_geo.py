@@ -1,6 +1,7 @@
 import os
 import pandas as pd
 import yaml
+from .lecture import lire_table
 
 def charger_referentiel_mas(chemin_fichier: str) -> pd.DataFrame:
     """
@@ -11,7 +12,7 @@ def charger_referentiel_mas(chemin_fichier: str) -> pd.DataFrame:
         print(f"Erreur : Le fichier de périmètre est introuvable -> {chemin_fichier}")
         return pd.DataFrame()
 
-    df_perimetre = pd.read_csv(chemin_fichier, dtype={"IRIS": str})
+    df_perimetre = lire_table(chemin_fichier, sep=",", dtype={"IRIS": str})
     
     # Renommage strict selon la charte du projet (comme dans utils.py)
     df_perimetre = df_perimetre.rename(columns={
