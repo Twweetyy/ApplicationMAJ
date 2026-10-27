@@ -345,7 +345,7 @@ function analyzeFiles() {
   xhr.send(form);
 }
 
-function showGenerationState(status, error = "", warnings = []) {
+function showGenerationState(status, error = "", warnings = [], nonCalcules = []) {
   progressSection.hidden = false;
   const finished = status === "done" || status === "done_with_warnings";
   setStep(finished ? 2 : 1);
@@ -362,8 +362,26 @@ function showGenerationState(status, error = "", warnings = []) {
       : status === "failed" || status === "invalid" ? "Le classeur n’a pas été généré. Consultez le message ci-dessous."
         : "Traitement local des fichiers et génération du classeur.";
   showError($("#generationError"), error || warnings.join("\n"));
+  showIndicateursNonCalcules(finished ? nonCalcules : []);
   downloadRow.hidden = !finished;
   if (finished && currentJobId) downloadButton.href = `/api/jobs/${currentJobId}/download`;
+}
+
+// Indicateurs laissés vides parce que leurs variables n'existent pas dans ce millésime : simple information
+function showIndicateursNonCalcules(nonCalcules) {
+  const notice = $("#calcNotice");
+  notice.hidden = nonCalcules.length === 0;
+  if (notice.hidden) return;
+  const nombre = nonCalcules.length;
+  $("#calcNoticeText").textContent = `${nombre} indicateur${nombre > 1 ? "s" : ""} non calculé${nombre > 1 ? "s" : ""} : `
+    + "les variables nécessaires n’existent pas dans les fichiers de ce millésime (le recensement 2023 ne fournit plus certaines variables). "
+    + "Ces colonnes restent vides, le reste du classeur est complet.";
+  const liste = $("#calcNoticeList");
+  liste.replaceChildren(...nonCalcules.map(({ indicateur, variable }) => {
+    const item = document.createElement("li");
+    item.textContent = `${indicateur} (variable absente : ${variable})`;
+    return item;
+  }));
 }
 
 const LIBELLES_DECISION = {
@@ -408,7 +426,7 @@ async function pollJob() {
       const job = await response.json();
       if (!response.ok) throw new Error(job.detail || "Impossible de suivre le traitement.");
       if (job.status === "done" || job.status === "done_with_warnings") {
-        showGenerationState(job.status, "", job.avertissements_calcul || []);
+        showGenerationState(job.status, "", job.avertissements_calcul || [], job.indicateurs_non_calcules || []);
         showColonnesAuto(job.colonnes_auto || []);
         break;
       }

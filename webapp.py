@@ -1,4 +1,5 @@
 import os
+import re
 import shutil
 import tempfile
 import threading
@@ -49,6 +50,9 @@ def _nettoyer_anciens_jobs() -> None:
             shutil.rmtree(dossier, ignore_errors=True)
 
 
+_INDICATEUR_NON_CALCULE = re.compile(r"Indicateur non calculé '(.+)' : variable absente de ce millésime \((.+)\)$")
+
+
 def _nom_fichier_securise(nom: str | None) -> str:
     if not nom:
         raise HTTPException(status_code=400, detail="Un fichier envoyé n’a pas de nom.")
@@ -77,6 +81,7 @@ def _job_public(job: dict) -> dict:
         "rapport": job["rapport"],
         "fichiers": job["fichiers"],
         "avertissements_calcul": job.get("avertissements_calcul", []),
+        "indicateurs_non_calcules": job.get("indicateurs_non_calcules", []),
         # Colonnes inconnues traitées par modules/colonnes_auto.py (sauf correspondances exactes)
         "colonnes_auto": [
             decision for decision in job.get("colonnes_auto", []) if decision.get("methode") != "exacte"
@@ -117,15 +122,19 @@ def _generer_classeur(job_id: str) -> None:
                 # Copie du lot sans méta : millésimes validés, vocabulaire et cache lus dans le vrai dépôt
                 dossier_dicos_reference=str(DOSSIER_DICOS),
             )
-        avertissements = [
-            ligne.strip()
-            for ligne in sortie_console.getvalue().splitlines()
-            if ligne.strip().startswith("Erreur lors du calcul de")
+        lignes = [ligne.strip() for ligne in sortie_console.getvalue().splitlines()]
+        avertissements = [ligne for ligne in lignes if ligne.startswith("Erreur lors du calcul de")]
+        # Variables absentes du millésime : information, pas une erreur (indicateur laissé vide)
+        non_calcules = [
+            {"indicateur": trouve.group(1), "variable": trouve.group(2)}
+            for trouve in map(_INDICATEUR_NON_CALCULE.match, lignes)
+            if trouve
         ]
         with _VERROU_JOBS:
             job["classeur"] = resultat["classeur"]
             job["themes"] = resultat["themes"]
             job["avertissements_calcul"] = avertissements
+            job["indicateurs_non_calcules"] = non_calcules
             job["colonnes_auto"] = resultat.get("colonnes_auto", [])
             job["status"] = "done_with_warnings" if avertissements else "done"
     except ErreurPrecontrole as erreur:

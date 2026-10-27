@@ -218,6 +218,10 @@ h1 { margin-bottom: 7px; color: var(--primary); font: 600 clamp(28px, 3vw, 36px)
 .button-secondary { border-color: var(--line); background: #fff; color: #526678; }
 .button-success { background: var(--success); color: #fff; }
 .inline-error { margin: 12px 0 0; padding: 10px 12px; border-left: 3px solid var(--danger); background: var(--danger-bg); color: #7d342e; font-size: 11px; white-space: pre-line; }
+.calc-notice { margin: 12px 0 0; padding: 10px 12px; border-left: 3px solid #e0a43a; background: var(--warning-bg); color: #79542d; font-size: 12px; }
+.calc-notice p { margin: 0; }
+.calc-notice summary { margin-top: 6px; cursor: pointer; font-weight: 600; }
+.calc-notice ul { margin: 6px 0 0; padding-left: 18px; }
 
 .analyze-progress {
   margin-top: 15px;

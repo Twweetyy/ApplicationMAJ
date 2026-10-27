@@ -6,8 +6,8 @@
   <meta name="theme-color" content="#1e293b">
   <title>Portail Data SIG | BDDMAS Roubaix</title>
   <link rel="icon" type="image/png" href="/static/logo_institutionnel.png">
-  <link rel="stylesheet" href="/static/styles.css?v=5">
-  <script src="/static/multi-upload.js?v=8" defer></script>
+  <link rel="stylesheet" href="/static/styles.css?v=6">
+  <script src="/static/multi-upload.js?v=9" defer></script>
 </head>
 <body>
   <div class="application-shell">
@@ -133,6 +133,10 @@
         <div class="progress-track"><span id="progressBar"></span></div>
         <p class="progress-copy" id="progressCopy">Traitement local des fichiers.</p>
         <p class="inline-error" id="generationError" role="alert" hidden></p>
+        <div class="calc-notice" id="calcNotice" hidden>
+          <p id="calcNoticeText"></p>
+          <details><summary>Voir les indicateurs concernés</summary><ul id="calcNoticeList"></ul></details>
+        </div>
         <div class="report-table-wrap colonnes-auto" id="colonnesAuto" style="margin-top: 1.5rem" hidden>
           <h3>Colonnes renommées ou ajoutées automatiquement</h3>
           <p class="action-note" id="colonnesAutoNote"></p>
