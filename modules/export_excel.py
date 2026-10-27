@@ -12,6 +12,7 @@ from openpyxl.worksheet.table import TableColumn
 import yaml
 from tqdm.auto import tqdm
 from .pages_info import mettre_a_jour_pages_info
+from .mise_en_page import appliquer_mise_en_page
 
 def charger_titres_onglets(chemin_yaml: str) -> dict:
     """Charge le dictionnaire contenant les grands titres de chaque onglet."""
@@ -511,6 +512,7 @@ def _generer_depuis_modele(
                 table.autoFilter.ref = table.ref
 
     mettre_a_jour_pages_info(workbook, dico_fichiers, chemin_calculs)
+    appliquer_mise_en_page(workbook)
     os.makedirs(os.path.dirname(os.path.abspath(chemin_sortie)), exist_ok=True)
     workbook.save(chemin_sortie)
 
