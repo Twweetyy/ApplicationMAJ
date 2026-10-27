@@ -2,8 +2,11 @@
 
 dotenv
 duckdb
+fastapi
 openai
 pandas
+python-multipart
 pyyaml
 openpyxl
 tqdm
+uvicorn

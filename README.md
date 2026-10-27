@@ -1,6 +1,80 @@
 # BDDMAS Roubaix – ApplicationMAJ
 
-Application Python de traitement des données infra-communales de Roubaix et de génération du classeur Excel BDDMAS (38 IRIS).
+**Portail web et pipeline ETL qui transforment les fichiers bruts de l'Insee et de ses partenaires en un classeur Excel prêt à l'emploi sur les 38 IRIS de Roubaix.**
+
+![Python](https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-portail%20web-009688?logo=fastapi&logoColor=white)
+![pandas](https://img.shields.io/badge/pandas-ETL-150458?logo=pandas&logoColor=white)
+![DuckDB](https://img.shields.io/badge/DuckDB-Parquet-FFF000?logo=duckdb&logoColor=black)
+![openpyxl](https://img.shields.io/badge/openpyxl-Excel-217346?logo=microsoftexcel&logoColor=white)
+![LLM](https://img.shields.io/badge/IA-facultative%20(Groq%2C%20Mistral%2C%20Ollama)-8A2BE2)
+
+![Démonstration du portail : dépôt du lot, pré-contrôle, génération du classeur](doc/img/demo-portail.gif)
+
+## Le projet en bref
+
+**Le besoin.** Le service SIG de la Ville de Roubaix publie une base de données infra-communale (BDDMAS) : population, emploi, familles, diplômes, logement, revenus, prestations CAF, assurance maladie, demandeurs d'emploi, logement social et petite enfance, quartier par quartier. Chaque mise à jour demandait de récupérer une dizaine de fichiers aux formats différents, de filtrer Roubaix, de recalculer des dizaines d'indicateurs et de reporter le tout dans un classeur Excel de 14 onglets, avec de nombreuses manipulations manuelles.
+
+**La solution.** Un portail web local : on dépose les fichiers, l'application contrôle le lot, puis génère le classeur complet (valeurs, indicateurs calculés, mise en forme, pages de présentation) en moins d'une minute.
+
+**Ce qui le rend robuste.**
+- Fonctionne d'un millésime à l'autre (recensements 2022 et 2023, formats Insee différents) sans toucher au code.
+- Quand l'Insee renomme ou ajoute des variables, un module les rattache seul aux bonnes colonnes (règles, puis IA facultative), avec un cache relisible et corrigeable.
+- Un pré-contrôle bloque les lots incomplets avant tout calcul (fichiers manquants, métadonnées absentes, IRIS manquants, doublons de millésime).
+- Données acceptées en CSV ou en Parquet.
+
+## Aperçu
+
+| Dépôt du lot | Pré-contrôle |
+|---|---|
+| ![Portail : dépôt des fichiers et statut de chaque source](doc/img/portail-lot.png) | ![Portail : rapport de pré-contrôle du lot](doc/img/portail-precontrole.png) |
+
+**Classeur généré** : en-têtes bleus pour les effectifs (avec total), orange pour les indicateurs (taux, densités, indices), regroupés à droite.
+
+![Classeur : onglet Population, effectifs](doc/img/excel-effectifs.png)
+
+![Classeur : onglet Population, indicateurs calculés](doc/img/excel-indicateurs.png)
+
+**Page de présentation** générée selon le lot : millésime de chaque source et lien vers sa documentation Insee.
+
+![Classeur : page Présentation](doc/img/excel-presentation.png)
+
+## Comment ça marche
+
+```mermaid
+flowchart LR
+    A[Fichiers Insee, CAF, CNAM,<br/>DEFM, RPLS<br/>CSV ou Parquet] --> B[Pré-contrôle<br/>fichiers, métas, IRIS]
+    B -->|lot valide| C[Ingestion<br/>filtre Roubaix, nettoyage,<br/>libellés des métadonnées]
+    C --> D[Colonnes inconnues<br/>règles puis IA, cache YAML]
+    D --> E[Indicateurs<br/>calculs, arrondis,<br/>enfants pondérés]
+    E --> F[Référentiel géographique<br/>quartiers, superficies]
+    F --> G[Classeur Excel<br/>14 onglets mis en forme]
+    B -->|erreur bloquante| H[Rapport à corriger]
+```
+
+| Couche | Technologies |
+|---|---|
+| Portail | FastAPI, Uvicorn, HTML/CSS/JavaScript sans framework |
+| Traitement | pandas, NumPy, DuckDB (Parquet), PyYAML |
+| Sortie | openpyxl (remplissage du modèle, formats, tableaux structurés, sous-totaux) |
+| IA (facultative) | API compatible OpenAI : Groq, Mistral, Gemini ou Ollama en local |
+| Exports (ligne de commande) | CSV pour SIG, base SQL via SQLAlchemy |
+
+## Points techniques
+
+- **Configuration plutôt que code** : correspondances de fichiers, formules des indicateurs, titres des onglets et liens Insee sont dans des fichiers YAML (`dictionnaires/`). Un nouveau millésime se gère en ajoutant une ligne.
+- **Colonnes d'un nouveau millésime** (`modules/colonnes_auto.py`) : correspondance exacte, puis approchée (mêmes nombres, mêmes mots sensibles comme hommes et femmes), puis un appel IA par onglet avec réponse JSON validée et seuil de confiance. L'IA ne touche jamais aux valeurs ; sans clé ou sans réseau, le pipeline continue sans elle.
+- **Convertisseur des cubes Insee 2023** (format long SDMX vers format large), avec contrôle de cohérence (population = hommes + femmes, logements = résidences principales + secondaires + vacants…).
+- **Petite enfance** : effectifs par âge estimés depuis le fichier détail du recensement (pondération `IPONDI`), lu par blocs.
+- **Non-régression** : chaque évolution est vérifiée en comparant le classeur produit à la version validée, cellule par cellule.
+
+## Auteur
+
+Réalisé par Bilal ([@Twweetyy](https://github.com/Twweetyy)) en alternance au service SIG de la Ville de Roubaix (2026-2027).
+
+---
+
+*La suite est le guide complet : installation, lancement, constitution d'un lot et fonctionnement détaillé du pipeline.*
 
 Le projet contient :
 - un pipeline (`main_bddmas.py`) utilisable en ligne de commande ou depuis une application ;
@@ -10,7 +84,6 @@ Le projet contient :
 - des lots d'exemple 2022 et 2023 (`exemples/`) pour essayer le portail tout de suite.
 
 Le pipeline fonctionne avec le recensement 2022 (fichiers Insee au format large) et avec le recensement 2023 (cubes Insee au format long, convertis au préalable).
-
 ## Essayer en 2 minutes
 
 1. Installer (voir plus bas), puis double-cliquer sur `run_portal.bat`.
@@ -52,6 +125,7 @@ ApplicationMAJ/
 │  └─ diag.py                      Diagnostic des cubes Insee 2023
 ├─ exemples/                       Lots 2022 et 2023 prêts à déposer dans le portail
 ├─ web/                            Front du portail (index.html, multi-upload.js, styles.css)
+├─ doc/img/                        Captures et démonstration utilisées dans ce README
 ├─ exports_sig/                    Exportations SIG (ignoré par Git)
 ├─ main_bddmas.py                  Orchestrateur du pipeline
 ├─ webapp.py                       API FastAPI du portail
