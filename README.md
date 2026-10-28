@@ -328,12 +328,11 @@ Si `BDDMAS_DATABASE_URL` n'est pas définie, l'insertion SQL est ignorée et les
 
 ## Limites connues
 
-Avertissements attendus avec le recensement 2023 (variables absentes des cubes Insee 2023) :
-- Salariés, CDI / fonction publique, travail dans la commune de résidence (ACT RES) ;
-- Familles, familles monoparentales, couples avec enfants, familles nombreuses (COU FAM) ;
-- Pop 60-74 ans et indicateurs dérivés (POP).
+Avertissements attendus avec le recensement 2023 : Pop 60-74 ans et indicateurs dérivés (POP : population de plus de 60 ans, sa part, indice de jeunesse). Aucun fichier Insee 2023 au niveau IRIS ne donne ces tranches d'âge. Les indicateurs concernés restent vides ; le reste du classeur est calculé.
 
-Les indicateurs concernés restent vides ; le reste du classeur est calculé.
+Sans les fichiers complémentaires (`data/data2023/complementaires/`, voir `doc/nouveau_millesime.md`), 10 autres indicateurs restent vides : salariés, CDI / fonction publique, travail dans la commune de résidence (ACT RES) ; familles, familles monoparentales, couples avec enfants, familles nombreuses (COU FAM).
+
+Colonnes du modèle 2022 sans équivalent en 2023, même avec les fichiers complémentaires : tranches 15-29 / 30-44 / 45-59 / 60-74 / 75+ (POP) ; actifs et chômeurs par diplôme, inactifs par sexe, détail CDD / intérim / emplois aidés / apprentissage et indépendants / employeurs / aides familiaux (ACT RES) ; population par âge en ménage et vivant seule, ménages par famille formée (COU FAM) ; diplômes BEPC et supérieurs par sexe (DIP) ; pièces, époque par type de logement, population et ancienneté par statut d'occupation (LOG).
 
 Depuis le poste de la mairie, les appels HTTPS vers les API d'IA sont bloqués : y laisser `BDDMAS_LLM=0`. Le module colonnes fonctionne alors sans IA (les colonnes non reconnues sont à corriger une fois dans `correspondances_auto.yml`).
 

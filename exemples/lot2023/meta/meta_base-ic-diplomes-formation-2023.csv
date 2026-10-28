@@ -18,3 +18,17 @@ FNSCOL15P;Pop non scolarisée 15 ans ou plus Femmes
 FNSCOL15P_DIPLMIN;Pop non scol 15P Femmes Aucun diplôme ou CEP
 FNSCOL15P_CAPBEP;Pop non scol 15P Femmes CAP, BEP
 FNSCOL15P_BAC;Pop non scol 15P Femmes Baccalauréat
+P23_POP0205;Pop 2-5 ans
+P23_POP0610;Pop 6-10 ans
+P23_POP1114;Pop 11-14 ans
+P23_POP1517;Pop 15-17 ans
+P23_POP1824;Pop 18-24 ans
+P23_POP2529;Pop 25-29 ans
+P23_POP30P;Pop 30 ans ou plus
+P23_SCOL0205;Pop scolarisée 2-5 ans
+P23_SCOL0610;Pop scolarisée 6-10 ans
+P23_SCOL1114;Pop scolarisée 11-14 ans
+P23_SCOL1517;Pop scolarisée 15-17 ans
+P23_SCOL1824;Pop scolarisée 18-24 ans
+P23_SCOL2529;Pop scolarisée 25-29 ans
+P23_SCOL30P;Pop scolarisée 30 ans ou plus
