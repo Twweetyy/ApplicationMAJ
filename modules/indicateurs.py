@@ -59,6 +59,25 @@ def _arrondir_nombre_entier(valeurs: pd.Series) -> pd.Series:
     return pd.Series(arrondies, index=valeurs.index).astype("Int64")
 
 
+def _arrondi_controle(valeurs: pd.Series) -> pd.Series:
+    """Arrondit à l'entier en conservant le total (méthode du plus fort reste).
+
+    Les effectifs Insee à l'IRIS ont des décimales : arrondis un par un, leur somme peut s'écarter
+    de quelques unités du chiffre communal officiel (ex. 98 284 au lieu de 98 286 habitants).
+    Ici on part de la partie entière de chaque IRIS et on ajoute 1 aux IRIS qui ont les plus
+    grandes décimales, jusqu'à atteindre l'arrondi de la somme exacte.
+    """
+    numeriques = pd.to_numeric(valeurs, errors="coerce")
+    presentes = numeriques.dropna()
+    if presentes.empty or (presentes < 0).any() or (presentes == np.floor(presentes)).all():
+        return _arrondir_nombre_entier(valeurs)
+    entiers = np.floor(presentes)
+    a_repartir = int(np.floor(presentes.sum() + 0.5) - entiers.sum())
+    plus_forts_restes = (presentes - entiers).sort_values(ascending=False, kind="stable").index[:a_repartir]
+    entiers.loc[plus_forts_restes] += 1
+    return entiers.reindex(numeriques.index).astype("Int64")
+
+
 def _convertir_identifiant_en_texte(valeur):
     if pd.isna(valeur):
         return pd.NA
@@ -70,7 +89,13 @@ def _convertir_identifiant_en_texte(valeur):
 
 
 def arrondir_variables(fichiers: dict) -> dict:
-    """Applique automatiquement les règles d'arrondi à toutes les colonnes numériques."""
+    """Applique automatiquement les règles d'arrondi à toutes les colonnes numériques.
+
+    Les effectifs additifs (ceux qui ont un total dans le classeur) sont arrondis par
+    _arrondi_controle, pour que le total affiché égale le chiffre communal officiel.
+    """
+    from .mise_en_page import _est_additive  # import local : mise_en_page importe ce module
+
     for nom_table, dataframe in fichiers.items():
         resultat = dataframe.copy()
         for colonne in resultat.columns:
@@ -91,7 +116,9 @@ def arrondir_variables(fichiers: dict) -> dict:
                 if not non_vides.any() or not numeriques.loc[non_vides].notna().all():
                     continue
                 resultat[colonne] = numeriques
-            if precision == 0:
+            if precision == 0 and _est_additive(str(colonne), nom_table, 0):
+                resultat[colonne] = _arrondi_controle(resultat[colonne])
+            elif precision == 0:
                 resultat[colonne] = _arrondir_nombre_entier(resultat[colonne])
             else:
                 resultat[colonne] = pd.to_numeric(resultat[colonne], errors="coerce").round(precision)
