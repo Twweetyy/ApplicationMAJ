@@ -35,3 +35,30 @@ POP_ETR;Pop Etrangers
 POP_IMM;Pop Immigrés
 PMEN;Pop ménages
 PHORMEN;Pop hors ménages
+C23_POP15P;Pop 15 ans ou plus
+C23_POP15P_STAT_GSEC11_21;Pop 15 ans ou plus Agriculteurs exploitants
+C23_POP15P_STAT_GSEC12_22;Pop 15 ans ou plus Artisans, Comm., Chefs entr.
+C23_POP15P_STAT_GSEC13_23;Pop 15 ans ou plus Cadres, Prof. intel. sup.
+C23_POP15P_STAT_GSEC14_24;Pop 15 ans ou plus Prof. intermédiaires
+C23_POP15P_STAT_GSEC15_25;Pop 15 ans ou plus Employés
+C23_POP15P_STAT_GSEC16_26;Pop 15 ans ou plus Ouvriers
+C23_POP15P_STAT_GSEC32;Pop 15 ans ou plus Retraités
+C23_POP15P_STAT_GSEC40;Pop 15 ans ou plus Autres
+C23_H15P;Pop 15 ans ou plus Hommes
+C23_H15P_STAT_GSEC11_21;Pop 15 ans ou plus Hommes Agriculteurs exploitants
+C23_H15P_STAT_GSEC12_22;Pop 15 ans ou plus Hommes Artisans, Comm., Chefs entr.
+C23_H15P_STAT_GSEC13_23;Pop 15 ans ou plus Hommes Cadres, Prof. intel. sup.
+C23_H15P_STAT_GSEC14_24;Pop 15 ans ou plus Hommes Prof. intermédiaires
+C23_H15P_STAT_GSEC15_25;Pop 15 ans ou plus Hommes Employés
+C23_H15P_STAT_GSEC16_26;Pop 15 ans ou plus Hommes Ouvriers
+C23_H15P_STAT_GSEC32;Pop 15 ans ou plus Hommes Retraités
+C23_H15P_STAT_GSEC40;Pop 15 ans ou plus Hommes Autres
+C23_F15P;Pop 15 ans ou plus Femmes
+C23_F15P_STAT_GSEC11_21;Pop 15 ans ou plus Femmes Agriculteurs exploitants
+C23_F15P_STAT_GSEC12_22;Pop 15 ans ou plus Femmes Artisans, Comm., Chefs entr.
+C23_F15P_STAT_GSEC13_23;Pop 15 ans ou plus Femmes Cadres, Prof. intel. sup.
+C23_F15P_STAT_GSEC14_24;Pop 15 ans ou plus Femmes Prof. intermédiaires
+C23_F15P_STAT_GSEC15_25;Pop 15 ans ou plus Femmes Employés
+C23_F15P_STAT_GSEC16_26;Pop 15 ans ou plus Femmes Ouvriers
+C23_F15P_STAT_GSEC32;Pop 15 ans ou plus Femmes Retraités
+C23_F15P_STAT_GSEC40;Pop 15 ans ou plus Femmes Autres

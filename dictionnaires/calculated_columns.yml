@@ -93,7 +93,7 @@ Part des actifs occupés salariés en CDI ou fonction publique (%) :
 Part des actifs occupés travaillant dans la commune de résidence (%) :
   df: ACT RES 2022
   var1: Actif occ 15 ans ou plus travaille commune résidence
-  var2: Salariés 15 ans ou plus
+  var2: Actifs occupés 15 ans ou plus
   var3:
   var4:
   expression: files[df][var1] * 100 / files[df][var2]

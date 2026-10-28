@@ -15,6 +15,21 @@
 | Demandeurs d'emploi | data_DEFM2024_iris.csv | Cette base fournit des indicateurs sur les demandeurs d'emploi en fin de mois au 31 décembre dans les quartiers prioritaires de la politique de la ville. | 2024 | https://www.insee.fr/fr/statistiques/8644875 | https://www.insee.fr/fr/statistiques/fichier/8644875/DEFM2024_Iris_csv.zip |
 | Répertoire du Parc Locatif Social | data_RPLS2024_IRIS.csv | Cette base fournit des indicateurs sur le parc des logements locatifs des bailleurs sociaux dans les quartiers prioritaires de la politique de la ville. | 2024 | https://www.insee.fr/fr/statistiques/8736658 | https://www.insee.fr/fr/statistiques/fichier/8736658/RPLS_01-01-2024_Iris.zip |
 
+## Fichiers complémentaires du recensement (cubes `DS_RP_…_IRIS_AAAA`)
+
+À déposer sous leur nom Insee dans `data/dataAAAA/complementaires/` (Parquet ou CSV). Le transformer en tire les colonnes du modèle que les 5 cubes principaux n'ont pas.
+
+| Fichier | Apporte |
+|---|---|
+| DS_RP_POPULATION_COMP_IRIS_AAAA | Pop 15 ans ou plus par sexe et CSP (POP) |
+| DS_RP_EMPLOI_LR_COMP_IRIS_AAAA | Actifs et actifs occupés 15-64 ans par CSP (ACT RES) |
+| DS_RP_ACTIVITE_PRINC_IRIS_AAAA | Actifs occupés 15 ans ou plus, salariés, non-salariés, temps partiel, CDI / fonction publique (ACT RES) |
+| DS_RP_NAVETTES_PRINC_IRIS_AAAA | Lieu de travail et mode de transport (ACT RES) |
+| DS_RP_MENAGES_COMP_IRIS_AAAA | Ménages et population des ménages par type et CSP de la personne de référence (COU FAM) |
+| DS_RP_FAMILLE_COMP_IRIS_AAAA | Familles par type et nombre d'enfants (COU FAM) |
+| DS_RP_EDUCATION_PRINC_IRIS_AAAA | Population et population scolarisée par âge (DIP FORMATION) |
+| DS_RP_LOGEMENT_COMP_IRIS_AAAA | Occupation des résidences principales : norme, sous- et suroccupation (LOG) |
+
 # Comment les obtenir ?
 
 Les fichiers meta contiennent le dictionnaire des variables, ils ne nous intéressent pas, on peut les supprimer.

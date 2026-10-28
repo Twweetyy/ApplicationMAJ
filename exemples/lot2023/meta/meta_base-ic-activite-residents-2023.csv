@@ -46,3 +46,43 @@ INACT1564;Inactifs 15-64 ans
 ETUD1564;Élèves, étudiants 15-64 ans
 RETR1564;Retraités 15-64 ans
 AINACT1564;Autres inactifs 15-64 ans
+C23_ACT1564_STAT_GSEC11_21;Actifs 15-64 ans Agriculteurs exploitants
+C23_ACT1564_STAT_GSEC12_22;Actifs 15-64 ans Artisans, Comm., Chefs entr.
+C23_ACT1564_STAT_GSEC13_23;Actifs 15-64 ans Cadres, Prof. intel. sup.
+C23_ACT1564_STAT_GSEC14_24;Actifs 15-64 ans Prof. intermédiaires
+C23_ACT1564_STAT_GSEC15_25;Actifs 15-64 ans Employés
+C23_ACT1564_STAT_GSEC16_26;Actifs 15-64 ans Ouvriers
+C23_ACTOCC1564_STAT_GSEC11;Actifs occ 15-64 ans Agriculteurs exploitants
+C23_ACTOCC1564_STAT_GSEC12;Actifs occ 15-64 ans Artisans, Comm., Chefs entr.
+C23_ACTOCC1564_STAT_GSEC13;Actifs occ 15-64 ans Cadres, Prof. intel. sup.
+C23_ACTOCC1564_STAT_GSEC14;Actifs occ 15-64 ans Prof. intermédiaires
+C23_ACTOCC1564_STAT_GSEC15;Actifs occ 15-64 ans Employés
+C23_ACTOCC1564_STAT_GSEC16;Actifs occ 15-64 ans Ouvriers
+P23_ACTOCC15P;Actifs occupés 15 ans ou plus
+P23_HACTOCC15P;Actifs occupés 15 ans ou plus Hommes
+P23_FACTOCC15P;Actifs occupés 15 ans ou plus Femmes
+P23_SAL15P;Salariés 15 ans ou plus
+P23_HSAL15P;Salariés 15 ans ou plus Hommes
+P23_FSAL15P;Salariés 15 ans ou plus Femmes
+P23_NSAL15P;Non-salariés 15 ans ou plus
+P23_HNSAL15P;Non-salariés 15 ans ou plus Hommes
+P23_FNSAL15P;Non-salariés 15 ans ou plus Femmes
+P23_ACTOCC15P_TP;Actifs occ 15 ans ou plus TP
+P23_SAL15P_TP;Salariés 15 ans ou plus TP
+P23_HSAL15P_TP;Salariés 15 ans ou plus TP Hommes
+P23_FSAL15P_TP;Salariés 15 ans ou plus TP Femmes
+P23_NSAL15P_TP;Non-salariés 15 ans ou plus TP
+P23_SAL15P_CDI;Salariés 15 ans ou plus Fonct publ, CDI
+P23_ACTOCC15P_ILT1;Actif occ 15 ans ou plus travaille commune résidence
+P23_ACTOCC15P_ILT2P;Actif occ 15 ans ou plus travaille autre commune que commune résidence
+P23_ACTOCC15P_ILT2;Actif occ 15 ans ou plus travaille autre commune même dépt résidence
+P23_ACTOCC15P_ILT3;Actif occ 15 ans ou plus travaille autre dépt même région résidence
+P23_ACTOCC15P_ILT4;Actif occ 15 ans ou plus travaille autre région en métropole
+P23_ACTOCC15P_ILT5;Actif occ 15 ans ou plus travaille autre région hors métropole
+C23_ACTOCC15P;Actif occ 15 ans ou plus
+C23_ACTOCC15P_PAS;Actifs occ 15 ans ou plus pas de transport pour travail
+C23_ACTOCC15P_MAR;Actifs occ 15 ans ou plus marche à pied pour travail
+C23_ACTOCC15P_VELO;Actifs occ 15 ans ou plus vélo
+C23_ACTOCC15P_2ROUESMOT;Actifs occ 15 ans ou plus deux-roues motorisé
+C23_ACTOCC15P_VOIT;Actifs occ 15 ans ou plus voiture
+C23_ACTOCC15P_TCOM;Actifs occ 15 ans ou plus transport en commun

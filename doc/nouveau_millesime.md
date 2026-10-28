@@ -8,6 +8,7 @@ Ce guide s'adresse à la personne qui met à jour la BDDMAS avec de nouveaux fic
 
 2. **Recensement.**
    - Si l'Insee le publie en **cubes au format long** (colonnes `GEO`, `SEX`, `AGE`, `RP_MEASURE`, `OBS_VALUE`…), comme depuis 2023 : placer les 5 cubes dans `data/dataAAAA/sources_brutes_insee/`, nommés `base-ic-pop-AAAA`, `base-ic-log-AAAA`, `base-ic-emp-AAAA`, `base-ic-men-AAAA`, `base-ic-dip-AAAA` (`.csv` ou `.parquet`). Au lancement, `run_portal.bat` les convertit (`scripts/transformer_recensement.py`) et écrit les 5 fichiers à déposer dans `data/dataAAAA/`, avec leurs métas dans `dictionnaires/meta/metaAAAA/`.
+   - **Fichiers complémentaires** (facultatifs, mais 10 indicateurs en dépendent) : placer dans `data/dataAAAA/complementaires/`, sous leur nom Insee, les fichiers `DS_RP_POPULATION_COMP`, `DS_RP_EMPLOI_LR_COMP`, `DS_RP_ACTIVITE_PRINC`, `DS_RP_NAVETTES_PRINC`, `DS_RP_MENAGES_COMP`, `DS_RP_FAMILLE_COMP`, `DS_RP_EDUCATION_PRINC`, `DS_RP_LOGEMENT_COMP` (suffixe `_IRIS_AAAA`, `.parquet` ou `.csv`). Le transformer ajoute leurs colonnes aux 5 fichiers produits : CSP, salariés, temps partiel, CDI, lieu de travail, transport, types de ménages et de familles, scolarisation, occupation des logements. Un fichier absent est signalé et ses colonnes ne sont pas produites.
    - Vérifier le **contrôle de cohérence** affiché : Population = Hommes + Femmes, Logements = RP + secondaires + vacants, etc.
    - Si l'Insee le publie **au format large** (une colonne par variable, comme en 2022) : déposer les fichiers directement dans le portail.
 
@@ -44,7 +45,7 @@ Ce guide s'adresse à la personne qui met à jour la BDDMAS avec de nouveaux fic
 | Colonnes non documentées | Variables absentes de la méta | Sans gravité : elles gardent leur code comme nom |
 | Le fichier Périmètres_MAS est requis | Référentiel non déposé | Déposer `Perimetres_MAS.csv` |
 
-**Encadré jaune « indicateurs non calculés »** : une variable utilisée par une formule n'existe pas dans ce millésime (ex. « Pop 60-74 ans » absente du recensement 2023). La colonne reste vide, le reste du classeur est juste. Si la variable existe sous un autre nom, corriger son rattachement (point 6) ou la formule dans `dictionnaires/calculated_columns.yml`.
+**Encadré jaune « indicateurs non calculés »** : une variable utilisée par une formule n'existe pas dans ce millésime (ex. « Pop 60-74 ans » absente du recensement 2023 ; « Salariés 15 ans ou plus » si `DS_RP_ACTIVITE_PRINC` n'a pas été déposé). La colonne reste vide, le reste du classeur est juste. Si la variable existe sous un autre nom, corriger son rattachement (point 6) ou la formule dans `dictionnaires/calculated_columns.yml`.
 
 ## 3. Si l'Insee change la structure des cubes
 
