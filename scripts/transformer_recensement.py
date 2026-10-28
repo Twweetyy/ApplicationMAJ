@@ -21,6 +21,13 @@ Produit, dans data/dataAAAA/, les 5 fichiers de données requis par le portail B
   - base-ic-diplomes-formation-AAAA.CSV
 et leurs 5 métadonnées dans dictionnaires/meta/metaAAAA/.
 
+Les fichiers complémentaires Insee (DS_RP_POPULATION_COMP, DS_RP_EMPLOI_LR_COMP,
+DS_RP_ACTIVITE_PRINC, DS_RP_NAVETTES_PRINC, DS_RP_MENAGES_COMP, DS_RP_FAMILLE_COMP,
+DS_RP_EDUCATION_PRINC, DS_RP_LOGEMENT_COMP, suffixés _IRIS_AAAA), déposés sous leur
+nom Insee dans data/dataAAAA/complementaires/, ajoutent les colonnes du modèle 2022
+absentes des cubes principaux (CSP, familles, salariés, lieu de travail, transport,
+scolarisation, occupation des logements). Chacun est facultatif.
+
     python scripts/transformer_recensement.py              # tous les millésimes présents
     python scripts/transformer_recensement.py --annee 2024 # un seul millésime
     python scripts/transformer_recensement.py --force      # recalcule même si à jour
@@ -104,7 +111,10 @@ def sorties_a_jour(annee):
         for theme in THEMES_SOURCES
         for extension in (".csv", ".parquet")
     ]
-    entrees = [c for c in entrees if os.path.exists(c)] + [os.path.abspath(__file__)]
+    entrees += [
+        chemin_complementaire(nom, annee) for fichiers in COMPLEMENTAIRES.values() for nom, _ in fichiers
+    ]
+    entrees = [c for c in entrees if c and os.path.exists(c)] + [os.path.abspath(__file__)]
     if min(map(os.path.getmtime, sorties)) < max(map(os.path.getmtime, entrees)):
         return False
     for nom_data, _ in noms_sorties(annee):
@@ -634,6 +644,228 @@ def transformer_diplomes(df_raw, socle):
     meta_rows = [(col_mapping.get(col, col), lib) for col, lib in meta_rows]
     return res, meta_rows
 
+# ==============================================================================
+# 6. FICHIERS COMPLÉMENTAIRES (DS_RP_…_IRIS_AAAA)
+# ==============================================================================
+# Cubes Insee publiés à part des 5 cubes principaux, déposés sous leur nom Insee
+# dans data/dataAAAA/complementaires/. Ils rendent les colonnes du modèle 2022 que les
+# cubes principaux n'ont pas. Chaque fichier est facultatif : absent, ses colonnes
+# ne sont pas produites. Les codes reprennent ceux du fichier 2022 (préfixe 23,
+# même ordre) pour que l'ingestion retrouve les en-têtes du modèle.
+
+# Code PCS du cube -> suffixe GSEC des codes 2022
+GSEC_POP = {"1": "11_21", "2": "12_22", "3": "13_23", "4": "14_24", "5": "15_25", "6": "16_26", "7": "32", "9": "40"}
+GSEC_ACT = {"1": "11_21", "2": "12_22", "3": "13_23", "4": "14_24", "5": "15_25", "6": "16_26"}
+LIBELLES_PCS = {
+    "1": "Agriculteurs exploitants", "2": "Artisans, Comm., Chefs entr.", "3": "Cadres, Prof. intel. sup.",
+    "4": "Prof. intermédiaires", "5": "Employés", "6": "Ouvriers", "7": "Retraités", "9": "Autres",
+}
+LIBELLES_PCS_MEN = {
+    "1": "Agri. expl.", "2": "Art. Comm. Chef entr.", "3": "Cadre Prof int sup", "4": "Prof intermédiaire",
+    "5": "Employé", "6": "Ouvrier", "7": "Retraité", "9": "Autre",
+}
+
+
+def _colonnes_pop_comp():
+    colonnes = []
+    for prefixe, sexe, libelle in [("POP15P", "_T", ""), ("H15P", "M", " Hommes"), ("F15P", "F", " Femmes")]:
+        colonnes.append((f"C23_{prefixe}", {"SEX": sexe, "PCS": "_T"}, f"Pop 15 ans ou plus{libelle}"))
+        for pcs, gsec in GSEC_POP.items():
+            colonnes.append((
+                f"C23_{prefixe}_STAT_GSEC{gsec}", {"SEX": sexe, "PCS": pcs},
+                f"Pop 15 ans ou plus{libelle} {LIBELLES_PCS[pcs]}",
+            ))
+    return colonnes
+
+
+def _colonnes_emploi_comp():
+    colonnes = []
+    for prefixe, statut, libelle in [("ACT1564", "1T2", "Actifs 15-64 ans"), ("ACTOCC1564", "1", "Actifs occ 15-64 ans")]:
+        for pcs, gsec in GSEC_ACT.items():
+            # 2022 : GSEC11_21 pour les actifs, GSEC11 pour les actifs occupés
+            suffixe = gsec if statut == "1T2" else gsec.split("_")[0]
+            colonnes.append((
+                f"C23_{prefixe}_STAT_GSEC{suffixe}", {"EMPSTA_ENQ": statut, "PCS": pcs},
+                f"{libelle} {LIBELLES_PCS[pcs]}",
+            ))
+    return colonnes
+
+
+def _colonnes_menages_comp():
+    # TPH : 11 personnes seules (110 hommes, 111 femmes), 12 autres sans famille, 2 avec famille(s),
+    # familles principales MF221 couple sans enfant, MF222 couple avec enfant(s), MF21 monoparentale
+    # (vérifié sur la taille moyenne des ménages et les totaux 2022)
+    types = [
+        ("MENHSEUL", "110", "Ménages Hommes seuls", "Hommes seuls"),
+        ("MENFSEUL", "111", "Ménages Femmes seules", "Femmes seules"),
+        ("MENSFAM", "12", "Ménages Autres sans famille", "Autres sans famille"),
+        ("MENFAM", "2", "Ménages avec famille(s)", "avec famille(s)"),
+        ("MENCOUPSENF", "MF221", "Mén fam princ Couple sans enfant", "fam princ Couple sans enfant"),
+        ("MENCOUPAENF", "MF222", "Mén fam princ Couple avec enfant(s)", "fam princ Couple avec enfant(s)"),
+        ("MENFAMMONO", "MF21", "Mén fam princ Famille mono", "fam princ Famille mono"),
+    ]
+    menages = {"RP_MEASURE": "DWELLINGS"}
+    population = {"RP_MEASURE": "DWELLINGS_POPSIZE"}
+    colonnes = [(f"C23_{code}", {**menages, "TPH": tph}, libelle) for code, tph, libelle, _ in types]
+    colonnes.append(("C23_PMEN", {**population, "TPH": "_T", "PCS": "_T"}, "Pop Ménages"))
+    colonnes.append(("C23_PMEN_MENPSEUL", {**population, "TPH": "11"}, "Pop mén Personnes seules"))
+    colonnes += [(f"C23_PMEN_{code}", {**population, "TPH": tph}, f"Pop mén {libelle}") for code, tph, _, libelle in types]
+    for prefixe, mesure, libelle in [("MEN", menages, "Ménages"), ("PMEN", population, "Pop mén")]:
+        colonnes += [
+            (f"C23_{prefixe}_STAT_GSEC{gsec}", {**mesure, "TPH": "_T", "PCS": pcs}, f"{libelle} Pers Réf {LIBELLES_PCS_MEN[pcs]}")
+            for pcs, gsec in GSEC_POP.items()
+        ]
+    return colonnes
+
+
+def _colonnes_famille_comp():
+    # TFN : 1 monoparentale, 21 couple sans enfant, 22 couple avec enfant(s),
+    # 223 uniquement enfants du couple, 220 au moins un enfant d'un seul des deux
+    colonnes = [
+        ("C23_FAM", {"TFN": "_T", "NCH": "_T"}, "Familles"),
+        ("C23_COUPAENF", {"TFN": "22"}, "Fam Couple avec enfant(s)"),
+        ("C23_FAMMONO", {"TFN": "1"}, "Fam Monoparentales"),
+        ("C23_COUPSENF", {"TFN": "21"}, "Fam Couple sans enfant"),
+    ]
+    for code, nch, libelle in [
+        ("NE24F0", "CH0_Y_LT25", "0 enfant"), ("NE24F1", "CH1_Y_LT25", "1 enfant"),
+        ("NE24F2", "CH2_Y_LT25", "2 enfants"), ("NE24F3", "CH3_Y_LT25", "3 enfants"),
+        ("NE24F4P", "CH_GE4_Y_LT25", "4 enfants ou plus"),
+    ]:
+        colonnes.append((f"C23_{code}", {"NCH": nch}, f"Fam {libelle} moins 25 ans"))
+    colonnes += [
+        ("C23_FAMTRAD", {"TFN": "223"}, "Fam Couple avec uniquement enfant(s) du couple"),
+        ("C23_FAMRECOMP", {"TFN": "220"}, "Fam Couple avec au moins un enfant d'un seul des 2 membres du couple"),
+    ]
+    return [(code, {"RP_MEASURE": "NBFAM", **filtre}, libelle) for code, filtre, libelle in colonnes]
+
+
+def _colonnes_activite_princ():
+    colonnes = []
+    for code, sexe, forme, temps, libelle in [
+        ("ACTOCC15P", "_T", "_T", "_T", "Actifs occupés 15 ans ou plus"),
+        ("HACTOCC15P", "M", "_T", "_T", "Actifs occupés 15 ans ou plus Hommes"),
+        ("FACTOCC15P", "F", "_T", "_T", "Actifs occupés 15 ans ou plus Femmes"),
+        ("SAL15P", "_T", "2", "_T", "Salariés 15 ans ou plus"),
+        ("HSAL15P", "M", "2", "_T", "Salariés 15 ans ou plus Hommes"),
+        ("FSAL15P", "F", "2", "_T", "Salariés 15 ans ou plus Femmes"),
+        ("NSAL15P", "_T", "1", "_T", "Non-salariés 15 ans ou plus"),
+        ("HNSAL15P", "M", "1", "_T", "Non-salariés 15 ans ou plus Hommes"),
+        ("FNSAL15P", "F", "1", "_T", "Non-salariés 15 ans ou plus Femmes"),
+        ("ACTOCC15P_TP", "_T", "_T", "PT", "Actifs occ 15 ans ou plus TP"),
+        ("SAL15P_TP", "_T", "2", "PT", "Salariés 15 ans ou plus TP"),
+        ("HSAL15P_TP", "M", "2", "PT", "Salariés 15 ans ou plus TP Hommes"),
+        ("FSAL15P_TP", "F", "2", "PT", "Salariés 15 ans ou plus TP Femmes"),
+        ("NSAL15P_TP", "_T", "1", "PT", "Non-salariés 15 ans ou plus TP"),
+        # Le cube ne détaille pas CDD, intérim, emplois aidés, apprentissage (regroupés en 22T27)
+        ("SAL15P_CDI", "_T", "211", "_T", "Salariés 15 ans ou plus Fonct publ, CDI"),
+    ]:
+        colonnes.append((
+            f"P23_{code}",
+            {"RP_MEASURE": "POP", "EMPSTA_ENQ": "1", "SEX": sexe, "EMPFORM": forme, "WKTIME": temps},
+            libelle,
+        ))
+    return colonnes
+
+
+def _colonnes_navettes_princ():
+    colonnes = [
+        (f"P23_ACTOCC15P_{code}", {"WORK_AREA": zone, "TRANS": "_T"}, f"Actif occ 15 ans ou plus travaille {libelle}")
+        for code, zone, libelle in [
+            ("ILT1", "10", "commune résidence"),
+            ("ILT2P", "20_30", "autre commune que commune résidence"),
+            ("ILT2", "21", "autre commune même dépt résidence"),
+            ("ILT3", "22", "autre dépt même région résidence"),
+            ("ILT4", "23", "autre région en métropole"),
+            ("ILT5", "24T30", "autre région hors métropole"),
+        ]
+    ]
+    colonnes.append(("C23_ACTOCC15P", {"WORK_AREA": "_T", "TRANS": "_T"}, "Actif occ 15 ans ou plus"))
+    colonnes += [
+        (f"C23_ACTOCC15P_{code}", {"WORK_AREA": "_T", "TRANS": mode}, f"Actifs occ 15 ans ou plus {libelle}")
+        for code, mode, libelle in [
+            ("PAS", "1", "pas de transport pour travail"),
+            ("MAR", "2", "marche à pied pour travail"),
+            ("VELO", "3", "vélo"),
+            ("2ROUESMOT", "4", "deux-roues motorisé"),
+            ("VOIT", "5", "voiture"),
+            ("TCOM", "6", "transport en commun"),
+        ]
+    ]
+    return [(code, {"RP_MEASURE": "POP", "EMPSTA_ENQ": "1", **filtre}, libelle) for code, filtre, libelle in colonnes]
+
+
+def _colonnes_education_princ():
+    tranches = [
+        ("0205", "Y2T5", "2-5 ans"), ("0610", "Y6T10", "6-10 ans"), ("1114", "Y11T14", "11-14 ans"),
+        ("1517", "Y15T17", "15-17 ans"), ("1824", "Y18T24", "18-24 ans"), ("2529", "Y25T29", "25-29 ans"),
+        ("30P", "Y_GE30", "30 ans ou plus"),
+    ]
+    colonnes = [(f"P23_POP{code}", {"AGE": age, "STUD": "_T"}, f"Pop {libelle}") for code, age, libelle in tranches]
+    colonnes += [(f"P23_SCOL{code}", {"AGE": age, "STUD": "1"}, f"Pop scolarisée {libelle}") for code, age, libelle in tranches]
+    return [(code, {"RP_MEASURE": "POP", **filtre}, libelle) for code, filtre, libelle in colonnes]
+
+
+def _colonnes_logement_comp():
+    return [
+        (f"C23_RP_{code}", {"RP_MEASURE": "DWELLINGS", "OCS": "DW_MAIN", "OCC_IND": occupation}, f"Rés princ {libelle}")
+        for code, occupation, libelle in [
+            ("NORME", "STD_OCC", "occupation norme"),
+            ("SOUSOCC_MOD", "MOD_UNDER_OCC", "sous-occupation modérée"),
+            ("SOUSOCC_ACC", "SEV_UNDER_OCC", "sous-occupation accentuée"),
+            ("SOUSOCC_TACC", "VSEV_UNDER_OCC", "sous-occupation très accentuée"),
+            ("SUROCC_MOD", "MOD_OVER_OCC", "suroccupation modérée"),
+            ("SUROCC_ACC", "SEV_OVER_OCC", "suroccupation accentuée"),
+        ]
+    ]
+
+
+# Thème produit -> fichiers complémentaires (nom Insee sans _IRIS_AAAA), dans l'ordre des colonnes 2022
+COMPLEMENTAIRES = {
+    "pop": [("DS_RP_POPULATION_COMP", _colonnes_pop_comp)],
+    "emp": [
+        ("DS_RP_EMPLOI_LR_COMP", _colonnes_emploi_comp),
+        ("DS_RP_ACTIVITE_PRINC", _colonnes_activite_princ),
+        ("DS_RP_NAVETTES_PRINC", _colonnes_navettes_princ),
+    ],
+    "men": [("DS_RP_MENAGES_COMP", _colonnes_menages_comp), ("DS_RP_FAMILLE_COMP", _colonnes_famille_comp)],
+    "dip": [("DS_RP_EDUCATION_PRINC", _colonnes_education_princ)],
+    "log": [("DS_RP_LOGEMENT_COMP", _colonnes_logement_comp)],
+}
+
+
+def dossier_complementaires(annee):
+    return os.path.join(DOSSIER_DATA, f"data{annee}", "complementaires")
+
+
+def chemin_complementaire(nom, annee):
+    """Fichier DS_RP_…_IRIS_AAAA (.parquet préféré, sinon .csv) ; None s'il n'a pas été déposé."""
+    dossier = dossier_complementaires(annee)
+    if not os.path.isdir(dossier):
+        return None
+    fichiers = {f.casefold(): os.path.join(dossier, f) for f in os.listdir(dossier)}
+    for extension in (".parquet", ".csv"):
+        chemin = fichiers.get(f"{nom}_IRIS_{annee}{extension}".casefold())
+        if chemin:
+            return chemin
+    return None
+
+
+def ajouter_complementaires(theme, res, meta_rows, annee):
+    """Ajoute à la table du thème les colonnes des fichiers complémentaires présents."""
+    for nom, colonnes in COMPLEMENTAIRES[theme]:
+        chemin = chemin_complementaire(nom, annee)
+        if not chemin:
+            print(f"  -> {nom}_IRIS_{annee} absent de {dossier_complementaires(annee)} : colonnes non produites")
+            continue
+        df_raw = charger_roubaix(chemin)
+        iris_df = df_raw[df_raw["GEO"].astype(str).isin(res["IRIS"])]
+        nouvelles = {code: valeur_cube(iris_df, res, filtre) for code, filtre, _ in colonnes()}
+        res = pd.concat([res.drop(columns=list(nouvelles), errors="ignore"), pd.DataFrame(nouvelles)], axis=1)
+        meta_rows = meta_rows + [(code, libelle) for code, _, libelle in colonnes()]
+    return res, meta_rows
+
+
 def transformer_millesime(annee, force=False):
     if not force and sorties_a_jour(annee):
         print(f"=== Fichiers Insee {annee} déjà transformés et à jour : rien à refaire ===")
@@ -658,26 +890,31 @@ def transformer_millesime(annee, force=False):
 
     # 1. POP
     df_pop, meta_pop = transformer_population(df_pop_raw, socle)
+    df_pop, meta_pop = ajouter_complementaires("pop", df_pop, meta_pop, annee)
     
     # 2. LOG
     fichier_log = chemin_source("log", annee)
     df_log_raw = charger_roubaix(fichier_log)
     df_log, meta_log = transformer_logement(df_log_raw, socle)
+    df_log, meta_log = ajouter_complementaires("log", df_log, meta_log, annee)
 
     # 3. EMP
     fichier_emp = chemin_source("emp", annee)
     df_emp_raw = charger_roubaix(fichier_emp)
     df_emp, meta_emp = transformer_activite(df_emp_raw, socle)
+    df_emp, meta_emp = ajouter_complementaires("emp", df_emp, meta_emp, annee)
 
     # 4. MEN
     fichier_men = chemin_source("men", annee)
     df_men_raw = charger_roubaix(fichier_men)
     df_men, meta_men = transformer_menages(df_men_raw, socle, df_log_raw)
+    df_men, meta_men = ajouter_complementaires("men", df_men, meta_men, annee)
 
     # 5. DIP
     fichier_dip = chemin_source("dip", annee)
     df_dip_raw = charger_roubaix(fichier_dip)
     df_dip, meta_dip = transformer_diplomes(df_dip_raw, socle)
+    df_dip, meta_dip = ajouter_complementaires("dip", df_dip, meta_dip, annee)
 
     # Sauvegardes (même ordre que BASES_SORTIES)
     sorties = [
@@ -702,6 +939,23 @@ def transformer_millesime(annee, force=False):
         ("Pop 15-64 ans", df_emp["POP1564"].sum()),
         ("Actifs + Inactifs 15-64", df_emp["ACT1564"].sum() + df_emp["INACT1564"].sum()),
         ("Pop non scol 15+", df_dip["NSCOL15P"].sum()),
+    ] + [
+        # Fichiers complémentaires, quand ils sont présents
+        (libelle, valeur())
+        for libelle, colonnes, valeur in [
+            ("Pop 15+ par CSP (POP15P)", ["C23_POP15P"], lambda: df_pop["C23_POP15P"].sum()),
+            ("Ménages par type", ["C23_MENFAM"], lambda: sum(
+                df_men[c].sum() for c in ["C23_MENHSEUL", "C23_MENFSEUL", "C23_MENSFAM", "C23_MENFAM"]
+            )),
+            ("Familles", ["C23_FAM"], lambda: df_men["C23_FAM"].sum()),
+            ("Familles par type", ["C23_COUPAENF"], lambda: sum(
+                df_men[c].sum() for c in ["C23_COUPAENF", "C23_FAMMONO", "C23_COUPSENF"]
+            )),
+            ("Actifs occupés 15+", ["P23_ACTOCC15P"], lambda: df_emp["P23_ACTOCC15P"].sum()),
+            ("Salariés + Non-salariés", ["P23_SAL15P"], lambda: df_emp["P23_SAL15P"].sum() + df_emp["P23_NSAL15P"].sum()),
+            ("Actifs occ. commune + autre", ["P23_ACTOCC15P_ILT1"], lambda: df_emp["P23_ACTOCC15P_ILT1"].sum() + df_emp["P23_ACTOCC15P_ILT2P"].sum()),
+        ]
+        if all(colonne in (df_pop.columns.tolist() + df_men.columns.tolist() + df_emp.columns.tolist()) for colonne in colonnes)
     ]:
         print(f"  {libelle:<28} {valeur:>12,.0f}")
     if df_pop["POP"].sum() == 0:

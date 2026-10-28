@@ -117,15 +117,17 @@ ApplicationMAJ/
 | 27/10/2026 | Données acceptées en CSV ou Parquet, mélangeables dans un lot ; lecture centralisée dans `modules/lecture.py` (Parquet via DuckDB, importé seulement si besoin) ; métadonnées toujours en CSV | Fichiers plus légers et plus rapides à lire (FD_INDCVI : 4 colonnes lues seulement), sans casser les lots CSV existants |
 | 27/10/2026 | Indicateur dont une variable manque au millésime (`KeyError`) : message « Indicateur non calculé … variable absente de ce millésime », affiché en encadré jaune repliable dans le portail ; seules les autres erreurs de calcul restent en rouge et passent le job en « avec avertissements » | Les 13 indicateurs vides attendus en 2023 ne font plus croire à un échec |
 | 27/10/2026 | Transformer renommé `transformer_recensement.py` et indépendant de l'année : traite chaque `data/dataAAAA/sources_brutes_insee/` trouvé, codes `P23_` → `P{aa}_` ; arrêt « Population nulle » si les dimensions des cubes changent ; `extraire_indcvi_roubaix.py` prend le chemin du fichier national en argument ; guide `doc/nouveau_millesime.md` | Un nouveau millésime = déposer les fichiers, sans modifier le code ; sorties 2023 identiques octet pour octet |
+| 28/10/2026 | Fichiers complémentaires Insee (`DS_RP_…_IRIS_AAAA`) lus par le transformer dans `data/dataAAAA/complementaires/`, sous leur nom Insee ; colonnes ajoutées aux 5 fichiers produits avec les codes 2022 (`C23_MENHSEUL`, `P23_SAL15P`…) dans l'ordre 2022 | L'ingestion retrouve les en-têtes du modèle sans toucher aux dictionnaires ; chaque fichier reste facultatif |
+| 28/10/2026 | « Part des actifs occupés travaillant dans la commune de résidence » rapportée aux actifs occupés 15 ans ou plus (et non plus aux salariés) | Correction de la limite connue ; change aussi la valeur 2022 (41,9 % → environ 37 % en moyenne IRIS) |
 | Oct 2026 | Suppression de `demarrer_portail.ps1` au profit de `run_portal.bat` + `run_portal.py` | Simplification : un seul clic, pas de politique d'exécution PowerShell |
 
 ---
 
 ## 5. Limites Connues & Points d'Attention
 
-- **Recensement 2023** : certaines variables absentes des cubes INSEE (salariés CDI, familles monoparentales, pop 60-74 ans) → indicateurs vides dans le classeur
+- **Recensement 2023** : avec les 8 fichiers complémentaires, seuls les 3 indicateurs liés à Pop 60-74 ans / 75 ans ou plus restent vides ; 118 colonnes du modèle 2022 n'ont pas d'équivalent 2023 (liste dans le README, « Limites connues »)
+- **Codes des fichiers complémentaires** : dans `DS_RP_MENAGES_COMP`, MF21 = famille monoparentale, MF221 = couple sans enfant, MF222 = couple avec enfant(s) (vérifié sur la taille moyenne des ménages) ; leurs totaux (exploitation complémentaire) diffèrent légèrement des cubes principaux, comme en 2022 (ex. ménages 39 680 contre 39 257 résidences principales)
 - **Liens Présentation** : une année absente de `liens_presentation.yml` garde le lien du modèle Excel (à compléter à chaque nouveau millésime)
-- **Formule « actifs travaillant dans la commune de résidence »** : divise par « Salariés 15 ans ou plus » au lieu de « Actifs occupés 15 ans ou plus » ; sans effet en 2023 (variable absente), à revoir si un millésime la contient
 - **Colonne « Crèches »** (onglet petite enfance) : aucune source ; retirée du classeur tant qu'elle est vide. Si une source arrive, la renseigner suffit : la colonne réapparaît
 - **Transformer du recensement** : après remplacement d'un cube INSEE, la date de modification déclenche le recalcul ; en cas de doute, `python scripts/transformer_recensement.py --force`
 - **Couleurs d'en-têtes** : déterminées par `_est_additive()` de `mise_en_page.py` (règles d'arrondi + mots-clés) ; une nouvelle colonne mal classée se corrige là
@@ -139,6 +141,21 @@ ApplicationMAJ/
 ---
 
 ## 6. Historique des Sessions de Travail
+
+### 📅 28 octobre 2026 — Fichiers complémentaires Insee 2023
+
+**Auteur** : Bilal (assisté par IA)
+
+#### Modifications effectuées
+- `scripts/transformer_recensement.py` : section « 6. Fichiers complémentaires » (`COMPLEMENTAIRES`, `chemin_complementaire`, `ajouter_complementaires`) ; 8 fichiers `DS_RP_…_IRIS_AAAA` lus dans `data/dataAAAA/complementaires/` (Parquet préféré, sinon CSV) ; colonnes ajoutées : POP 15+ par sexe et CSP (27), actifs / actifs occupés 15-64 par CSP (12), actifs occupés 15+, salariés, non-salariés, temps partiel, CDI (15), lieu de travail et transport (13), ménages et population des ménages par type et CSP de la personne de référence (33), familles par type et nombre d'enfants (11), population et scolarisés par âge (14), occupation des résidences principales (6) ; fichiers pris en compte dans le contrôle « sorties à jour » ; contrôle de cohérence complété
+- `dictionnaires/calculated_columns.yml` : dénominateur de « Part des actifs occupés travaillant dans la commune de résidence » corrigé
+- `exemples/lot2023` : 5 fichiers et métas complétés avec ces colonnes
+- README, `doc/nouveau_millesime.md`, `doc/Fichiers_INSEE_2026.md` : dépôt des fichiers complémentaires et limites restantes
+
+#### Vérifications
+- Chaque correspondance de code contrôlée sur le total Roubaix 2023 face au total 2022 (écarts de quelques %)
+- Pipeline sur `exemples/lot2023` complété : 139 en-têtes du modèle 2022 retrouvés en plus, identiques au modèle ; 10 des 13 indicateurs auparavant non calculés le sont (familles, salariés, CDI, commune de travail) ; 3 avertissements restants (Pop 60-74 ans)
+- Lot 2022 : classeur inchangé sauf l'indicateur « commune de résidence »
 
 ### 📅 27 octobre 2026 (soir) — Application indépendante du millésime
 

@@ -10,3 +10,46 @@ POP15P_CONCUB_UNION_LIBRE;Pop 15 ans ou plus Concubinage
 POP15P_VEUFS;Pop 15 ans ou plus Veufs
 POP15P_DIVORCEE;Pop 15 ans ou plus Divorcée
 POP15P_CELIBATAIRE;Pop 15 ans ou plus Célibataire
+C23_MENHSEUL;Ménages Hommes seuls
+C23_MENFSEUL;Ménages Femmes seules
+C23_MENSFAM;Ménages Autres sans famille
+C23_MENFAM;Ménages avec famille(s)
+C23_MENCOUPSENF;Mén fam princ Couple sans enfant
+C23_MENCOUPAENF;Mén fam princ Couple avec enfant(s)
+C23_MENFAMMONO;Mén fam princ Famille mono
+C23_PMEN;Pop Ménages
+C23_PMEN_MENPSEUL;Pop mén Personnes seules
+C23_PMEN_MENHSEUL;Pop mén Hommes seuls
+C23_PMEN_MENFSEUL;Pop mén Femmes seules
+C23_PMEN_MENSFAM;Pop mén Autres sans famille
+C23_PMEN_MENFAM;Pop mén avec famille(s)
+C23_PMEN_MENCOUPSENF;Pop mén fam princ Couple sans enfant
+C23_PMEN_MENCOUPAENF;Pop mén fam princ Couple avec enfant(s)
+C23_PMEN_MENFAMMONO;Pop mén fam princ Famille mono
+C23_MEN_STAT_GSEC11_21;Ménages Pers Réf Agri. expl.
+C23_MEN_STAT_GSEC12_22;Ménages Pers Réf Art. Comm. Chef entr.
+C23_MEN_STAT_GSEC13_23;Ménages Pers Réf Cadre Prof int sup
+C23_MEN_STAT_GSEC14_24;Ménages Pers Réf Prof intermédiaire
+C23_MEN_STAT_GSEC15_25;Ménages Pers Réf Employé
+C23_MEN_STAT_GSEC16_26;Ménages Pers Réf Ouvrier
+C23_MEN_STAT_GSEC32;Ménages Pers Réf Retraité
+C23_MEN_STAT_GSEC40;Ménages Pers Réf Autre
+C23_PMEN_STAT_GSEC11_21;Pop mén Pers Réf Agri. expl.
+C23_PMEN_STAT_GSEC12_22;Pop mén Pers Réf Art. Comm. Chef entr.
+C23_PMEN_STAT_GSEC13_23;Pop mén Pers Réf Cadre Prof int sup
+C23_PMEN_STAT_GSEC14_24;Pop mén Pers Réf Prof intermédiaire
+C23_PMEN_STAT_GSEC15_25;Pop mén Pers Réf Employé
+C23_PMEN_STAT_GSEC16_26;Pop mén Pers Réf Ouvrier
+C23_PMEN_STAT_GSEC32;Pop mén Pers Réf Retraité
+C23_PMEN_STAT_GSEC40;Pop mén Pers Réf Autre
+C23_FAM;Familles
+C23_COUPAENF;Fam Couple avec enfant(s)
+C23_FAMMONO;Fam Monoparentales
+C23_COUPSENF;Fam Couple sans enfant
+C23_NE24F0;Fam 0 enfant moins 25 ans
+C23_NE24F1;Fam 1 enfant moins 25 ans
+C23_NE24F2;Fam 2 enfants moins 25 ans
+C23_NE24F3;Fam 3 enfants moins 25 ans
+C23_NE24F4P;Fam 4 enfants ou plus moins 25 ans
+C23_FAMTRAD;Fam Couple avec uniquement enfant(s) du couple
+C23_FAMRECOMP;Fam Couple avec au moins un enfant d'un seul des 2 membres du couple

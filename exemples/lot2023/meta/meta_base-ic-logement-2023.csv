@@ -45,3 +45,9 @@ RP_CFIOUL;Chauffage fioul
 RP_CELEC;Chauffage électrique
 RP_CGAZB;Chauffage gaz en bouteille
 RP_CAUT;Autre chauffage
+C23_RP_NORME;Rés princ occupation norme
+C23_RP_SOUSOCC_MOD;Rés princ sous-occupation modérée
+C23_RP_SOUSOCC_ACC;Rés princ sous-occupation accentuée
+C23_RP_SOUSOCC_TACC;Rés princ sous-occupation très accentuée
+C23_RP_SUROCC_MOD;Rés princ suroccupation modérée
+C23_RP_SUROCC_ACC;Rés princ suroccupation accentuée
