@@ -9,6 +9,7 @@
 ### CATÉGORIE 1 : Nombres Entiers (0 décimale)
 **Règle technique :** Arrondir à l'entier le plus proche (ex: `round(0).astype("Int64")`).
 **Raison sémantique :** Ces variables représentent des entités physiques et indivisibles (personnes, ménages, logements). Même si les algorithmes de l'INSEE génèrent des décimales via des pondérations, la restitution doit se faire en entiers.
+**Arrondi contrôlé :** pour les effectifs additifs (ceux qui ont un total dans le classeur), l'arrondi se fait par la méthode du plus fort reste (`_arrondi_controle` dans `modules/indicateurs.py`) : la somme des IRIS arrondis égale l'arrondi de la somme exacte, donc le chiffre communal officiel (ex. 98 286 habitants en 2023 au lieu de 98 284 avec un arrondi IRIS par IRIS). Chaque IRIS reste à ±1 de sa valeur exacte.
 **Variables concernées :**
 *   **POP (Population) :** Toutes les variables (`POP`, `POP0002`, `H1529`, `FR`, etc.)
 *   **ACT (Activité) :** Toutes les variables (`ACT1564`, `CHOM1524`, `INACT1564`, etc.)
