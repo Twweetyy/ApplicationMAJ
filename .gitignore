@@ -34,7 +34,6 @@ dictionnaires/meta/*/sources_brutes_meta/
 .gitmessage
 
 # ===== Fichiers générés (classeurs Excel de sortie) =====
-TAB_BDDMAS_*.xlsx
 !TAB_BDDMAS_INSEE2022_MODELE.xlsx
 
 # ===== IDE / Éditeurs =====
