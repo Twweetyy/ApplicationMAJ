@@ -1,7 +1,7 @@
 COD_VAR;LIB_VAR;COD_MOD;LIB_MOD;TYPE_VAR;LONG_VAR
 CodGeo;Code géographique;;;NUM;8
 LibGeo;Libellé géographique;;;NUM;8
-EPCI;Code de l’EPCI au 1er janvier 2024;;;NUM;8
+EPCI;Code de l’EPCI au 1er janvier 2025;;;NUM;8
 UU2020;Code de l'unité urbaine 2020;;;NUM;8
 REG;Code de la région;;;NUM;8
 NOTE;Note de diffusion;;;NUM;8
@@ -5722,13 +5722,6 @@ CodGeo;Code du quartier prioritaire;490500105;Saint-Saturnin-sur-Loire;CHAR;8
 CodGeo;Code du quartier prioritaire;490500106;Vauchrétien;CHAR;8
 CodGeo;Code du quartier prioritaire;490630101;Ouest;CHAR;8
 CodGeo;Code du quartier prioritaire;490630103;Est;CHAR;8
-CodGeo;Code du quartier prioritaire;490690101;La Varenne;CHAR;8
-CodGeo;Code du quartier prioritaire;490690102;Champtoceaux;CHAR;8
-CodGeo;Code du quartier prioritaire;490690103;Drain;CHAR;8
-CodGeo;Code du quartier prioritaire;490690104;Landemont;CHAR;8
-CodGeo;Code du quartier prioritaire;490690105;Saint-Laurent-des-Autels;CHAR;8
-CodGeo;Code du quartier prioritaire;490690106;Liré;CHAR;8
-CodGeo;Code du quartier prioritaire;490690107;Bouzillé;CHAR;8
 CodGeo;Code du quartier prioritaire;490920101;Centre Ville;CHAR;8
 CodGeo;Code du quartier prioritaire;490920102;Astrée-Beauregard;CHAR;8
 CodGeo;Code du quartier prioritaire;490920103;Z.I. Bompas;CHAR;8
@@ -5764,6 +5757,13 @@ CodGeo;Code du quartier prioritaire;491250102;Sud-Ouest;CHAR;8
 CodGeo;Code du quartier prioritaire;491250201;Meigné;CHAR;8
 CodGeo;Code du quartier prioritaire;491250202;Montfort;CHAR;8
 CodGeo;Code du quartier prioritaire;491250203;Les Verchers-sur-Layon;CHAR;8
+CodGeo;Code du quartier prioritaire;491260101;La Varenne;CHAR;8
+CodGeo;Code du quartier prioritaire;491260102;Champtoceaux;CHAR;8
+CodGeo;Code du quartier prioritaire;491260103;Drain;CHAR;8
+CodGeo;Code du quartier prioritaire;491260104;Landemont;CHAR;8
+CodGeo;Code du quartier prioritaire;491260105;Saint-Laurent-des-Autels;CHAR;8
+CodGeo;Code du quartier prioritaire;491260106;Liré;CHAR;8
+CodGeo;Code du quartier prioritaire;491260107;Bouzillé;CHAR;8
 CodGeo;Code du quartier prioritaire;491800101;La Couaille;CHAR;8
 CodGeo;Code du quartier prioritaire;491800102;La Croix Rouge;CHAR;8
 CodGeo;Code du quartier prioritaire;491800103;La Métairie;CHAR;8
@@ -8941,7 +8941,7 @@ CodGeo;Code du quartier prioritaire;690920102;Ouilly Les Rousses Chervinges;CHAR
 CodGeo;Code du quartier prioritaire;690920103;Le Bourg La Claire;CHAR;8
 CodGeo;Code du quartier prioritaire;690960101;Centre Ville;CHAR;8
 CodGeo;Code du quartier prioritaire;690960102;Les Arboras;CHAR;8
-CodGeo;Code du quartier prioritaire;690960103;Nouveau Grigny;CHAR;8
+CodGeo;Code du quartier prioritaire;690960103;Nouveau Grigny-sur-Rhône;CHAR;8
 CodGeo;Code du quartier prioritaire;691000101;Centre;CHAR;8
 CodGeo;Code du quartier prioritaire;691000102;Yvours;CHAR;8
 CodGeo;Code du quartier prioritaire;691000103;Venières;CHAR;8
@@ -11217,9 +11217,10 @@ CodGeo;Code du quartier prioritaire;770580102;Tillet et Est;CHAR;8
 CodGeo;Code du quartier prioritaire;770580103;Centre Ville Nord;CHAR;8
 CodGeo;Code du quartier prioritaire;770580104;Centre Ville Sud-Ouest;CHAR;8
 CodGeo;Code du quartier prioritaire;770580105;Centre Ville Sud-Est;CHAR;8
-CodGeo;Code du quartier prioritaire;770670101;Nord-Centre;CHAR;8
-CodGeo;Code du quartier prioritaire;770670102;Nord-Est;CHAR;8
-CodGeo;Code du quartier prioritaire;770670103;Centre-Sud;CHAR;8
+CodGeo;Code du quartier prioritaire;770670104;Moulin-à-Vent;CHAR;8
+CodGeo;Code du quartier prioritaire;770670105;Sentier vert;CHAR;8
+CodGeo;Code du quartier prioritaire;770670106;Centre-Ville;CHAR;8
+CodGeo;Code du quartier prioritaire;770670107;Cesson-la-Forêt;CHAR;8
 CodGeo;Code du quartier prioritaire;770670199;Ouest;CHAR;8
 CodGeo;Code du quartier prioritaire;770790101;Nord-Ouest;CHAR;8
 CodGeo;Code du quartier prioritaire;770790102;Centre Sud;CHAR;8
@@ -13001,6 +13002,7 @@ CodGeo;Code du quartier prioritaire;883040103;Est;CHAR;8
 CodGeo;Code du quartier prioritaire;883210101;Centre;CHAR;8
 CodGeo;Code du quartier prioritaire;883210102;Nord-Est;CHAR;8
 CodGeo;Code du quartier prioritaire;883210103;Ouest;CHAR;8
+CodGeo;Code du quartier prioritaire;883210104;Rollainville;CHAR;8
 CodGeo;Code du quartier prioritaire;883720101;Ouest;CHAR;8
 CodGeo;Code du quartier prioritaire;883720102;Est;CHAR;8
 CodGeo;Code du quartier prioritaire;883830101;Gare Vieux Moulins Joncherie;CHAR;8
@@ -14495,15 +14497,6 @@ CodGeo;Code du quartier prioritaire;930570106;Émile Zola;CHAR;8
 CodGeo;Code du quartier prioritaire;930570107;Franklin;CHAR;8
 CodGeo;Code du quartier prioritaire;930570108;Président Wilson;CHAR;8
 CodGeo;Code du quartier prioritaire;930570109;Victor Hugo;CHAR;8
-CodGeo;Code du quartier prioritaire;930590101;Nord;CHAR;8
-CodGeo;Code du quartier prioritaire;930590102;Maroc;CHAR;8
-CodGeo;Code du quartier prioritaire;930590103;Gare;CHAR;8
-CodGeo;Code du quartier prioritaire;930590104;Potier;CHAR;8
-CodGeo;Code du quartier prioritaire;930590105;Centre Ville;CHAR;8
-CodGeo;Code du quartier prioritaire;930590106;Butte Pinson;CHAR;8
-CodGeo;Code du quartier prioritaire;930590107;Joncherolles Fauvettes;CHAR;8
-CodGeo;Code du quartier prioritaire;930590108;Sud 1;CHAR;8
-CodGeo;Code du quartier prioritaire;930590109;Sud 2;CHAR;8
 CodGeo;Code du quartier prioritaire;930610101;7 Arpents;CHAR;8
 CodGeo;Code du quartier prioritaire;930610102;Gabriel Péri;CHAR;8
 CodGeo;Code du quartier prioritaire;930610103;Stalingrad;CHAR;8
@@ -14584,6 +14577,15 @@ CodGeo;Code du quartier prioritaire;930661102;Plaine 02;CHAR;8
 CodGeo;Code du quartier prioritaire;930661103;Plaine 03;CHAR;8
 CodGeo;Code du quartier prioritaire;930661104;Plaine 04;CHAR;8
 CodGeo;Code du quartier prioritaire;930661501;Pleyel 01;CHAR;8
+CodGeo;Code du quartier prioritaire;930661601;Nord Pierrefitte-sur-Seine;CHAR;8
+CodGeo;Code du quartier prioritaire;930661602;Maroc;CHAR;8
+CodGeo;Code du quartier prioritaire;930661603;Gare Pierrefitte-sur-Seine;CHAR;8
+CodGeo;Code du quartier prioritaire;930661604;Potier;CHAR;8
+CodGeo;Code du quartier prioritaire;930661605;Centre Ville Pierrefitte-sur-Seine;CHAR;8
+CodGeo;Code du quartier prioritaire;930661606;Butte Pinson;CHAR;8
+CodGeo;Code du quartier prioritaire;930661607;Joncherolles Fauvettes;CHAR;8
+CodGeo;Code du quartier prioritaire;930661608;Sud 1 Pierrefitte-sur-Seine;CHAR;8
+CodGeo;Code du quartier prioritaire;930661609;Sud 2 Pierrefitte-sur-Seine;CHAR;8
 CodGeo;Code du quartier prioritaire;930700101;Secteur 1;CHAR;8
 CodGeo;Code du quartier prioritaire;930700102;Secteur 2;CHAR;8
 CodGeo;Code du quartier prioritaire;930700103;Secteur 3;CHAR;8
@@ -15858,9 +15860,9 @@ CodGeo;Code du quartier prioritaire;972222204;Vert Pré-L'Heureux-Galette;CHAR;8
 CodGeo;Code du quartier prioritaire;972222205;Augrain-Fond Brûlé-Berthou;CHAR;8
 CodGeo;Code du quartier prioritaire;972222206;Fond Nicolas-Chapelle Villarson;CHAR;8
 CodGeo;Code du quartier prioritaire;972222207;Duchêne-Hauteur Pontaléry;CHAR;8
-CodGeo;Code du quartier prioritaire;972232303;L'Avenir-Grand Bassin-Valatte;CHAR;8
-CodGeo;Code du quartier prioritaire;972232304;Iris 2304;CHAR;8
-CodGeo;Code du quartier prioritaire;972232305;Iris 2305;CHAR;8
+CodGeo;Code du quartier prioritaire;972232303;Beauséjour-Grand Bassin-Valatte;CHAR;8
+CodGeo;Code du quartier prioritaire;972232304;L'Avenir-Petit Paradis-Morne Lavaleur;CHAR;8
+CodGeo;Code du quartier prioritaire;972232305;Gueydon-Duchâtel-Thibault;CHAR;8
 CodGeo;Code du quartier prioritaire;972232306;Bourg-La Ferme;CHAR;8
 CodGeo;Code du quartier prioritaire;972242401;Bourg-Belle Étoile-Long-Bois;CHAR;8
 CodGeo;Code du quartier prioritaire;972242402;Rousseau-Bois-Neuf-Fonds Épingles;CHAR;8
@@ -15929,8 +15931,8 @@ CodGeo;Code du quartier prioritaire;973040108;Savane;CHAR;8
 CodGeo;Code du quartier prioritaire;973040109;Cabalou;CHAR;8
 CodGeo;Code du quartier prioritaire;973040110;Village Saramaka;CHAR;8
 CodGeo;Code du quartier prioritaire;973050102;Macouria Est;CHAR;8
-CodGeo;Code du quartier prioritaire;973050103;Tonate Sainte-Agathe;CHAR;8
-CodGeo;Code du quartier prioritaire;973050104;Préfontaine - Matiti;CHAR;8
+CodGeo;Code du quartier prioritaire;973050103;Tonate-Savane Matiti;CHAR;8
+CodGeo;Code du quartier prioritaire;973050104;Sainte-Agathe-Trois-Rois;CHAR;8
 CodGeo;Code du quartier prioritaire;973060101;Le Bourg;CHAR;8
 CodGeo;Code du quartier prioritaire;973060103;Javouhey;CHAR;8
 CodGeo;Code du quartier prioritaire;973060104;RN1 - Forêt;CHAR;8
