@@ -9,11 +9,12 @@ from contextlib import redirect_stdout
 from io import StringIO
 from pathlib import Path
 
-from fastapi import BackgroundTasks, FastAPI, File, HTTPException, UploadFile
+from fastapi import BackgroundTasks, FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from main_bddmas import DOSSIER_DICOS, FICHIER_MODELE, ErreurPrecontrole, executer_pipeline
+from modules.bpe import PERIMETRES as PERIMETRES_BPE, ErreurBPE, generer_classeur_bpe
 from modules.ingestion import analyser_fichiers_entree
 from modules.lecture import EXTENSIONS_DONNEES
 
@@ -30,20 +31,23 @@ app = FastAPI(title="BDDMAS | Génération de classeur", docs_url=None, redoc_ur
 app.mount("/static", StaticFiles(directory=DOSSIER_WEB), name="static")
 
 _JOBS: dict[str, dict] = {}
+# Classeurs BPE (page /bpe), indépendants des lots BDDMAS
+_JOBS_BPE: dict[str, dict] = {}
 _VERROU_JOBS = threading.RLock()
 
 
 def _nettoyer_anciens_jobs() -> None:
     limite = time.time() - DUREE_CONSERVATION_SECONDES
     with _VERROU_JOBS:
-        anciens = [
-            job_id
-            for job_id, job in _JOBS.items()
-            if job["created_at"] < limite and job["status"] not in {"queued", "processing"}
-        ]
-        for job_id in anciens:
-            job = _JOBS.pop(job_id)
-            shutil.rmtree(job["root"], ignore_errors=True)
+        for jobs in (_JOBS, _JOBS_BPE):
+            anciens = [
+                job_id
+                for job_id, job in jobs.items()
+                if job["created_at"] < limite and job["status"] not in {"queued", "processing"}
+            ]
+            for job_id in anciens:
+                job = jobs.pop(job_id)
+                shutil.rmtree(job["root"], ignore_errors=True)
 
     for dossier in DOSSIER_JOBS.iterdir():
         if dossier.is_dir() and dossier.stat().st_mtime < limite:
@@ -152,6 +156,11 @@ def accueil():
     return FileResponse(DOSSIER_WEB / "index.html")
 
 
+@app.get("/bpe")
+def page_bpe():
+    return FileResponse(DOSSIER_WEB / "bpe.html")
+
+
 @app.get("/api/health")
 def etat_service():
     return {"status": "ok"}
@@ -230,7 +239,7 @@ def lancer_generation(job_id: str, background_tasks: BackgroundTasks):
     with _VERROU_JOBS:
         if job["status"] != "ready":
             raise HTTPException(status_code=409, detail="Ce lot n’est pas prêt à être généré.")
-        if any(item["status"] in {"queued", "processing"} for item in _JOBS.values()):
+        if any(item["status"] in {"queued", "processing"} for item in [*_JOBS.values(), *_JOBS_BPE.values()]):
             raise HTTPException(status_code=409, detail="Une génération est déjà en cours sur ce serveur.")
         job["status"] = "queued"
     background_tasks.add_task(_generer_classeur, job_id)
@@ -257,5 +266,138 @@ def supprimer_job(job_id: str):
         raise HTTPException(status_code=409, detail="Impossible de supprimer un lot en cours de génération.")
     with _VERROU_JOBS:
         _JOBS.pop(job_id, None)
+    shutil.rmtree(job["root"], ignore_errors=True)
+    return None
+
+
+# --------------------------------------------------------------------------- BPE (Base permanente des équipements)
+
+
+def _job_bpe_public(job: dict) -> dict:
+    return {
+        "id": job["id"],
+        "status": job["status"],
+        "perimetre": PERIMETRES_BPE[job["perimetre"]],
+        "fichiers": job["fichiers"],
+        "resume": job.get("resume"),
+        "erreur": job.get("erreur"),
+    }
+
+
+def _obtenir_job_bpe(job_id: str) -> dict:
+    with _VERROU_JOBS:
+        job = _JOBS_BPE.get(job_id)
+    if job is None:
+        raise HTTPException(status_code=404, detail="Traitement BPE introuvable ou expiré.")
+    return job
+
+
+def _generer_classeur_bpe(job_id: str) -> None:
+    with _VERROU_JOBS:
+        job = _JOBS_BPE.get(job_id)
+        if job is None:
+            return
+        job["status"] = "processing"
+    try:
+        resume = generer_classeur_bpe(
+            chemin_bpe=job["source"],
+            chemin_sortie=str(Path(job["root"]) / "BPE_equipements.xlsx"),
+            perimetre=job["perimetre"],
+            chemin_varmod=job["varmod"],
+            dossier_dicos=str(DOSSIER_DICOS),
+        )
+        with _VERROU_JOBS:
+            job["resume"] = resume
+            job["status"] = "done"
+    except ErreurBPE as erreur:
+        with _VERROU_JOBS:
+            job["erreur"] = str(erreur)
+            job["status"] = "failed"
+    except Exception as erreur:
+        with _VERROU_JOBS:
+            job["erreur"] = f"{type(erreur).__name__}: {erreur}"
+            job["status"] = "failed"
+
+
+@app.post("/api/bpe/jobs", status_code=202)
+def creer_job_bpe(
+    background_tasks: BackgroundTasks,
+    source: UploadFile = File(...),
+    varmod: UploadFile | None = File(None),
+    perimetre: str = Form("roubaix"),
+):
+    """Reçoit le fichier BPE (et éventuellement le varmod), puis lance la génération du classeur."""
+    _nettoyer_anciens_jobs()
+    if perimetre not in PERIMETRES_BPE:
+        raise HTTPException(status_code=400, detail=f"Périmètre inconnu : {perimetre}")
+    nom_source = _nom_fichier_securise(source.filename)
+    nom_varmod = None
+    if varmod is not None and varmod.filename:
+        nom_varmod = varmod.filename.replace("\\", "/").rsplit("/", 1)[-1].strip()
+        if not nom_varmod.lower().endswith(".csv"):
+            raise HTTPException(status_code=400, detail=f"Le varmod doit être au format CSV : {nom_varmod}")
+
+    with _VERROU_JOBS:
+        if any(item["status"] in {"queued", "processing"} for item in [*_JOBS.values(), *_JOBS_BPE.values()]):
+            raise HTTPException(status_code=409, detail="Un traitement est déjà en cours sur ce serveur.")
+
+    job_id = uuid.uuid4().hex
+    racine = DOSSIER_JOBS / f"bpe-{job_id}"
+    racine.mkdir(parents=True)
+    try:
+        chemin_source = racine / nom_source
+        _copier_televersement(source, chemin_source)
+        chemin_varmod = None
+        if nom_varmod:
+            chemin_varmod = racine / f"varmod_{nom_varmod}"
+            _copier_televersement(varmod, chemin_varmod)
+    except Exception as exc:
+        shutil.rmtree(racine, ignore_errors=True)
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la réception : {type(exc).__name__}: {exc}")
+
+    job = {
+        "id": job_id,
+        "root": str(racine),
+        "source": str(chemin_source),
+        "varmod": str(chemin_varmod) if chemin_varmod else None,
+        "perimetre": perimetre,
+        "created_at": time.time(),
+        "status": "queued",
+        "fichiers": [nom for nom in (nom_source, nom_varmod) if nom],
+        "resume": None,
+        "erreur": None,
+    }
+    with _VERROU_JOBS:
+        _JOBS_BPE[job_id] = job
+    background_tasks.add_task(_generer_classeur_bpe, job_id)
+    return _job_bpe_public(job)
+
+
+@app.get("/api/bpe/jobs/{job_id}")
+def consulter_job_bpe(job_id: str):
+    return _job_bpe_public(_obtenir_job_bpe(job_id))
+
+
+@app.get("/api/bpe/jobs/{job_id}/download")
+def telecharger_classeur_bpe(job_id: str):
+    job = _obtenir_job_bpe(job_id)
+    resume = job.get("resume") or {}
+    chemin = resume.get("classeur")
+    if job["status"] != "done" or not chemin or not Path(chemin).is_file():
+        raise HTTPException(status_code=409, detail="Le classeur BPE n’est pas encore disponible.")
+    return FileResponse(
+        chemin,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        filename=resume["nom_fichier"],
+    )
+
+
+@app.delete("/api/bpe/jobs/{job_id}", status_code=204)
+def supprimer_job_bpe(job_id: str):
+    job = _obtenir_job_bpe(job_id)
+    if job["status"] in {"queued", "processing"}:
+        raise HTTPException(status_code=409, detail="Impossible de supprimer un traitement en cours.")
+    with _VERROU_JOBS:
+        _JOBS_BPE.pop(job_id, None)
     shutil.rmtree(job["root"], ignore_errors=True)
     return None
