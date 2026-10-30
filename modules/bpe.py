@@ -11,6 +11,10 @@ Périmètres :
   roubaix : équipements de Roubaix, avec libellé IRIS, secteur mairie, quartier historique
             et grand quartier ; Recap par IRIS ;
   mel     : équipements des 95 communes de la MEL ; Recap par commune.
+
+Nouveau millésime : une colonne absente reste dans le classeur, vide ; une colonne inconnue
+est ajoutée en fin de tableau avec le libellé du varmod. Les deux listes sont rendues dans
+le résumé (colonnes_absentes, colonnes_nouvelles) et affichées par le portail.
 """
 import csv
 import os
@@ -119,9 +123,11 @@ LIBELLES_COLONNES = {
     "AAV2020": "Aire d'attraction des villes 2020",
     "BV2022": "Bassin de vie 2022",
     "QP2015": "Quartier prioritaire 2015",
+    "QUALI_QP2015": "Indicateur de qualité du géoréférencement dans le quartier prioritaire 2015",
     "DENS3": "Densité (3 niveaux)",
     "DENS7": "Densité (7 niveaux)",
     "QVA": "Quartier de veille active (QVA)",
+    "QUALI_QVA": "Indicateur de qualité du géoréférencement dans le quartier de veille active",
     "IRISEE": "Commune irisée",
     "GPL": "Gaz de pétrole liquéfié",
     "CAPACITE": "Capacité de l'équipement (v2025)",
@@ -165,7 +171,9 @@ COLONNES_EXPORT = [
     "Numero SIRET", "Lambert X", "lambert Y",
     "Code Postal", "Latitude GPS", "Longitude GPS", "Latitude et longitude GPS", "Code APE (Activité Principale)", "Département", "Région",
     "Intercommunalité (EPCI)", "Unité urbaine 2020", "Aire d'attraction des villes 2020", "Bassin de vie 2022",
-    "Quartier prioritaire 2015", "Densité (3 niveaux)", "Densité (7 niveaux)", "Quartier de veille active (QVA)",
+    "Quartier prioritaire 2015", "Indicateur de qualité du géoréférencement dans le quartier prioritaire 2015",
+    "Densité (3 niveaux)", "Densité (7 niveaux)", "Quartier de veille active (QVA)",
+    "Indicateur de qualité du géoréférencement dans le quartier de veille active",
     "Commune irisée", "Gaz de pétrole liquéfié", "Capacité de l'équipement (v2025)",
 ]
 
@@ -213,12 +221,44 @@ def lire_varmod(chemin: str) -> pd.DataFrame:
     return df_meta
 
 
+def _en_texte(valeur) -> str | None:
+    """Nombre du Parquet écrit comme dans le CSV de l'Insee : 12.0 -> « 12 », 50.69 -> « 50.69 »."""
+    if valeur is None or pd.isna(valeur):
+        return None
+    if isinstance(valeur, float) and valeur.is_integer():
+        return str(int(valeur))
+    return str(valeur)
+
+
+def _lire_parquet_perimetre(chemin_bpe: str, codes_communes: set[str]) -> pd.DataFrame:
+    """Filtre DEPCOM fait par DuckDB dans le Parquet : seules les lignes du périmètre sont chargées."""
+    import duckdb
+
+    source = chemin_bpe.replace("'", "''")
+    connexion = duckdb.connect()
+    try:
+        colonnes = [ligne[0] for ligne in connexion.execute(f"DESCRIBE SELECT * FROM read_parquet('{source}')").fetchall()]
+        if "DEPCOM" not in colonnes:
+            raise ErreurBPE("Colonne DEPCOM absente : ce fichier n'est pas une table BPE de l'Insee.")
+        df = connexion.execute(
+            f"SELECT * FROM read_parquet('{source}') WHERE trim(CAST(DEPCOM AS VARCHAR)) IN (SELECT unnest(?))",
+            [sorted(codes_communes)],
+        ).df()
+    except duckdb.Error as erreur:
+        raise ErreurBPE(f"Parquet illisible ({os.path.basename(chemin_bpe)}) : {erreur}") from erreur
+    finally:
+        connexion.close()
+    for col in df.columns:
+        if not pd.api.types.is_string_dtype(df[col]) and not pd.api.types.is_object_dtype(df[col]):
+            df[col] = df[col].astype(object).map(_en_texte)
+    return df.astype(object).where(df.notna(), None)
+
+
 def extraire_perimetre(chemin_bpe: str, codes_communes: set[str]) -> pd.DataFrame:
-    """Lignes du fichier BPE dont DEPCOM est dans codes_communes, lues par blocs (fichier national accepté)."""
+    """Lignes du fichier BPE dont DEPCOM est dans codes_communes (fichier national accepté, CSV lu par blocs)."""
     if est_parquet(chemin_bpe):
-        lecture = lire_par_blocs(chemin_bpe, TAILLE_BLOC)
-    else:
-        lecture = lire_par_blocs(chemin_bpe, TAILLE_BLOC, sep=_separateur_csv(chemin_bpe), dtype=str, encoding="utf-8-sig")
+        return _lire_parquet_perimetre(chemin_bpe, codes_communes)
+    lecture = lire_par_blocs(chemin_bpe, TAILLE_BLOC, sep=_separateur_csv(chemin_bpe), dtype=str, encoding="utf-8-sig")
     blocs = []
     for bloc in lecture:
         if "DEPCOM" not in bloc.columns:
@@ -253,8 +293,33 @@ def _traduire(df_data: pd.DataFrame, df_meta: pd.DataFrame) -> tuple[pd.DataFram
     return df_data.replace({"_Z": "Sans objet", "_U": "Indéterminé"}), dictionnaire
 
 
-def preparer_bpe(df_data: pd.DataFrame, df_meta: pd.DataFrame, perimetre: str, dossier_dicos: str) -> tuple[pd.DataFrame, pd.DataFrame, dict]:
-    """Table BPE au format du classeur et tableau récapitulatif (équipements par type et par zone)."""
+def comparer_colonnes(colonnes_source: list[str], df_meta: pd.DataFrame) -> tuple[list[dict], list[dict]]:
+    """Écart entre le millésime déposé et les colonnes connues du classeur.
+
+    nouvelles : codes Insee inconnus, ajoutés en fin de tableau avec le libellé du varmod ;
+    absentes  : codes connus qui manquent dans ce millésime (colonne gardée, vide).
+    """
+    libelles_varmod = df_meta.dropna(subset=["COD_VAR"]).drop_duplicates("COD_VAR").set_index("COD_VAR")
+    libelles_varmod = libelles_varmod["LIB_VAR"].to_dict() if "LIB_VAR" in libelles_varmod.columns else {}
+    presentes = set(colonnes_source)
+    nouvelles = [
+        {"code": code, "libelle": str(libelles_varmod.get(code) or code).strip()}
+        for code in colonnes_source
+        if code not in LIBELLES_COLONNES
+    ]
+    absentes = [
+        {"code": code, "libelle": libelle}
+        for code, libelle in LIBELLES_COLONNES.items()
+        # SECT et SECTEUR donnent la même colonne : une seule des deux suffit
+        if code not in presentes and not (code in {"SECT", "SECTEUR"} and presentes & {"SECT", "SECTEUR"})
+    ]
+    return nouvelles, absentes
+
+
+def preparer_bpe(df_data: pd.DataFrame, df_meta: pd.DataFrame, perimetre: str, dossier_dicos: str) -> tuple[pd.DataFrame, pd.DataFrame, dict, dict]:
+    """Table BPE au format du classeur, tableau récapitulatif (équipements par type et par zone),
+    dictionnaire des libellés Insee et écart de colonnes avec les millésimes connus."""
+    nouvelles, absentes = comparer_colonnes(list(df_data.columns), df_meta)
     df_data = df_data.copy()
     df_data.insert(0, "OBJECTID", range(1, len(df_data) + 1))
     df_data, dictionnaire = _traduire(df_data, df_meta)
@@ -264,6 +329,14 @@ def preparer_bpe(df_data: pd.DataFrame, df_meta: pd.DataFrame, perimetre: str, d
     df_bpe = df_data.rename(columns=LIBELLES_COLONNES)
 
     colonnes = list(COLONNES_EXPORT)
+    # Colonnes d'un nouveau millésime : gardées en fin de tableau, sous le libellé du varmod
+    for colonne in nouvelles:
+        en_tete = colonne["libelle"]
+        if en_tete != colonne["code"] and (en_tete in colonnes or en_tete in df_bpe.columns):
+            en_tete = f"{en_tete} ({colonne['code']})"
+        df_bpe = df_bpe.rename(columns={colonne["code"]: en_tete})
+        colonne["en_tete"] = en_tete
+        colonnes.append(en_tete)
     if perimetre == "roubaix":
         code_iris = df_bpe["Code IRIS"] if "Code IRIS" in df_bpe.columns else pd.Series("", index=df_bpe.index)
         for colonne, fichier in zip(COLONNES_ROUBAIX, ("secteurs_mairie.yml", os.path.join("bpe", "quartiers_historiques.yml"), "grand_quartier.yml")):
@@ -300,12 +373,12 @@ def preparer_bpe(df_data: pd.DataFrame, df_meta: pd.DataFrame, perimetre: str, d
     )
     recap.columns.name = None
     recap[total] = recap.sum(axis=1)
-    return df_bpe, recap.reset_index(), dictionnaire
+    return df_bpe, recap.reset_index(), dictionnaire, {"nouvelles": nouvelles, "absentes": absentes}
 
 
 def _ajuster_largeurs(feuille, df: pd.DataFrame) -> None:
     for index, col in enumerate(df.columns, start=1):
-        longueurs = df[col].astype(str).str.len()
+        longueurs = df[col].fillna("").astype(str).str.len()
         largeur = max(int(longueurs.max()) if len(longueurs) else 0, len(str(col)) // 3, 15)
         feuille.column_dimensions[get_column_letter(index)].width = min(largeur, 45)
 
@@ -453,7 +526,7 @@ def generer_classeur_bpe(
 
     annees = df_data["AN"].dropna().unique().tolist() if "AN" in df_data.columns else []
     annee = str(max(annees)) if annees else "inconnue"
-    df_bpe, recap, dictionnaire = preparer_bpe(df_data, df_meta, perimetre, dossier_dicos)
+    df_bpe, recap, dictionnaire, ecart_colonnes = preparer_bpe(df_data, df_meta, perimetre, dossier_dicos)
 
     domaines = sorted(code for code in df_bpe["Code Domaine d'appartenance"].dropna().unique() if code)
     onglets_domaines = [
@@ -477,6 +550,8 @@ def generer_classeur_bpe(
         "equipements": int(len(df_bpe)),
         "communes": int(df_bpe["Code Insee"].nunique()),
         "non_localises_iris": zones_non_localisees,
+        "colonnes_nouvelles": ecart_colonnes["nouvelles"],
+        "colonnes_absentes": ecart_colonnes["absentes"],
         "domaines": [
             {"code": code, "libelle": dictionnaire.get("DOM", {}).get(code, "Autre"), "equipements": int((df_bpe["Code Domaine d'appartenance"] == code).sum())}
             for code, _ in onglets_domaines
