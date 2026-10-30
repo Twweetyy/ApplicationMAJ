@@ -10,11 +10,13 @@ from .indicateurs import _precision_arrondi
 
 FEUILLES_FIXES = {"Présentation", "Detail calcul"}
 FORMATS = {0: "#,##0", 1: "#,##0.0", 2: "#,##0.00"}
-LARGEUR_MIN, LARGEUR_MAX = 9, 32
+LARGEUR_MIN, LARGEUR_MAX = 12, 32
 LARGEUR_TEXTE_MAX = 45
 # Colonnes grises (« Mairies de quartiers », « Libellé de l'Iris ») : bornes de largeur
-LARGEUR_GEO_MIN, LARGEUR_GEO_MAX = 12, 30
-LIGNES_ENTETE_MAX = 6
+LARGEUR_GEO_MIN, LARGEUR_GEO_MAX = 12, 34
+LIGNES_ENTETE_MAX = 4
+# Hauteur des lignes d'IRIS (rendu aéré), sauf onglets à colonnes de texte (hauteur automatique)
+HAUTEUR_LIGNE = 21
 LIGNES_TEXTE_MAX = 2
 # Largeur Excel consommée par caractère, et place prise par le bouton de filtre
 LARGEUR_CARACTERE, MARGE_FILTRE = 1.1, 2
@@ -233,12 +235,26 @@ def _mettre_en_page_onglet(ws) -> None:
 
         # Largeur : l'en-tête doit tenir sur 5 lignes, les nombres sur une seule
         plus_long_mot = max((len(mot) for mot in entete.split()), default=0)
-        largeur = min(max(plus_long_mot + MARGE_FILTRE + 1, longueur_valeurs + 3, LARGEUR_MIN), LARGEUR_MAX)
+        largeur = min(max(plus_long_mot + MARGE_FILTRE + 2, longueur_valeurs + 5, LARGEUR_MIN), LARGEUR_MAX)
         largeur = _largeur_pour(entete, largeur, LIGNES_ENTETE_MAX, LARGEUR_MAX)
         ws.column_dimensions[lettre].width = largeur
         lignes_entete = max(lignes_entete, _nb_lignes(entete, largeur))
 
-    ws.row_dimensions[2].height = lignes_entete * 15 + 5
+    ws.row_dimensions[2].height = lignes_entete * 15 + 10
+
+    # Cellules d'IRIS centrées (horizontal et vertical), lignes à hauteur fixe sauf texte long
+    a_du_texte = any(
+        isinstance(ws.cell(row=ligne, column=colonne).value, str)
+        for ligne in range(3, derniere_ligne + 1)
+        for colonne in range(nombre_colonnes_geo + 1, len(entetes) + 1)
+    )
+    for ligne in range(3, derniere_ligne + 1):
+        ws.row_dimensions[ligne].height = None if a_du_texte else HAUTEUR_LIGNE
+        for colonne in range(1, len(entetes) + 1):
+            cellule = ws.cell(row=ligne, column=colonne)
+            cellule.alignment = Alignment(
+                horizontal="center", vertical="center", wrap_text=cellule.alignment.wrap_text
+            )
 
     # Ligne Total : valeurs centrées ; sans total (taux, médianes...), la cellule n'est plus verte
     for colonne in range(nombre_colonnes_geo + 1, len(entetes) + 1):
