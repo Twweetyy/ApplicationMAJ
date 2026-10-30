@@ -118,11 +118,6 @@ def arrondir_variables(fichiers: dict) -> dict:
     return fichiers
 
 
-def arrondir_effectifs(fichiers: dict) -> dict:
-    """Alias conservé pour les appels historiques; applique toutes les règles d'arrondi."""
-    return arrondir_variables(fichiers)
-
-
 def _resoudre_table(nom, fichiers: dict):
     """Retrouve la table d'un thème quel que soit le millésime (ex. 'POP 2022' -> 'POP 2023')."""
     if not isinstance(nom, str) or nom in fichiers:
