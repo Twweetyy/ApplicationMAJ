@@ -16,7 +16,7 @@ LARGEUR_TEXTE_MAX = 45
 LARGEUR_GEO_MIN, LARGEUR_GEO_MAX = 12, 34
 LIGNES_ENTETE_MAX = 4
 # Hauteur des lignes d'IRIS (rendu aéré), sauf onglets à colonnes de texte (hauteur automatique)
-HAUTEUR_LIGNE = 21
+HAUTEUR_LIGNE = 30
 LIGNES_TEXTE_MAX = 2
 # Largeur Excel consommée par caractère, et place prise par le bouton de filtre
 LARGEUR_CARACTERE, MARGE_FILTRE = 1.1, 2
