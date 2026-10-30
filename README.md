@@ -45,6 +45,8 @@ La page **Présentation** est générée selon le lot : millésime de chaque sou
 
 Juste après, l'onglet **Portrait Roubaix** donne les chiffres clés de la ville en quatre blocs (démographie, emploi et formation, revenus et prestations, logement). Chaque valeur est une formule Excel qui pointe vers les onglets thématiques : un effectif est la somme des IRIS, une part est une somme divisée par une somme, et les indicateurs Filosofi affichent l'IRIS le plus bas et le plus haut. Un lien renvoie vers l'onglet source.
 
+![Classeur : onglet Portrait Roubaix](doc/img/excel-portrait.png)
+
 Chaque onglet thématique contient une ligne par IRIS. Trois colonnes grises situent l'IRIS : **Mairies de quartiers**, **Grands quartiers** (noms issus de `dictionnaires/grand_quartier.yml`) et **Libellé de l'Iris** (libellé Insee). Les en-têtes bleus sont les effectifs (avec ligne Total), les orange les indicateurs (taux, densités, indices), regroupés à droite. La mise en page est aérée : cellules centrées, lignes d'IRIS à 30 pt, colonnes dimensionnées selon leur contenu.
 
 ![Classeur : onglet Population, effectifs](doc/img/excel-effectifs.png)
