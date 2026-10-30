@@ -53,8 +53,10 @@ Desktop.ini
 *.db
 
 
+archives
 
 doc/bilan_fichiers_complementaires_2023.md
 
 # ===== Exemples =====
 exemples/dataBPE
+
