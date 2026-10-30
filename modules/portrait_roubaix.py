@@ -14,7 +14,7 @@ from openpyxl.utils import get_column_letter
 
 NOM_ONGLET = "Portrait Roubaix"
 BLEU, GRIS, BLANC = "1F4E78", "595959", "FFFFFF"
-FORMATS = {"entier": "#,##0", "pct": "0.0 %", "euro": '#,##0" €"', "dec2": "0.00", "pct100": '0" %"'}
+FORMATS = {"entier": "#,##0", "pct": "0.0 %", "euro": '#,##0" €"', "dec2": "0.00", "pct100": '0.0" %"'}
 MOTIF_ANNEE = re.compile(r"^(.*\S)\s+(\d{4})$")
 
 # Source affichée sous chaque indicateur, par thème d'onglet
@@ -39,7 +39,7 @@ BLOCS = [
 
 # Indicateurs : (bloc, libellé, onglet, calcul, colonnes, format)
 #   somme : colonnes = [colonne]           ratio : colonnes = ([numérateurs], [dénominateurs])
-#   fixe : onglet = source affichée, colonnes = (valeur, IRIS concerné)
+#   fixe : onglet = source affichée, colonnes = (valeur, territoire)
 INDICATEURS = [
     ("Démographie", "Habitants", "POP", "somme", ["Population"], "entier"),
     ("Démographie", "Habitants au km²", "POP", "ratio", (["Population"], ["Superficie en km²"]), "entier"),
@@ -79,14 +79,9 @@ INDICATEURS = [
      (["DEFM catégories ABC d'ancienneté au chômage d'au moins 2 ans"], ["DEFM catégories ABC"]), "pct"),
 
     # Filosofi 2021 (onglet REV DISP retiré, données trop anciennes) : gardé pour comparaison
-    ("Revenus et prestations", "Revenu disponible médian : IRIS le plus bas", "Filosofi 2021", "fixe",
-     (12380, "Cul de Four"), "euro"),
-    ("Revenus et prestations", "Revenu disponible médian : IRIS le plus haut", "Filosofi 2021", "fixe",
-     (28370, "Barbieux Sud"), "euro"),
-    ("Revenus et prestations", "Taux de pauvreté : IRIS le plus bas", "Filosofi 2021", "fixe",
-     (10, "Barbieux Sud"), "pct100"),
-    ("Revenus et prestations", "Taux de pauvreté : IRIS le plus haut", "Filosofi 2021", "fixe",
-     (61, "Trois Ponts Sud"), "pct100"),
+    ("Revenus et prestations", "Niveau de vie médian", "Filosofi 2021", "fixe", (16080, "Roubaix"), "euro"),
+    ("Revenus et prestations", "Taux de pauvreté (seuil de 60 % du niveau de vie médian)", "Filosofi 2021", "fixe",
+     (47.4, "Roubaix"), "pct100"),
     ("Revenus et prestations", "Allocataires CAF", "CAF", "somme", ["Nombre total d'allocataires"], "entier"),
     ("Revenus et prestations", "Population couverte par la CAF", "CAF", "ratio",
      (["Personnes couvertes"], ["Population (CAF)"]), "pct"),
@@ -123,8 +118,8 @@ INDICATEURS = [
 NOTES = [
     "Les parts et taux sont recalculés sur Roubaix entière (somme des IRIS), pas en moyenne des IRIS.",
     "Les valeurs sont des formules : elles suivent les onglets du classeur. Cliquer sur une source ouvre l'onglet.",
-    "Revenus Filosofi 2021 : valeurs figées pour comparaison (onglets retirés, données trop anciennes) ; "
-    "ils ne s'additionnent pas, l'IRIS le plus bas et le plus haut sont donnés.",
+    "Revenus Filosofi 2021 (Roubaix) : valeurs figées pour comparaison, les onglets Filosofi étant retirés "
+    "(données trop anciennes).",
 ]
 
 
@@ -241,7 +236,7 @@ def ajouter_portrait_roubaix(workbook) -> None:
             a.border = b.border = filet
             source = ws[f"{c1}{ligne + 1}"]
             if calcul == "fixe":
-                source.value = f"{theme} · valeur figée · IRIS {colonnes[1]}"
+                source.value = f"{theme} · valeur figée · {colonnes[1]}"
                 source.font = Font(size=8, color=GRIS)
             else:
                 nom_onglet = onglets[theme]

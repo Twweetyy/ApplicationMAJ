@@ -43,7 +43,7 @@ La page **Présentation** est générée selon le lot : millésime de chaque sou
 
 ![Classeur : page Présentation](doc/img/excel-presentation.png)
 
-Juste après, l'onglet **Portrait Roubaix** donne les chiffres clés de la ville en quatre blocs (démographie, emploi et formation, revenus et prestations, logement). Chaque valeur est une formule Excel qui pointe vers les onglets thématiques : un effectif est la somme des IRIS, une part est une somme divisée par une somme. Seuls le revenu disponible médian et le taux de pauvreté (Filosofi 2021, IRIS le plus bas et le plus haut) sont écrits en dur, pour comparaison : leurs onglets ne sont plus dans le classeur. Un lien renvoie vers l'onglet source.
+Juste après, l'onglet **Portrait Roubaix** donne les chiffres clés de la ville en quatre blocs (démographie, emploi et formation, revenus et prestations, logement). Chaque valeur est une formule Excel qui pointe vers les onglets thématiques : un effectif est la somme des IRIS, une part est une somme divisée par une somme. Seuls le niveau de vie médian et le taux de pauvreté de Roubaix (Filosofi 2021) sont écrits en dur, pour comparaison : leurs onglets ne sont plus dans le classeur. Un lien renvoie vers l'onglet source.
 
 ![Classeur : onglet Portrait Roubaix](doc/img/excel-portrait.png)
 
