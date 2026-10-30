@@ -13,6 +13,7 @@ import yaml
 from tqdm.auto import tqdm
 from .pages_info import mettre_a_jour_pages_info
 from .mise_en_page import appliquer_mise_en_page
+from .portrait_roubaix import ajouter_portrait_roubaix
 
 # En-têtes du modèle DEFM renommés selon les libellés des données (clé = en-tête normalisé)
 ALIAS_ENTETES_DEFM = {
@@ -515,6 +516,7 @@ def _generer_depuis_modele(
 
     mettre_a_jour_pages_info(workbook, dico_fichiers, chemin_calculs)
     appliquer_mise_en_page(workbook)
+    ajouter_portrait_roubaix(workbook)
     os.makedirs(os.path.dirname(os.path.abspath(chemin_sortie)), exist_ok=True)
     workbook.save(chemin_sortie)
 
