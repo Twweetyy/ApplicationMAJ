@@ -2,8 +2,7 @@
 
 Chaque valeur est une formule Excel qui pointe vers les onglets thématiques du classeur :
 - effectif : somme des IRIS ;
-- part / taux : somme du numérateur / somme du dénominateur (jamais une moyenne de taux) ;
-- Filosofi (médianes, taux de pauvreté) : non additif, on donne l'IRIS le plus bas et le plus haut.
+- part / taux : somme du numérateur / somme du dénominateur (jamais une moyenne de taux).
 Un indicateur dont l'onglet ou la colonne manque est simplement omis.
 """
 import re
@@ -14,13 +13,13 @@ from openpyxl.utils import get_column_letter
 
 NOM_ONGLET = "Portrait Roubaix"
 BLEU, GRIS, BLANC = "1F4E78", "595959", "FFFFFF"
-FORMATS = {"entier": "#,##0", "pct": "0.0 %", "euro": '#,##0" €"', "dec2": "0.00", "pct100": '0.0" %"'}
+FORMATS = {"entier": "#,##0", "pct": "0.0 %", "dec2": "0.00"}
 MOTIF_ANNEE = re.compile(r"^(.*\S)\s+(\d{4})$")
 
 # Source affichée sous chaque indicateur, par thème d'onglet
 SOURCES = {
     "POP": "RP", "ACT RES": "RP", "COU FAM": "RP", "DIP FORMATION": "RP", "LOG": "RP",
-    "PETITE ENFANCE": "RP (fichier détail)", "REV DEC": "Filosofi", "REV DISP": "Filosofi",
+    "PETITE ENFANCE": "RP (fichier détail)",
     "CAF": "CAF", "CNAM": "CNAM", "DEFM": "France Travail", "RPLS": "RPLS",
 }
 
@@ -30,15 +29,14 @@ BLOCS = [
      "Population, densité, âges, sexe, nationalité, ménages et familles (monoparentales, nombreuses)."),
     ("Emploi et formation", "C55A11", "FBE5D6",
      "Activité, emploi, chômage, diplômes de la population non scolarisée et demandeurs d'emploi."),
-    ("Revenus et prestations", "7030A0", "EADCF4",
-     "Revenus et pauvreté (Filosofi), allocataires CAF, RSA, AAH et complémentaire santé solidaire (CNAM)."),
+    ("Prestations sociales", "7030A0", "EADCF4",
+     "Allocataires CAF, RSA, AAH et complémentaire santé solidaire (CNAM)."),
     ("Logement", "548235", "E2F0D9",
      "Parc, vacance, typologie, statut d'occupation, logements sociaux, ancienneté et suroccupation."),
 ]
 
 # Indicateurs : (bloc, libellé, onglet, calcul, colonnes, format)
 #   somme : colonnes = [colonne]           ratio : colonnes = ([numérateurs], [dénominateurs])
-#   min / max : colonnes = [colonne]       (valeur de l'IRIS le plus bas / le plus haut)
 INDICATEURS = [
     ("Démographie", "Habitants", "POP", "somme", ["Population"], "entier"),
     ("Démographie", "Habitants au km²", "POP", "ratio", (["Population"], ["Superficie en km²"]), "entier"),
@@ -77,24 +75,18 @@ INDICATEURS = [
     ("Emploi et formation", "Demandeurs ABC depuis 2 ans ou plus", "DEFM", "ratio",
      (["DEFM catégories ABC d'ancienneté au chômage d'au moins 2 ans"], ["DEFM catégories ABC"]), "pct"),
 
-    ("Revenus et prestations", "Revenu disponible médian : IRIS le plus bas", "REV DISP", "min", ["Médiane (€)"], "euro"),
-    ("Revenus et prestations", "Revenu disponible médian : IRIS le plus haut", "REV DISP", "max", ["Médiane (€)"], "euro"),
-    ("Revenus et prestations", "Taux de pauvreté : IRIS le plus bas", "REV DISP", "min",
-     ["Taux de pauvreté au seuil de 60 % (%)"], "pct100"),
-    ("Revenus et prestations", "Taux de pauvreté : IRIS le plus haut", "REV DISP", "max",
-     ["Taux de pauvreté au seuil de 60 % (%)"], "pct100"),
-    ("Revenus et prestations", "Allocataires CAF", "CAF", "somme", ["Nombre total d'allocataires"], "entier"),
-    ("Revenus et prestations", "Population couverte par la CAF", "CAF", "ratio",
+    ("Prestations sociales", "Allocataires CAF", "CAF", "somme", ["Nombre total d'allocataires"], "entier"),
+    ("Prestations sociales", "Population couverte par la CAF", "CAF", "ratio",
      (["Personnes couvertes"], ["Population (CAF)"]), "pct"),
-    ("Revenus et prestations", "Allocataires CAF au RSA socle", "CAF", "ratio",
+    ("Prestations sociales", "Allocataires CAF au RSA socle", "CAF", "ratio",
      (["Allocataires percevant le RSA socle"], ["Nombre total d'allocataires"]), "pct"),
-    ("Revenus et prestations", "Allocataires CAF mono-parents", "CAF", "ratio",
+    ("Prestations sociales", "Allocataires CAF mono-parents", "CAF", "ratio",
      (["Allocataires mono-parent"], ["Nombre total d'allocataires"]), "pct"),
-    ("Revenus et prestations", "Allocataires de l'AAH", "CAF", "somme",
+    ("Prestations sociales", "Allocataires de l'AAH", "CAF", "somme",
      ["Allocataires percevant l’Allocation Adulte Handicapé"], "entier"),
-    ("Revenus et prestations", "Bénéficiaires de la C2S non participative", "CNAM", "ratio",
+    ("Prestations sociales", "Bénéficiaires de la C2S non participative", "CNAM", "ratio",
      (["Population couverte bénéficiaire de la C2S non participative"], ["Population couverte"]), "pct"),
-    ("Revenus et prestations", "Bénéficiaires de la C2S participative", "CNAM", "ratio",
+    ("Prestations sociales", "Bénéficiaires de la C2S participative", "CNAM", "ratio",
      (["Population couverte bénéficiaire de la C2S participative"], ["Population couverte"]), "pct"),
 
     ("Logement", "Logements", "LOG", "somme", ["Logements"], "entier"),
@@ -118,7 +110,6 @@ INDICATEURS = [
 
 NOTES = [
     "Les parts et taux sont recalculés sur Roubaix entière (somme des IRIS), pas en moyenne des IRIS.",
-    "Les revenus Filosofi (médianes, taux de pauvreté) ne s'additionnent pas : l'IRIS le plus bas et le plus haut sont donnés.",
     "Les valeurs sont des formules : elles suivent les onglets du classeur. Cliquer sur une source ouvre l'onglet.",
 ]
 
@@ -165,8 +156,7 @@ def _formule(calcul: str, colonnes, plages: dict) -> str | None:
     ref = plages.get(_normaliser(colonnes[0]))
     if ref is None:
         return None
-    fonction = {"somme": "SUM", "min": "MIN", "max": "MAX"}[calcul]
-    return f"={fonction}({ref})"
+    return f"=SUM({ref})"
 
 
 def _fusion(ws, plage, valeur=None, font=None, fill=None, align=None):

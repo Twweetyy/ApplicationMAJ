@@ -504,64 +504,10 @@ IRIS__4: IRIS
 LIBIRIS__4: Libellé de l'IRIS
 COM__4: Commune ou ARM
 LIBCOM__7: Libellé commune ou ARM
-DISP_0: Taux de pauvreté au seuil de 60 % (%)
-DISP_1: Incertitude sur le taux de pauvreté
-DISP_2: 1er quartile (€)
-DISP_3: Médiane (€)
-DISP_4: 3e quartile (€)
-DISP_5: Écart inter-quartile rapporté à la médiane
-DISP_6: 1er décile (€)
-DISP_7: 2e décile (€)
-DISP_8: 3e décile (€)
-DISP_9: 4e décile (€)
-DISP_10: 6e décile (€)
-DISP_11: 7e décile (€)
-DISP_12: 8e décile (€)
-DISP_13: 9e décile (€)
-DISP_14: Rapport interdécile D9/D1
-DISP_15: S80/S20
-DISP_16: Indice de Gini
-DISP_17: Part des revenus d’activité (%)
-DISP_18: dont part des salaires et traitements (%)
-DISP_19: dont part des indemnités de chômage (%)
-DISP_20: dont part des revenus des activités non salariées (%)
-DISP_21: Part des pensions, retraites et rentes (%)
-DISP_22: Part des revenus du patrimoine et autres revenus (%)
-DISP_23: Part de l'ensemble des prestations sociales (%)
-DISP_24: dont part des prestations familiales (%)
-DISP_25: dont part des minima sociaux (%)
-DISP_26: dont part des prestations logement (%)
-DISP_27: Part des impôts (%)
-DISP_28: Note de précaution (voir onglet seuils)
 IRIS__5: IRIS
 LIBIRIS__5: Libellé de l'IRIS
 COM__5: Commune ou ARM
 LIBCOM__8: Libellé commune ou ARM
-DEC_0: Part des ménages fiscaux imposés (%)
-DEC_1: Taux de bas revenus déclarés au seuil de 60 % (%)
-DEC_2: Incertitude sur le taux de bas revenus et la part des ménages imposés
-DEC_3: 1er quartile (€)
-DEC_4: Médiane (€)
-DEC_5: 3e quartile (€)
-DEC_6: Écart inter-quartile rapporté à la médiane
-DEC_7: 1er décile (€)
-DEC_8: 2e décile (€)
-DEC_9: 3e décile (€)
-DEC_10: 4e décile (€)
-DEC_11: 6e décile (€)
-DEC_12: 7e décile (€)
-DEC_13: 8e décile (€)
-DEC_14: 9e décile (€)
-DEC_15: Rapport interdécile D9/D1
-DEC_16: S80/S20
-DEC_17: Indice de Gini
-DEC_18: Part des revenus d’activité (%)
-DEC_19: dont part des salaires et traitements (%)
-DEC_20: dont part des indemnités de chômage (%)
-DEC_21: dont part des revenus des activités non salariées (%)
-DEC_22: Part des pensions, retraites et rentes (%)
-DEC_23: Part des autres revenus (%)
-DEC_24: Note de précaution (voir onglet seuils)
 IRIS__6: Code IRIS
 COM__6: Code commune
 LIB_COM: Libellé commune ou ARM

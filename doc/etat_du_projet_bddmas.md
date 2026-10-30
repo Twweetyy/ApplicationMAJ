@@ -7,7 +7,7 @@
 ## 1. Présentation & Objectifs du Projet
 
 Le projet **ApplicationMAJ (Portail BDDMAS)** a pour mission de fournir au Service SIG de la Mairie de Roubaix une application web locale, simple d'utilisation et robuste pour :
-* **Ingérer et contrôler** les fichiers de données brutes infra-communales (recensement INSEE 2022, Filosofi, CAF, CNAM, DEFM, RPLS, microdonnées de la petite enfance).
+* **Ingérer et contrôler** les fichiers de données brutes infra-communales (recensement INSEE 2022, CAF, CNAM, DEFM, RPLS, microdonnées de la petite enfance).
 * **Rapprocher automatiquement** les fichiers de données de leurs métadonnées associées (`meta_*.csv`, `varmod_*.csv`) et des référentiels territoriaux (`Périmètres_MAS.csv`, superficies IRIS).
 * **Exécuter le pipeline ETL** de transformation, jointure, calcul d'indicateurs et application des règles d'arrondis.
 * **Générer le classeur Excel final consolidé** (`TAB_BDDMAS_INSEE2022_Tout_perimetre.xlsx`) conforme au modèle normé SIG.

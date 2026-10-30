@@ -39,14 +39,6 @@ def _precision_arrondi(nom_colonne: str, nom_table: str = ""):
     ):
         return 1
 
-    # Indicateurs de dispersion des revenus (Filosofi) : précision de l'Insee
-    if nom.startswith("indice de gini"):
-        return 3
-    if nom.startswith(("écart inter", "ecart inter")):
-        return 2
-    if nom.startswith(("rapport interdécile", "rapport interdecile", "s80/s20")):
-        return 1
-
     if nom.startswith(("densité", "densite", "indice", "taille", "superficie")):
         return 2
 

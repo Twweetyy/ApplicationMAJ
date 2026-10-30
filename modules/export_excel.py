@@ -268,8 +268,8 @@ def creer_modele_si_absent(dico_fichiers: dict, chemin_modele: str, chemin_infos
     workbook.create_sheet("Detail calcul")
 
     ordre_themes = [
-        "POP", "ACT RES", "COU FAM", "DIP FORMATION", "LOG", "REV DEC",
-        "REV DISP", "PETITE ENFANCE", "CAF", "CNAM", "DEFM", "RPLS",
+        "POP", "ACT RES", "COU FAM", "DIP FORMATION", "LOG",
+        "PETITE ENFANCE", "CAF", "CNAM", "DEFM", "RPLS",
     ]
     ordre_onglets = [
         nom
