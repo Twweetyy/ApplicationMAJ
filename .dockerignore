@@ -1,0 +1,16 @@
+# Fichiers exclus de l'image Docker (copiés ni dans le build ni dans l'image)
+.git/
+.venv/
+venv/
+env/
+__pycache__/
+*.pyc
+.env
+data/
+sorties/
+exports_sig/
+archives/
+doc/
+exemples/
+*.bat
+*.log
