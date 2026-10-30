@@ -30,15 +30,20 @@ ALIAS_ENTETES_DEFM = {
         "DEFM catégories ABC dont le motif d'inscription est autre",
 }
 
-# Seules colonnes de zonage (grises) conservées dans les onglets du classeur
-COLONNES_ZONAGE = ["Mairies de quartiers", "Libellé de l'Iris"]
+# Seules colonnes de zonage (grises) conservées dans les onglets du classeur, dans cet ordre.
+# « Grands quartiers » vient de grand_quartier.yml (via Périmètres_MAS.csv), le libellé IRIS reste celui de l'INSEE.
+COLONNES_ZONAGE = ["Mairies de quartiers", "Grands quartiers", "Libellé de l'Iris"]
+# Libellés de ces colonnes dans le modèle petite enfance
+ZONAGE_PETITE_ENFANCE = {
+    "Mairies de quartiers": "Mairies de qartiers",
+    "Grands quartiers": "Quartiers SIG (Grands quartiers)",
+}
 # Colonnes de Périmètres_MAS.csv retirées du classeur (gardées pour les exports SIG / SQL)
 COLONNES_ZONAGE_RETIREES = [
     "Centres sociaux",
     "Périmètres NPNRU",
     "Contrats de Ville 2024 (CDV)",
     "Cités éducatives",
-    "Grands quartiers",
 ]
 
 # Libellés CNAM des données -> en-têtes du modèle
@@ -190,26 +195,11 @@ def _retrouver_entete_modele(nom_colonne, entetes_modele):
     return None
 
 
-def libelles_quartier(dataframe: pd.DataFrame) -> pd.Series:
-    """Libellé affiché : nom du quartier (grand_quartier.yml), suivi du libellé IRIS
-    quand plusieurs IRIS partagent ce quartier (« HOMMELET - Hommelet Nord »)."""
-    libelle_iris = dataframe["Libellé de l'Iris"]
-    if "Grands quartiers" not in dataframe.columns:
-        return libelle_iris
-    quartier = dataframe["Grands quartiers"].astype("string").str.strip()
-    doublon = quartier.map(quartier.value_counts()) > 1
-    resultat = quartier.where(~doublon, quartier + " - " + libelle_iris.astype("string"))
-    return resultat.fillna(libelle_iris)
-
-
 def preparer_dataframe_modele(nom_onglet: str, dataframe: pd.DataFrame) -> pd.DataFrame:
     """Adapte les colonnes calculées aux libellés du modèle Excel BDDMAS."""
-    resultat = dataframe.copy()
-    if "Libellé de l'Iris" in resultat.columns:
-        resultat["Libellé de l'Iris"] = libelles_quartier(resultat)
-    resultat = resultat.drop(columns=COLONNES_ZONAGE_RETIREES, errors="ignore")
+    resultat = dataframe.drop(columns=COLONNES_ZONAGE_RETIREES, errors="ignore")
     if nom_onglet.startswith("PETITE ENFANCE"):
-        resultat = resultat.rename(columns={"Mairies de quartiers": "Mairies de qartiers"})
+        resultat = resultat.rename(columns=ZONAGE_PETITE_ENFANCE)
         resultat = resultat.drop(columns=["Superficie en km²"], errors="ignore")
         colonnes_ages = [f"Age : {age}" for age in range(18) if f"Age : {age}" in resultat.columns]
         resultat["TOTAL 0-17"] = resultat[colonnes_ages].sum(axis=1)
@@ -299,7 +289,7 @@ def creer_modele_si_absent(dico_fichiers: dict, chemin_modele: str, chemin_infos
         feuille.cell(row=1, column=1, value=titre)
 
         if nom_onglet.startswith("PETITE ENFANCE"):
-            colonnes_model = ["Mairies de qartiers", "Libellé de l'Iris"]
+            colonnes_model = [ZONAGE_PETITE_ENFANCE.get(nom, nom) for nom in COLONNES_ZONAGE]
         else:
             colonnes_model = list(COLONNES_ZONAGE)
 
@@ -393,6 +383,20 @@ def _generer_depuis_modele(
         ]
         for colonne in reversed(colonnes_obsoletes):
             worksheet.delete_cols(colonne)
+        # Colonnes grises remises dans l'ordre de COLONNES_ZONAGE (mêmes styles : seuls les en-têtes bougent)
+        noms_zonage = [
+            ZONAGE_PETITE_ENFANCE.get(nom, nom) if nom_onglet.startswith("PETITE ENFANCE") else nom
+            for nom in COLONNES_ZONAGE
+        ]
+        presents = [nom for nom in noms_zonage if nom in donnees.columns]
+        positions = sorted(
+            colonne
+            for colonne in range(1, worksheet.max_column + 1)
+            if worksheet.cell(row=2, column=colonne).value in presents
+        )
+        if len(positions) == len(presents):
+            for colonne, nom in zip(positions, presents):
+                worksheet.cell(row=2, column=colonne, value=nom)
         entetes_modele = [
             worksheet.cell(row=2, column=colonne).value
             for colonne in range(1, worksheet.max_column + 1)
@@ -577,8 +581,6 @@ def generer_fichier_bddmas(
         for nom_onglet, df in dico_fichiers.items():
             print(f" -> Export et formatage de l'onglet : {nom_onglet}")
             
-            if "Libellé de l'Iris" in df.columns:
-                df = df.assign(**{"Libellé de l'Iris": libelles_quartier(df)})
             df = df.drop(columns=COLONNES_ZONAGE_RETIREES, errors="ignore")
             # Export du DataFrame avec startrow=1 (laisse la ligne 1 vierge pour nos Totaux)
             df.to_excel(writer, sheet_name=nom_onglet, index=False, startrow=1)
