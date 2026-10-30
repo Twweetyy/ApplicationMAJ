@@ -109,6 +109,6 @@ flowchart TD
 * Selon les directives du README, marquer la version stable avec un tag ou une release GitHub (`v1.0`).
 
 ### Priorité 3 : Évolutions Futures (Issues de la Boîte à Outils)
-* **Arrondis stricts** : Harmoniser tous les calculs selon [`r_gles_d_arrondis_compl_tes.md`](file:///srvsig03p/Partage_SIG/Opendata/Alternants/Bilal%202026-2027/MAS/ApplicationMAJ/r_gles_d_arrondis_compl_tes.md) (entiers pour les personnes/ménages/logements, décimales pour les pourcentages RPLS, centimes pour les loyers).
+* **Arrondis stricts** : Harmoniser tous les calculs selon [`r_gles_d_arrondis_compl_tes.md`](r_gles_d_arrondis_compl_tes.md) (entiers pour les personnes/ménages/logements, décimales pour les pourcentages RPLS, centimes pour les loyers).
 * **Audit territorial IRIS** : Intégrer une vérification automatique de présence des 38 IRIS roubaisiens avant de démarrer le traitement lourd.
 * **Agrégations multi-échelles** : Préparer de futurs onglets agrégés (Quartiers, QPV / Contrat de Ville, Centres sociaux).

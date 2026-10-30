@@ -14,7 +14,7 @@ Fonctionnalités principales :
 Le script ne modifie aucun fichier existant sans confirmation : il crée d’abord des copies temporaires et affiche un résumé des modifications proposées.
 
 Utilisation :
-    cd "\\srvsig03p\Partage_SIG\Opendata\Alternants\Bilal 2026-2027\MAS\ApplicationMAJ"
+    cd ApplicationMAJ
     python adapt_2023.py
 
 Après vérification du résumé, confirmez en tapant ``y`` pour appliquer les changements.
