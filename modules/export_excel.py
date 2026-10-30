@@ -30,15 +30,20 @@ ALIAS_ENTETES_DEFM = {
         "DEFM catégories ABC dont le motif d'inscription est autre",
 }
 
-# Seules colonnes de zonage (grises) conservées dans les onglets du classeur
-COLONNES_ZONAGE = ["Mairies de quartiers", "Libellé de l'Iris"]
+# Seules colonnes de zonage (grises) conservées dans les onglets du classeur, dans cet ordre.
+# « Grands quartiers » vient de grand_quartier.yml (via Périmètres_MAS.csv), le libellé IRIS reste celui de l'INSEE.
+COLONNES_ZONAGE = ["Mairies de quartiers", "Grands quartiers", "Libellé de l'Iris"]
+# Libellés de ces colonnes dans le modèle petite enfance
+ZONAGE_PETITE_ENFANCE = {
+    "Mairies de quartiers": "Mairies de qartiers",
+    "Grands quartiers": "Quartiers SIG (Grands quartiers)",
+}
 # Colonnes de Périmètres_MAS.csv retirées du classeur (gardées pour les exports SIG / SQL)
 COLONNES_ZONAGE_RETIREES = [
     "Centres sociaux",
     "Périmètres NPNRU",
     "Contrats de Ville 2024 (CDV)",
     "Cités éducatives",
-    "Grands quartiers",
 ]
 
 # Libellés CNAM des données -> en-têtes du modèle
@@ -194,7 +199,7 @@ def preparer_dataframe_modele(nom_onglet: str, dataframe: pd.DataFrame) -> pd.Da
     """Adapte les colonnes calculées aux libellés du modèle Excel BDDMAS."""
     resultat = dataframe.drop(columns=COLONNES_ZONAGE_RETIREES, errors="ignore")
     if nom_onglet.startswith("PETITE ENFANCE"):
-        resultat = resultat.rename(columns={"Mairies de quartiers": "Mairies de qartiers"})
+        resultat = resultat.rename(columns=ZONAGE_PETITE_ENFANCE)
         resultat = resultat.drop(columns=["Superficie en km²"], errors="ignore")
         colonnes_ages = [f"Age : {age}" for age in range(18) if f"Age : {age}" in resultat.columns]
         resultat["TOTAL 0-17"] = resultat[colonnes_ages].sum(axis=1)
@@ -284,7 +289,7 @@ def creer_modele_si_absent(dico_fichiers: dict, chemin_modele: str, chemin_infos
         feuille.cell(row=1, column=1, value=titre)
 
         if nom_onglet.startswith("PETITE ENFANCE"):
-            colonnes_model = ["Mairies de qartiers", "Libellé de l'Iris"]
+            colonnes_model = [ZONAGE_PETITE_ENFANCE.get(nom, nom) for nom in COLONNES_ZONAGE]
         else:
             colonnes_model = list(COLONNES_ZONAGE)
 
@@ -378,6 +383,20 @@ def _generer_depuis_modele(
         ]
         for colonne in reversed(colonnes_obsoletes):
             worksheet.delete_cols(colonne)
+        # Colonnes grises remises dans l'ordre de COLONNES_ZONAGE (mêmes styles : seuls les en-têtes bougent)
+        noms_zonage = [
+            ZONAGE_PETITE_ENFANCE.get(nom, nom) if nom_onglet.startswith("PETITE ENFANCE") else nom
+            for nom in COLONNES_ZONAGE
+        ]
+        presents = [nom for nom in noms_zonage if nom in donnees.columns]
+        positions = sorted(
+            colonne
+            for colonne in range(1, worksheet.max_column + 1)
+            if worksheet.cell(row=2, column=colonne).value in presents
+        )
+        if len(positions) == len(presents):
+            for colonne, nom in zip(positions, presents):
+                worksheet.cell(row=2, column=colonne, value=nom)
         entetes_modele = [
             worksheet.cell(row=2, column=colonne).value
             for colonne in range(1, worksheet.max_column + 1)
