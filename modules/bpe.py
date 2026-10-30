@@ -213,12 +213,44 @@ def lire_varmod(chemin: str) -> pd.DataFrame:
     return df_meta
 
 
+def _en_texte(valeur) -> str | None:
+    """Nombre du Parquet écrit comme dans le CSV de l'Insee : 12.0 -> « 12 », 50.69 -> « 50.69 »."""
+    if valeur is None or pd.isna(valeur):
+        return None
+    if isinstance(valeur, float) and valeur.is_integer():
+        return str(int(valeur))
+    return str(valeur)
+
+
+def _lire_parquet_perimetre(chemin_bpe: str, codes_communes: set[str]) -> pd.DataFrame:
+    """Filtre DEPCOM fait par DuckDB dans le Parquet : seules les lignes du périmètre sont chargées."""
+    import duckdb
+
+    source = chemin_bpe.replace("'", "''")
+    connexion = duckdb.connect()
+    try:
+        colonnes = [ligne[0] for ligne in connexion.execute(f"DESCRIBE SELECT * FROM read_parquet('{source}')").fetchall()]
+        if "DEPCOM" not in colonnes:
+            raise ErreurBPE("Colonne DEPCOM absente : ce fichier n'est pas une table BPE de l'Insee.")
+        df = connexion.execute(
+            f"SELECT * FROM read_parquet('{source}') WHERE trim(CAST(DEPCOM AS VARCHAR)) IN (SELECT unnest(?))",
+            [sorted(codes_communes)],
+        ).df()
+    except duckdb.Error as erreur:
+        raise ErreurBPE(f"Parquet illisible ({os.path.basename(chemin_bpe)}) : {erreur}") from erreur
+    finally:
+        connexion.close()
+    for col in df.columns:
+        if not pd.api.types.is_string_dtype(df[col]) and not pd.api.types.is_object_dtype(df[col]):
+            df[col] = df[col].astype(object).map(_en_texte)
+    return df.astype(object).where(df.notna(), None)
+
+
 def extraire_perimetre(chemin_bpe: str, codes_communes: set[str]) -> pd.DataFrame:
-    """Lignes du fichier BPE dont DEPCOM est dans codes_communes, lues par blocs (fichier national accepté)."""
+    """Lignes du fichier BPE dont DEPCOM est dans codes_communes (fichier national accepté, CSV lu par blocs)."""
     if est_parquet(chemin_bpe):
-        lecture = lire_par_blocs(chemin_bpe, TAILLE_BLOC)
-    else:
-        lecture = lire_par_blocs(chemin_bpe, TAILLE_BLOC, sep=_separateur_csv(chemin_bpe), dtype=str, encoding="utf-8-sig")
+        return _lire_parquet_perimetre(chemin_bpe, codes_communes)
+    lecture = lire_par_blocs(chemin_bpe, TAILLE_BLOC, sep=_separateur_csv(chemin_bpe), dtype=str, encoding="utf-8-sig")
     blocs = []
     for bloc in lecture:
         if "DEPCOM" not in bloc.columns:
@@ -305,7 +337,7 @@ def preparer_bpe(df_data: pd.DataFrame, df_meta: pd.DataFrame, perimetre: str, d
 
 def _ajuster_largeurs(feuille, df: pd.DataFrame) -> None:
     for index, col in enumerate(df.columns, start=1):
-        longueurs = df[col].astype(str).str.len()
+        longueurs = df[col].fillna("").astype(str).str.len()
         largeur = max(int(longueurs.max()) if len(longueurs) else 0, len(str(col)) // 3, 15)
         feuille.column_dimensions[get_column_letter(index)].width = min(largeur, 45)
 
