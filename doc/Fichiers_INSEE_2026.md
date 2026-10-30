@@ -8,10 +8,10 @@
 | Population | base-ic-evol-struct-pop-2023.CSV | La base infracommunale « Population » fournit des données sur les caractéristiques de la population selon le sexe, l'âge, la catégorie socio-professionnelle et la catégorie de nationalité. | 2023 | https://www.insee.fr/fr/statistiques/9054332?sommaire=9054352#consulter | https://www.insee.fr/fr/statistiques/fichier/9054332/base-ic-evol-struct-pop-2023_csv.zip |
 | Logement | base-ic-logement-2023.CSV | La base infracommunale « Logement » fournit des données sur les caractéristiques des résidences principales, la date d'emménagement, la possession d'une voiture ainsi que le parc de logements, maisons et appartements. | 2023 | https://www.insee.fr/fr/statistiques/9061333?sommaire=9061358#consulter | https://www.insee.fr/fr/statistiques/fichier/9061333/base-ic-logement-2023_csv.zip |
 | Individus localisés au canton ou ville | FD_INDCVI_2023.csv | Fichier détail des individus (microdonnées). Permet d'extraire la distribution par âge révolu des enfants par IRIS, après filtrage sur Roubaix avec `scripts/extraire_indcvi_roubaix.py`. | 2023 | https://www.insee.fr/fr/statistiques/9075625?sommaire=9004842#consulter-sommaire | https://www.insee.fr/fr/statistiques/fichier/9075625/RP2023_indcvi.zip |
-| CAF | data_CAF_2024_IRIS.csv | Cette base fournit des indicateurs sur les bénéficiaires des prestations légales versées par les CAF dans les quartiers politique de la ville. | 2024 | https://www.insee.fr/fr/statistiques/8682393 | https://www.insee.fr/fr/statistiques/fichier/8682393/beneficiaires_CAF_31-12-2024_Iris.zip |
-| CNAM | data_CNAM_2025_IRIS.csv | Cette base fournit des indicateurs sur les bénéficiaires du régime général de l'assurance maladie ainsi que sur les bénéficiaires de la Complémentaire Santé Solidaire (C2S) dans les quartiers prioritaires de la politique de la ville. | 2025 | https://www.insee.fr/fr/statistiques/8736938 | https://www.insee.fr/fr/statistiques/fichier/8736938/beneficiaires_CNAM_01-01-2025_Iris_csv.zip |
-| Demandeurs d'emploi | data_DEFM2024_iris.csv | Cette base fournit des indicateurs sur les demandeurs d'emploi en fin de mois au 31 décembre dans les quartiers prioritaires de la politique de la ville. | 2024 | https://www.insee.fr/fr/statistiques/8644875 | https://www.insee.fr/fr/statistiques/fichier/8644875/DEFM2024_Iris_csv.zip |
-| Répertoire du Parc Locatif Social | data_RPLS2025_IRIS.csv | Cette base fournit des indicateurs sur le parc des logements locatifs des bailleurs sociaux dans les quartiers prioritaires de la politique de la ville. | 2025 | https://www.insee.fr/fr/statistiques/9057420 | https://www.insee.fr/fr/statistiques/fichier/9057420/RPLS_01-01-2025_Iris.zip |
+| CAF | data_CAF2024_Iris.csv | Cette base fournit des indicateurs sur les bénéficiaires des prestations légales versées par les CAF dans les quartiers politique de la ville. | 2024 | https://www.insee.fr/fr/statistiques/8682393 | https://www.insee.fr/fr/statistiques/fichier/8682393/beneficiaires_CAF_31-12-2024_Iris.zip |
+| CNAM | data_CNAM2025_IRIS.csv | Cette base fournit des indicateurs sur les bénéficiaires du régime général de l'assurance maladie ainsi que sur les bénéficiaires de la Complémentaire Santé Solidaire (C2S) dans les quartiers prioritaires de la politique de la ville. | 2025 | https://www.insee.fr/fr/statistiques/8736938 | https://www.insee.fr/fr/statistiques/fichier/8736938/beneficiaires_CNAM_01-01-2025_Iris_csv.zip |
+| Demandeurs d'emploi | data_DEFM2024_Iris.csv | Cette base fournit des indicateurs sur les demandeurs d'emploi en fin de mois au 31 décembre dans les quartiers prioritaires de la politique de la ville. | 2024 | https://www.insee.fr/fr/statistiques/8644875 | https://www.insee.fr/fr/statistiques/fichier/8644875/DEFM2024_Iris_csv.zip |
+| Répertoire du Parc Locatif Social | data_RPLS2025_Iris.csv | Cette base fournit des indicateurs sur le parc des logements locatifs des bailleurs sociaux dans les quartiers prioritaires de la politique de la ville. | 2025 | https://www.insee.fr/fr/statistiques/9057420 | https://www.insee.fr/fr/statistiques/fichier/9057420/RPLS_01-01-2025_Iris.zip |
 
 ## Fichiers complémentaires du recensement (cubes `DS_RP_…_IRIS_AAAA`)
 
@@ -30,7 +30,7 @@
 
 # Comment les obtenir ?
 
-Les fichiers meta contiennent le dictionnaire des variables, ils ne nous intéressent pas, on peut les supprimer.
+Les fichiers meta contiennent le dictionnaire des variables. **Il faut les garder** : le portail exige un `meta_<nom du fichier>.csv` par fichier de données (zone **Métadonnées**), il en tire les libellés des colonnes. Les lots de `exemples/` montrent les noms attendus.
 
 ## Fichiers Population, Activité des résidents, Couples - Familles - Ménages, Diplômes - Formation et Logement
 
@@ -38,9 +38,8 @@ Les fichiers meta contiennent le dictionnaire des variables, ils ne nous intére
 - Sélectionner les **résultats statistiques** de l'année la plus récente.
 - Utiliser les liens des **Bases infracommunales**.
 
-![Bases infracommunales](doc_images/bases_infracommunales.PNG)
-
 - Pour chaque lien télécharger le fichier **IRIS - France hors Mayotte** **au format CSV**.
+- Depuis 2023, ces bases sont publiées en cubes au format long : les convertir avec `scripts/transformer_recensement.py` (voir `doc/nouveau_millesime.md`).
 
 ## Fichier Individus localisés au canton ou ville (Microdonnées)
 
@@ -54,19 +53,18 @@ Les fichiers meta contiennent le dictionnaire des variables, ils ne nous intére
 
 - Déposer dans le portail la sortie `data/indcvi_roubaix/FD_INDCVI_2023.csv` (quelques Mo) avec la méta `varmod_indcvi_2023.csv`.
 
-## Fichiers Revenus disponibles, Revenus déclarés, Demandeurs d'emploi, CAF, CNAM, Répertoire du logement social
+## Fichiers Demandeurs d'emploi, CAF, CNAM, Répertoire du logement social
 
 - Aller sur la page **Données sur les quartiers de la politique de la ville (QPV)** : https://www.insee.fr/fr/statistiques/2500477
 - Les données à utiliser sont alors les **données par source**, cliquer sur l'année la plus récente.
 
-![Données par source](doc_images/donnees_par_source.PNG)
-
 - Pour chaque thème, télécharger le fichier **au format CSV**.
 
-Pour savoir quels fichiers garder, regarder le nom des fichiers dans le tableau plus haut.
+Pour savoir quels fichiers garder, regarder le nom des fichiers dans le tableau plus haut. Les revenus Filosofi (REV DEC, REV DISP) ne sont plus dans le classeur : inutile de les télécharger.
 
 ## Base permanente des équipements
 
 - Il n'y a malheureusement aucune page recensant les BPE par année.
 - Une recherche Google permet néanmoins de retrouver facilement la page la plus récente : https://www.google.com/search?q=bpe+insee+iris
-- Cliquer sur **Ensemble des thèmes** puis télécharger l'**Ensemble des bases au niveau IRIS** **au format CSV**.
+- Cliquer sur **Ensemble des thèmes** puis télécharger l'**Ensemble des bases au niveau IRIS**, en CSV ou en Parquet (plus léger), avec le fichier de métadonnées varmod (`BPE<AA>_anonymisee_varmod.csv`).
+- Déposer le fichier national tel quel dans la page **Équipements BPE** du portail (voir le README) : le filtrage sur Roubaix ou la MEL est fait par l'application.

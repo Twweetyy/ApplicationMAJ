@@ -10,7 +10,7 @@
 
 **Nom** : BDDMAS Roubaix – ApplicationMAJ  
 **Dépôt Git** : GitHub (branche `main`)  
-**Langage** : Python 3.14 + HTML/CSS/JS (vanilla)  
+**Langage** : Python 3.11 ou plus (3.14 sur le poste, 3.12 dans l'image Docker) + HTML/CSS/JS (vanilla)  
 **Serveur** : FastAPI + Uvicorn  
 **Usage** : Génération du classeur Excel BDDMAS (données infra-communales sur les 38 IRIS de Roubaix)
 
@@ -19,16 +19,20 @@
 ```
 ApplicationMAJ/
 ├─ main_bddmas.py              → Orchestrateur du pipeline ETL
-├─ webapp.py                   → API FastAPI (gestion des jobs web)
+├─ webapp.py                   → API FastAPI (jobs du classeur BDDMAS + page BPE)
 ├─ run_portal.bat / .py        → Lanceur du portail (double-clic, lance d'abord le transformer du recensement)
+├─ Dockerfile / docker-compose.yml / .dockerignore → Portail lancé avec Docker (port 5000)
+├─ .env.exemple                → Modèle de configuration de l'IA (copier en .env)
 ├─ modules/
 │  ├─ socle_geo.py             → Référentiel MAS, superficies, jointures
 │  ├─ ingestion.py             → Pré-contrôle, lecture, nettoyage sources
 │  ├─ lecture.py               → Lecture des données CSV (pandas) ou Parquet (DuckDB)
-│  ├─ indicateurs.py           → Calculs dérivés, arrondis, répartitions
-│  ├─ export_excel.py          → Remplissage du modèle Excel + mise en forme
+│  ├─ indicateurs.py           → Calculs dérivés, arrondis (dont arrondi contrôlé), répartitions
+│  ├─ export_excel.py          → Remplissage du modèle Excel, colonnes de zonage
 │  ├─ pages_info.py            → Pages Présentation et Detail calcul générées selon le lot
-│  ├─ mise_en_page.py          → Formats, largeurs, couleurs d'en-têtes, ordre des colonnes, volets figés
+│  ├─ mise_en_page.py          → Formats, largeurs, hauteurs, couleurs d'en-têtes, ordre des colonnes, volets figés
+│  ├─ portrait_roubaix.py      → Onglet Portrait Roubaix (chiffres clés en formules Excel)
+│  ├─ bpe.py                   → Classeur de la Base permanente des équipements (Roubaix ou MEL)
 │  ├─ export_sig.py            → Export CSV pour SIG
 │  ├─ persistence.py           → Insertion SQLAlchemy
 │  ├─ colonnes_auto.py         → Colonnes inconnues d'un nouveau millésime (sans IA puis IA, cache YAML)
@@ -38,27 +42,36 @@ ApplicationMAJ/
 │  ├─ calculated_columns.yml   → Formules de colonnes calculées
 │  ├─ info_pages.yml           → Titres des onglets (clés par thème, sans année)
 │  ├─ liens_presentation.yml   → Liens INSEE de la page Présentation (par thème et millésime)
-│  ├─ correspondances_auto.yml → Cache des décisions du module colonnes (généré, relisible, versionné)
-│  ├─ millesimes_valides.yml   → Dernier millésime validé à la main par thème (créé au 1er lancement)
-│  └─ meta/                    → Métadonnées CSV (meta2022/, meta2023/)
+│  ├─ grand_quartier.yml       → Grand quartier de chaque IRIS (référence des 38 IRIS)
+│  ├─ secteurs_mairie.yml      → Secteur de mairie de chaque IRIS
+│  ├─ superficies_iris_roubaix.yml → Superficies (densités)
+│  ├─ libelles_iris_roubaix.yml → Libellés INSEE des IRIS
+│  ├─ communes_mel.yml         → Communes de la MEL (classeur BPE)
+│  ├─ bpe/                     → Varmod BPE 2025, quartiers historiques
+│  ├─ correspondances_auto.yml → Cache des décisions du module colonnes (généré au premier nouveau millésime)
+│  ├─ millesimes_valides.yml   → Dernier millésime validé à la main par thème
+│  └─ meta/                    → Métadonnées CSV (meta2022/, meta2023/), locales, non versionnées
 ├─ scripts/
-│  ├─ diag.py                  → Diagnostic des cubes INSEE 2023
 │  ├─ extraire_indcvi_roubaix.py → Extraction FD_INDCVI Roubaix
-│  ├─ transformer_recensement.py → Conversion cubes INSEE 2023 et suivants (lit data/dataAAAA/sources_brutes_insee/)
+│  ├─ transformer_recensement.py → Conversion cubes INSEE 2023 et suivants (lit data/dataAAAA/sources_brutes_insee/ et complementaires/)
 │  └─ simuler_nouveau_millesime.py → Faux millésime +1 (libellés reformulés) pour tester colonnes_auto + IA
 ├─ doc/
-│  ├─ etat_du_projet_bddmas.md → Rapport d'avancement détaillé
-│  ├─ Fichiers_INSEE_2026.md   → Documentation fichiers INSEE
-│  └─ r_gles_d_arrondis_compl_tes.md → Règles d'arrondis complètes
-├─ archives/                   → Anciens scripts et fichiers archivés
+│  ├─ nouveau_millesime.md     → Marche à suivre pour un nouveau millésime
+│  ├─ etat_du_projet_bddmas.md → Rapport d'avancement
+│  ├─ Fichiers_INSEE_2026.md   → Fichiers INSEE à fournir et où les trouver
+│  ├─ r_gles_d_arrondis_compl_tes.md → Règles d'arrondis complètes
+│  └─ img/                     → Captures du README
+├─ exemples/                   → Lots 2022 et 2023 prêts à déposer (versionnés)
 ├─ web/
 │  ├─ index.html               → Page principale du portail
 │  ├─ multi-upload.js          → Logique front (drag & drop, upload, suivi)
+│  ├─ bpe.html / bpe.js        → Page Équipements BPE
 │  ├─ styles.css               → Feuille de style (charte Roubaix)
 │  └─ logo_institutionnel.png  → Logo officiel Ville de Roubaix
-├─ data/                       → Données brutes (NON versionnées)
-├─ sorties/                    → Classeurs Excel générés (NON versionnés)
-└─ TAB_BDDMAS_INSEE2022_MODELE.xlsx → Classeur modèle (gabarit)
+├─ data/                       → Données brutes (sous-dossiers NON versionnés)
+├─ sorties/                    → Classeurs Excel générés en ligne de commande (NON versionnés)
+├─ TAB_BDDMAS_INSEE2022_MODELE.xlsx → Classeur modèle (gabarit)
+└─ TAB_BDDMAS_INSEE2023.xlsx   → Dernier classeur généré (lot 2023)
 ```
 
 ---
@@ -67,23 +80,24 @@ ApplicationMAJ/
 
 | Composant | Détails |
 |-----------|---------|
-| Python | 3.14 (environnement virtuel `.venv`) |
+| Python | 3.11 ou plus : 3.14 sur le poste (environnement virtuel `.venv`), 3.12 dans l'image Docker |
 | Backend | FastAPI, Uvicorn |
 | Traitement | Pandas, OpenPyXL, DuckDB, PyYAML, tqdm |
 | LLM (optionnel) | openai (SDK), python-dotenv |
 | Front | HTML5/CSS3/JS vanilla (pas de framework) |
-| Base (optionnel) | SQLAlchemy, configurable via `BDDMAS_DATABASE_URL` |
+| Base (optionnel) | SQLAlchemy, configurable via `BDDMAS_DATABASE_URL` (non inclus dans `requirements.txt`) |
+| Conteneur (optionnel) | Docker : `Dockerfile` + `docker-compose.yml` |
 
 ---
 
 ## 3. Conventions du Projet
 
 - **Langue des commits** : Français
-- **Langue du code** : Noms de variables/fonctions en français (ex: `arrondir_effectifs`, `executer_pipeline`)
-- **Fichier de sortie** : va dans `sorties/` (ignoré par Git)
+- **Langue du code** : Noms de variables/fonctions en français (ex: `arrondir_variables`, `executer_pipeline`)
+- **Fichier de sortie** : en ligne de commande, va dans `sorties/` (ignoré par Git) ; depuis le portail, il est téléchargé
 - **Fichier `.env`** : contient les clés API (Groq/OpenAI) — **JAMAIS versionné**
 - **Métadonnées** : organisées par millésime dans `dictionnaires/meta/meta2022/` et `meta2023/`
-- **Archives** : les anciens scripts/fichiers supprimés du dépôt vont dans `archives/`
+- **Code inutilisé** : supprimé du dépôt (il reste dans l'historique Git) ; `archives/` est ignoré par Git et ne sert qu'en local
 
 ---
 
@@ -110,12 +124,17 @@ ApplicationMAJ/
 | 27/10/2026 | Nombre de colonnes géo = position de « Libellé de l'Iris » (plus de `8 if "Age : 0"`) | Robuste au retrait de Crèches et aux évolutions du modèle |
 | 30/10/2026 | Onglets du classeur : seules les colonnes de `COLONNES_ZONAGE` (`export_excel.py`) restent en gris ; centres sociaux, NPNRU, CDV et cités éducatives retirés du classeur mais gardés dans les exports SIG/SQL | Tableau plus lisible ; le zonage complet reste disponible pour le tableau tout périmètre |
 | 30/10/2026 | `Grands_quartiers` de `Périmètres_MAS.csv` aligné sur `grand_quartier.yml` (noms rectifiés via le geojson) | Une seule source pour les noms de quartier |
-| 30/10/2026 | Onglet « Portrait Roubaix » après la Présentation (`modules/portrait_roubaix.py`) : chiffres clés de la ville en 4 blocs (Démographie, Emploi et formation, Revenus et prestations, Logement), valeurs en formules Excel vers les onglets | Les chiffres suivent toujours le classeur ; parts = somme des numérateurs / somme des dénominateurs ; Filosofi non additif → IRIS le plus bas / le plus haut |
+| 30/10/2026 | Onglet « Portrait Roubaix » après la Présentation (`modules/portrait_roubaix.py`) : chiffres clés de la ville en 4 blocs (Démographie, Emploi et formation, Revenus et prestations, Logement), valeurs en formules Excel vers les onglets | Les chiffres suivent toujours le classeur ; parts = somme des numérateurs / somme des dénominateurs ; Filosofi non additif → IRIS le plus bas / le plus haut (remplacé le même jour par les valeurs figées de Roubaix, voir plus bas) |
 | 30/10/2026 | Trois colonnes grises : « Mairies de quartiers », « Grands quartiers » (nouveaux noms de `grand_quartier.yml`) et « Libellé de l'Iris » (libellé INSEE, inchangé) | Le grand quartier remplace le quartier historique ; le libellé IRIS reste la référence INSEE |
 | 30/10/2026 | Colonnes grises à largeur ajustée au contenu (12 à 30), lignes d'IRIS en hauteur automatique, titre fusionné sur les colonnes grises | Le modèle gardait les largeurs et hauteurs des anciennes colonnes de zonage |
 | 30/10/2026 | Ligne Total centrée, cellules sans total sans fond vert ; colonnes de données plus étroites (min 9, en-têtes jusqu'à 6 lignes) ; colonne Crèches retirée dès l'export (le titre PETITE ENFANCE en A1 était effacé avec elle) ; hauteurs Detail calcul estimées mot par mot | Retours visuels sur le classeur 2023 |
 | 30/10/2026 | Rendu aéré : cellules d'IRIS centrées (horizontal + vertical), lignes de 30 pt comme l'ancien classeur (auto si colonnes de texte), colonnes min 12 avec marge, en-têtes sur 4 lignes max | Le resserrement précédent faisait « matrice » |
 | 30/10/2026 | Onglets REV DEC et REV DISP (Filosofi) retirés : modèle Excel, Présentation, Portrait Roubaix (niveau de vie médian 16 080 € et taux de pauvreté 47,4 % de Roubaix gardés en valeurs figées Filosofi 2021, calcul `fixe`), dictionnaires, portail et lots d'exemple ; un fichier FILO déposé est ignoré avec un avertissement | Données 2021 trop anciennes pour être représentatives ; aucun indicateur calculé ne les utilisait |
+| 28/10/2026 | Arrondi contrôlé (plus fort reste) des effectifs additifs | La somme des 38 IRIS égale le total communal officiel (98 286 habitants en 2023) |
+| 29/10/2026 | Passage au RPLS 2025 (lot d'exemple, lien Présentation, `millesimes_valides.yml`) | Millésime le plus récent ; schéma identique à 2024 |
+| 30/10/2026 | Portail lançable avec Docker (`docker compose up --build`, port 5000, `data/` et `dictionnaires/meta/` partagés, `.env` lu sans être copié) | Lancement sans Python ni `.venv` sur un autre poste |
+| 30/10/2026 | Page Équipements BPE (`/bpe`, `modules/bpe.py`) : périmètre Roubaix (IRIS) ou MEL (95 communes), fichier national ou filtré, CSV ou Parquet (filtre `DEPCOM` par DuckDB) | Reprend les anciens scripts BPE Roubaix et BPE MEL dans le portail |
+| 30/10/2026 | BPE nouveau millésime : colonne inconnue ajoutée en fin d'onglet avec son libellé varmod, colonne absente laissée vide, les deux listées sur la page | Une BPE 2026 se traite sans modifier le code ; la BPE 2024 (dictionnaire `.xls`) n'est pas prise en charge |
 | 27/10/2026 | Transformer 2023 sauté si les 10 fichiers produits existent, comptent 38 IRIS et sont plus récents que les sources et le script (`--force` pour recalculer) | Démarrage du portail en quelques secondes au lieu de relire les cubes INSEE |
 | 27/10/2026 | Audit IRIS : le code commune seul « 59512 » (« Non localisé à l'iris ») n'est pas signalé comme inconnu | Ligne légitime du référentiel, pas une erreur |
 | 27/10/2026 | Module `colonnes_auto.py` : colonne inconnue du modèle → correspondance exacte/normalisée, puis approchée (`difflib`, mêmes nombres et mêmes mots sensibles), puis IA (un appel par onglet, JSON validé) | Nouveau millésime intégré sans intervention ; l'IA ne touche jamais aux valeurs |
@@ -145,10 +164,57 @@ ApplicationMAJ/
 - **Colonnes auto** : une décision fausse se corrige dans `dictionnaires/correspondances_auto.yml` (changer `entete`, mettre `methode: manuel`). Une colonne « non résolue » garde son libellé méta. Le premier lot traité avec l'IA envoie aussi les colonnes absentes du modèle 2022 (une seule fois, ensuite cache)
 - **Accès IA bloqué au bureau** : depuis le poste de la mairie, toute connexion HTTPS vers une API d'IA (Groq, Mistral…) est coupée pendant la poignée de main TLS, même en partage de connexion (filtrage côté poste). Au bureau : `BDDMAS_LLM=0` dans `.env` ; le module garde correspondance exacte, approchée et cache, les colonnes restantes sont « non résolues » à corriger dans `correspondances_auto.yml`. IA utilisable hors du poste de la mairie (ex. à domicile), sans changement de code
 - **Avertissement UNC** : « Les chemins d'accès UNC ne sont pas pris en charge » au démarrage → sans conséquence
+- **Revenus Filosofi** : le niveau de vie médian (16 080 €) et le taux de pauvreté (47,4 %) de l'onglet Portrait Roubaix sont écrits en dur (`calcul fixe` dans `modules/portrait_roubaix.py`) ; à mettre à jour à la main si l'Insee publie un Filosofi plus récent
+- **BPE** : la BPE 2024 n'est pas prise en charge (dictionnaire `.xls`) ; sans varmod déposé, celui de 2025 (`dictionnaires/bpe/`) est utilisé
+- **Hook pre-commit** : le hook qui bloque les fichiers de plus de 5 Mo est local au poste (`.git/hooks/`), il n'est pas versionné
 
 ---
 
 ## 6. Historique des Sessions de Travail
+
+### 📅 30 octobre 2026 (fin) — Mise à jour de la documentation
+
+**Auteur** : Bilal (assisté par IA)
+
+#### Modifications effectuées
+- `README.md` : architecture complétée (`sorties/`, `doc/`, dictionnaires BPE et MEL, `complementaires/`), `.env.exemple` (au lieu de `.env.example`), port 5000 pour le lancement manuel, sortie de la ligne de commande dans `sorties/`, section « Gestion du dépôt Git » alignée sur le `.gitignore`
+- `CONTEXTE_PROJET.md` : architecture, versions de Python, décisions et historique des 28, 29 et 30/10, limites et TODO
+- `doc/Fichiers_INSEE_2026.md` : noms réels des fichiers CAF, CNAM, DEFM et RPLS, métadonnées à garder (le portail les exige), revenus Filosofi retirés, BPE en Parquet, images manquantes retirées
+- `doc/etat_du_projet_bddmas.md` : rapport réécrit sur l'état au 30/10
+- Code inutilisé supprimé : `archives/` (anciens scripts, déjà ignoré par Git), `web/app.js` (ancien front, chargé par aucune page), `scripts/diag.py` (diagnostic ponctuel des cubes 2023), alias `arrondir_effectifs` de `indicateurs.py` (appelé nulle part)
+- `doc/nouveau_millesime.md` : `.env.exemple`, BPE
+
+### 📅 30 octobre 2026 — Zonage, Portrait Roubaix, mise en page, Docker, BPE, retrait Filosofi
+
+**Auteur** : Bilal (assisté par IA)
+
+#### Modifications effectuées
+- **Quartiers** : `grand_quartier.yml` et `superficies_iris_roubaix.yml` rectifiés à l'aide du geojson ; `Grands_quartiers` de `Périmètres_MAS.csv` aligné ; trois colonnes grises dans les onglets (« Mairies de quartiers », « Grands quartiers », « Libellé de l'Iris ») via `COLONNES_ZONAGE` (`export_excel.py`), les autres zonages restant dans les exports SIG/SQL
+- **Portrait Roubaix** (`modules/portrait_roubaix.py`, nouveau) : onglet après la Présentation, 4 blocs de chiffres clés en formules Excel vers les onglets thématiques, lien vers l'onglet source
+- **Mise en page** (`modules/mise_en_page.py`) : ligne Total centrée, cellules centrées, lignes d'IRIS à 30 pt, colonnes de données 14 à 34, colonnes grises 12 à 34, en-têtes sur 4 lignes max ; Detail calcul et titre PETITE ENFANCE corrigés ; constantes documentées dans le README
+- **Docker** : `Dockerfile` (Python 3.12, transformer puis portail sur le port 5000), `.dockerignore`, `docker-compose.yml`
+- **BPE** : page `/bpe` (`web/bpe.html`, `web/bpe.js`, routes dans `webapp.py`), `modules/bpe.py`, `dictionnaires/bpe/` ; lecture du Parquet national ; colonnes d'un nouveau millésime gérées et signalées
+- **Filosofi** : onglets REV DEC et REV DISP 2021 retirés (modèle, Présentation, dictionnaires, portail, lots d'exemple) ; le Portrait garde le niveau de vie médian et le taux de pauvreté de Roubaix en valeurs figées
+- **Lots d'exemple** : `exemples/*/data/` versionnés ; lot 2023 avec `FD_INDCVI_2023.csv` filtré sur Roubaix et `varmod_indcvi_2023.csv`
+- `web/index.html` : paramètre de version sur `multi-upload.js` pour forcer le rechargement (cache navigateur)
+- `TAB_BDDMAS_INSEE2023.xlsx` régénéré à la racine
+
+### 📅 29 octobre 2026 — RPLS 2025
+
+**Auteur** : Bilal (assisté par IA)
+
+#### Modifications effectuées
+- Lot d'exemple 2023 : `data_RPLS2025_Iris.csv` et sa méta remplacent le RPLS 2024
+- `liens_presentation.yml` : lien Insee RPLS 2025 (9057420) ; `millesimes_valides.yml` : RPLS validé en 2025
+- `TAB_BDDMAS_INSEE2023.xlsx` ajouté à la racine
+
+### 📅 28 octobre 2026 (soir) — Arrondi contrôlé
+
+**Auteur** : Bilal (assisté par IA)
+
+#### Modifications effectuées
+- `modules/indicateurs.py` : `_arrondi_controle` (plus fort reste) pour les colonnes additives ; total Roubaix 2023 = 98 286 habitants (et non 98 284)
+- `doc/r_gles_d_arrondis_compl_tes.md`, README : règle documentée
 
 ### 📅 28 octobre 2026 — Fichiers complémentaires Insee 2023
 
@@ -334,6 +400,11 @@ ApplicationMAJ/
 - [x] Afficher les décisions `colonnes_auto` dans le portail (27/10)
 - [ ] Tester l'IA hors poste mairie (simulation `scripts/simuler_nouveau_millesime.py`), réseau bloqué au bureau
 - [ ] Chatbot du portail (chantier séparé, même blocage réseau au bureau)
+- [x] Onglet Portrait Roubaix (30/10)
+- [x] Page Équipements BPE dans le portail, Roubaix et MEL (30/10)
+- [x] Lancement du portail avec Docker (30/10)
+- [ ] Mettre à jour les valeurs Filosofi figées du Portrait Roubaix si un millésime plus récent paraît
+- [x] Supprimer le code inutilisé : `archives/`, `web/app.js`, `scripts/diag.py`, alias `arrondir_effectifs` (30/10)
 
 ---
 

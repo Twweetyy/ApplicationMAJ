@@ -13,11 +13,11 @@
 
 ## Le projet en bref
 
-**Le besoin.** Le service SIG de la Ville de Roubaix publie une base de données infra-communale (BDDMAS) : population, emploi, familles, diplômes, logement, prestations CAF, assurance maladie, demandeurs d'emploi, logement social et petite enfance, quartier par quartier. Chaque mise à jour demandait de récupérer une dizaine de fichiers aux formats différents, de filtrer Roubaix, de recalculer des dizaines d'indicateurs et de reporter le tout dans un classeur Excel d'une quinzaine d'onglets, avec de nombreuses manipulations manuelles.
+**Le besoin :** Le service SIG de la Ville de Roubaix publie une base de données infra-communale (BDDMAS) : population, emploi, familles, diplômes, logement, prestations CAF, assurance maladie, demandeurs d'emploi, logement social et petite enfance, quartier par quartier. Chaque mise à jour demandait de récupérer une dizaine de fichiers aux formats différents, de filtrer Roubaix, de recalculer des dizaines d'indicateurs et de reporter le tout dans un classeur Excel d'une quinzaine d'onglets, avec de nombreuses manipulations manuelles.
 
-**La solution.** Un portail web local : on dépose les fichiers, l'application contrôle le lot, puis génère le classeur complet (valeurs, indicateurs calculés, mise en forme, pages de présentation, portrait de la ville) en moins d'une minute.
+**La solution :** Un portail web local : on dépose les fichiers, l'application contrôle le lot, puis génère le classeur complet (valeurs, indicateurs calculés, mise en forme, pages de présentation, portrait de la ville) en moins d'une minute.
 
-**Ce qui le rend robuste.**
+**Ce qui le rend robuste :**
 - Fonctionne d'un millésime à l'autre (recensements 2022 et 2023, formats Insee différents) sans toucher au code.
 - Quand l'Insee renomme ou ajoute des variables, un module les rattache seul aux bonnes colonnes (règles, puis IA facultative), avec un cache relisible et corrigeable.
 - Un pré-contrôle bloque les lots incomplets avant tout calcul (fichiers manquants, métadonnées absentes, IRIS manquants, doublons de millésime).
@@ -99,7 +99,8 @@ Le projet contient :
 - un convertisseur des cubes Insee du recensement, valable pour 2023 et les millésimes suivants (`scripts/transformer_recensement.py`) ;
 - un guide pour intégrer un nouveau millésime sans toucher au code ([`doc/nouveau_millesime.md`](doc/nouveau_millesime.md)) ;
 - un module qui rattache automatiquement les colonnes inconnues d'un nouveau millésime Insee (`modules/colonnes_auto.py`, IA facultative) ;
-- des lots d'exemple 2022 et 2023 (`exemples/`, avec RPLS 2025) pour essayer le portail tout de suite ;
+- une page **Équipements BPE** qui produit le classeur de la Base permanente des équipements, pour Roubaix ou la MEL (`modules/bpe.py`) ;
+- des lots d'exemple 2022 et 2023 (`exemples/`, avec RPLS 2025 et le FD_INDCVI 2023 filtré sur Roubaix) pour essayer le portail tout de suite ;
 - le dernier classeur généré, `TAB_BDDMAS_INSEE2023.xlsx`, à la racine.
 
 Le pipeline fonctionne avec le recensement 2022 (fichiers Insee au format large) et avec le recensement 2023 (cubes Insee au format long, convertis au préalable).
@@ -117,8 +118,9 @@ Détails dans `exemples/README.md`.
 ```text
 ApplicationMAJ/
 ├─ .venv/                          Environnement virtuel (non versionné)
-├─ data/                           Fichiers CSV bruts et référentiel des périmètres (ignoré par Git)
+├─ data/                           Fichiers bruts (sous-dossiers ignorés par Git) et référentiel Périmètres_MAS.csv
 │  ├─ data2023/                    CSV 2023 transformés
+│  │  ├─ complementaires/          Fichiers complémentaires Insee DS_RP_…_IRIS_2023
 │  │  └─ sources_brutes_insee/     Cubes Insee 2023 bruts
 │  └─ indcvi_roubaix/              FD_INDCVI filtré sur Roubaix
 ├─ dictionnaires/                  Correspondances de fichiers, variables et onglets (YAML)
@@ -127,8 +129,11 @@ ApplicationMAJ/
 │  ├─ secteurs_mairie.yml          Secteur de mairie de chaque IRIS
 │  ├─ superficies_iris_roubaix.yml Superficie de chaque IRIS (densités)
 │  ├─ liens_presentation.yml       Liens vers la documentation Insee de chaque source
+│  ├─ libelles_iris_roubaix.yml    Libellés Insee des IRIS
+│  ├─ communes_mel.yml             Communes de la MEL (classeur BPE)
+│  ├─ bpe/                         Varmod BPE 2025 et quartiers historiques (classeur BPE)
 │  ├─ correspondances_auto.yml     Décisions du module colonnes (généré, corrigeable)
-│  └─ meta/                        Métadonnées meta_*.csv (dont meta2023/ généré)
+│  └─ meta/                        Métadonnées meta_*.csv par millésime (local, ignoré par Git ; meta2023/ généré)
 ├─ modules/
 │  ├─ socle_geo.py                 Chargement du référentiel MAS, superficies et jointures
 │  ├─ ingestion.py                 Pré-contrôle, lecture, nettoyage et renommage des sources thématiques
@@ -146,11 +151,12 @@ ApplicationMAJ/
 ├─ scripts/
 │  ├─ transformer_recensement.py   Conversion des cubes Insee (2023 et suivants)
 │  ├─ extraire_indcvi_roubaix.py   Extraction des lignes Roubaix du FD_INDCVI
-│  ├─ simuler_nouveau_millesime.py Faux millésime +1 pour tester colonnes_auto
-│  └─ diag.py                      Diagnostic des cubes Insee 2023
+│  └─ simuler_nouveau_millesime.py Faux millésime +1 pour tester colonnes_auto
 ├─ exemples/                       Lots 2022 et 2023 prêts à déposer dans le portail
 ├─ web/                            Front du portail (index.html, multi-upload.js, bpe.html, bpe.js, styles.css)
-├─ doc/img/                        Captures et démonstration utilisées dans ce README
+├─ doc/                            Guides (nouveau millésime, fichiers Insee, arrondis, état du projet)
+│  └─ img/                         Captures et démonstration utilisées dans ce README
+├─ sorties/                        Classeur généré en ligne de commande (ignoré par Git)
 ├─ exports_sig/                    Exportations SIG (ignoré par Git)
 ├─ main_bddmas.py                  Orchestrateur du pipeline
 ├─ webapp.py                       API FastAPI du portail
@@ -158,7 +164,8 @@ ApplicationMAJ/
 ├─ run_portal.py                   Démarrage du serveur Uvicorn
 ├─ Dockerfile                      Recette de l'image Docker du portail
 ├─ docker-compose.yml              Lancement du portail avec Docker (port, .env, dossiers partagés)
-├─ .env.example                    Modèle de configuration de l'IA (copier en .env)
+├─ .env.exemple                    Modèle de configuration de l'IA (copier en .env)
+├─ CONTEXTE_PROJET.md              Journal du projet : décisions, limites, historique des sessions
 ├─ TAB_BDDMAS_INSEE2022_MODELE.xlsx  Classeur modèle conservé comme gabarit
 ├─ TAB_BDDMAS_INSEE2023.xlsx       Dernier classeur généré (lot 2023)
 ├─ requirements.txt                Dépendances Python
@@ -173,7 +180,7 @@ Prérequis : Python 3.11 ou plus récent. Depuis le dossier du projet :
 python -m pip install -r requirements.txt
 ```
 
-Optionnel (IA du module colonnes) : copier `.env.example` en `.env` et renseigner la clé. Sans `.env`, ou avec `BDDMAS_LLM=0`, le pipeline fonctionne sans IA.
+Optionnel (IA du module colonnes) : copier `.env.exemple` en `.env` et renseigner la clé. Sans `.env`, ou avec `BDDMAS_LLM=0`, le pipeline fonctionne sans IA.
 
 ## Lancement
 
@@ -192,9 +199,9 @@ run_portal.bat
 Lancement manuel équivalent :
 
 ```powershell
-python -m uvicorn webapp:app --host 127.0.0.1 --port 8000
+python -m uvicorn webapp:app --host 127.0.0.1 --port 5000
 ```
-puis ouvrir `http://127.0.0.1:8000`.
+puis ouvrir `http://127.0.0.1:5000`.
 
 L'interface affiche le pré-contrôle avant d'autoriser la génération. Les jobs sont isolés dans le répertoire temporaire du système (`%TEMP%\bddmas-web-jobs`) et nettoyés après 12 heures. Les exports SIG et SQL ne sont pas produits par l'interface.
 
@@ -219,7 +226,7 @@ puis ouvrir `http://localhost:5000`.
 ```powershell
 python main_bddmas.py
 ```
-Les sources sont lues dans `data/` et les métadonnées dans `dictionnaires/meta/`. Le classeur `TAB_BDDMAS_INSEE2022_Tout_perimetre.xlsx` est généré à la racine à partir de `TAB_BDDMAS_INSEE2022_MODELE.xlsx`. Le modèle d'origine n'est pas modifié. Les exports SIG et l'insertion SQL sont produits en plus (voir plus bas).
+Les sources sont lues à plat dans `data/` et les métadonnées dans `dictionnaires/meta/`. Le classeur `sorties/TAB_BDDMAS_INSEE_Tout_perimetre.xlsx` est généré à partir de `TAB_BDDMAS_INSEE2022_MODELE.xlsx`. Depuis le rangement des données par millésime (`data/dataAAAA/`), le portail est le mode recommandé. Le modèle d'origine n'est pas modifié. Les exports SIG et l'insertion SQL sont produits en plus (voir plus bas).
 
 Pendant l'exécution, `tqdm` affiche la progression des étapes du pipeline, la lecture du recensement et l'écriture des lignes Excel. Pour le recensement, le nombre de lignes et le temps restant sont estimés à partir des 2 premiers Mo du fichier ; cette estimation est indicative.
 
@@ -261,7 +268,7 @@ Pour Roubaix, chaque équipement reçoit le libellé de son IRIS, son secteur de
 
 Les nombres du Parquet sont écrits comme dans le CSV de l'Insee (`12` et non `12.0`) : les deux formats donnent le même classeur.
 
-**Nouveau millésime (BPE 2026 et suivantes).** L'année est lue dans la colonne `AN` (titre de l'accueil et nom du fichier). Il faut déposer le varmod du millésime, sinon les nouveaux codes restent non traduits. Si l'Insee change les colonnes :
+**Nouveau millésime (BPE 2026 et suivantes) :** L'année est lue dans la colonne `AN` (titre de l'accueil et nom du fichier). Il faut déposer le varmod du millésime, sinon les nouveaux codes restent non traduits. Si l'Insee change les colonnes :
 - une colonne **absente** reste dans le classeur, vide ;
 - une colonne **inconnue** est ajoutée en fin de l'onglet BPE, sous le libellé du varmod (`LIB_VAR`).
 
@@ -302,8 +309,6 @@ Points clés du transformer :
 - Le nombre de ménages (COU FAM) est repris des résidences principales du cube logement, le cube ménages n'ayant pas de mesure « ménages ».
 - Pas de tranche 25-29 ans dans le cube 2023 : `Pop 15-29 ans` est remplacée par `Pop 15-24 ans`.
 - Si l'Insee change les codes des dimensions, le script s'arrête (« Population nulle ») ou signale les colonnes à 0 : voir [`doc/nouveau_millesime.md`](doc/nouveau_millesime.md), section 3.
-
-Ne plus utiliser `adapt_2023_transform.py` (renommé en `.bak`) : il écrivait les cubes bruts sous les mêmes noms et écrasait les fichiers transformés.
 
 ## Fichier enfants FD_INDCVI (portail)
 
@@ -426,8 +431,10 @@ Depuis le poste de la mairie, les appels HTTPS vers les API d'IA sont bloqués :
 ## Gestion du dépôt Git
 
 - Les dossiers `build/`, `dist/`, `*.spec`, `*.exe` et les caches Python sont ignorés via `.gitignore`.
-- Les dossiers de données (`data/`, `exports_sig/`) sont également exclus.
-- Un hook `pre-commit` empêche d'ajouter accidentellement des fichiers volumineux (plus de 5 Mo) ou les dossiers de données. `exemples/*/data/` est ré-autorisé dans `.gitignore` ; pour un fichier d'exemple plus lourd, commit avec `git commit --no-verify`.
+- Les sous-dossiers de données (`data/data2022`, `data/data2023`, `data/dataBPE`, `data/indcvi_roubaix`…), `exports_sig/`, `sorties/` et les métadonnées locales (`dictionnaires/meta/meta2022/`, `meta2023/`) sont également exclus.
+- `exemples/*/data/` est ré-autorisé dans `.gitignore` : les lots d'exemple sont versionnés.
+- `archives/` est ignoré : les anciens scripts ont été retirés du dépôt (ils restent dans l'historique Git).
+- Un hook `pre-commit` local (non versionné, à recréer sur un nouveau poste) peut empêcher d'ajouter des fichiers de plus de 5 Mo ; pour un fichier d'exemple plus lourd, commit avec `git commit --no-verify`.
 - `.env` (clés API) n'est jamais versionné.
 
 ## Créer une release
