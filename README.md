@@ -216,7 +216,7 @@ puis ouvrir `http://localhost:5000`.
 
 - Le premier lancement construit l'image (quelques minutes) ; les suivants démarrent en quelques secondes.
 - Au démarrage, `scripts/transformer_recensement.py` convertit les cubes Insee présents dans `data/`, comme `run_portal.bat`.
-- `data/` et `dictionnaires/meta/` sont partagés avec le PC : les fichiers déposés et les métadonnées produites restent dans le dossier du projet.
+- `data/` et `dictionnaires/` sont partagés avec le PC : les fichiers déposés, les métadonnées produites, le cache des colonnes auto (`correspondances_auto.yml`) et les millésimes validés restent dans le dossier du projet. Un dictionnaire modifié sur le PC est pris en compte sans reconstruire l'image.
 - Le `.env` est lu s'il existe (IA du module colonnes) ; il n'est jamais copié dans l'image.
 - Pour arrêter : `Ctrl+C`, ou `docker compose down` si le portail a été lancé en arrière-plan avec `docker compose up -d`.
 - Après une modification du code, relancer `docker compose up --build` pour reconstruire l'image.
