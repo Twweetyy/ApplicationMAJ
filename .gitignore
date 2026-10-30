@@ -19,7 +19,13 @@ __pycache__/
 tmp/
 
 # ===== Données volumineuses (non versionnées) =====
-data/
+data/data2023
+data/data2022
+data/dataBPE
+data/simulation_2023
+data/Périmètres_MAS.csv
+data/indcvi_roubaix
+
 exports_sig/
 sorties/
 
