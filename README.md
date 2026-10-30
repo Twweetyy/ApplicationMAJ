@@ -13,9 +13,9 @@
 
 ## Le projet en bref
 
-**Le besoin.** Le service SIG de la Ville de Roubaix publie une base de données infra-communale (BDDMAS) : population, emploi, familles, diplômes, logement, revenus, prestations CAF, assurance maladie, demandeurs d'emploi, logement social et petite enfance, quartier par quartier. Chaque mise à jour demandait de récupérer une dizaine de fichiers aux formats différents, de filtrer Roubaix, de recalculer des dizaines d'indicateurs et de reporter le tout dans un classeur Excel de 14 onglets, avec de nombreuses manipulations manuelles.
+**Le besoin.** Le service SIG de la Ville de Roubaix publie une base de données infra-communale (BDDMAS) : population, emploi, familles, diplômes, logement, revenus, prestations CAF, assurance maladie, demandeurs d'emploi, logement social et petite enfance, quartier par quartier. Chaque mise à jour demandait de récupérer une dizaine de fichiers aux formats différents, de filtrer Roubaix, de recalculer des dizaines d'indicateurs et de reporter le tout dans un classeur Excel d'une quinzaine d'onglets, avec de nombreuses manipulations manuelles.
 
-**La solution.** Un portail web local : on dépose les fichiers, l'application contrôle le lot, puis génère le classeur complet (valeurs, indicateurs calculés, mise en forme, pages de présentation) en moins d'une minute.
+**La solution.** Un portail web local : on dépose les fichiers, l'application contrôle le lot, puis génère le classeur complet (valeurs, indicateurs calculés, mise en forme, pages de présentation, portrait de la ville) en moins d'une minute.
 
 **Ce qui le rend robuste.**
 - Fonctionne d'un millésime à l'autre (recensements 2022 et 2023, formats Insee différents) sans toucher au code.
@@ -43,7 +43,9 @@ La page **Présentation** est générée selon le lot : millésime de chaque sou
 
 ![Classeur : page Présentation](doc/img/excel-presentation.png)
 
-Chaque onglet thématique contient une ligne par IRIS. Les en-têtes bleus sont les effectifs (avec total), les orange les indicateurs (taux, densités, indices), regroupés à droite.
+Juste après, l'onglet **Portrait Roubaix** donne les chiffres clés de la ville en quatre blocs (démographie, emploi et formation, revenus et prestations, logement). Chaque valeur est une formule Excel qui pointe vers les onglets thématiques : un effectif est la somme des IRIS, une part est une somme divisée par une somme, et les indicateurs Filosofi affichent l'IRIS le plus bas et le plus haut. Un lien renvoie vers l'onglet source.
+
+Chaque onglet thématique contient une ligne par IRIS. Trois colonnes grises situent l'IRIS : **Mairies de quartiers**, **Grands quartiers** (noms issus de `dictionnaires/grand_quartier.yml`) et **Libellé de l'Iris** (libellé Insee). Les en-têtes bleus sont les effectifs (avec ligne Total), les orange les indicateurs (taux, densités, indices), regroupés à droite. La mise en page est aérée : cellules centrées, lignes d'IRIS à 30 pt, colonnes dimensionnées selon leur contenu.
 
 ![Classeur : onglet Population, effectifs](doc/img/excel-effectifs.png)
 
@@ -58,7 +60,7 @@ flowchart LR
     C --> D[Colonnes inconnues<br/>règles puis IA, cache YAML]
     D --> E[Indicateurs<br/>calculs, arrondis,<br/>enfants pondérés]
     E --> F[Référentiel géographique<br/>quartiers, superficies]
-    F --> G[Classeur Excel<br/>14 onglets mis en forme]
+    F --> G[Classeur Excel<br/>Présentation, Portrait Roubaix,<br/>onglets thématiques mis en forme]
     B -->|erreur bloquante| H[Rapport à corriger]
 ```
 
@@ -75,6 +77,9 @@ flowchart LR
 - **Configuration plutôt que code** : correspondances de fichiers, formules des indicateurs, titres des onglets et liens Insee sont dans des fichiers YAML (`dictionnaires/`). Un nouveau millésime se gère en ajoutant une ligne.
 - **Colonnes d'un nouveau millésime** (`modules/colonnes_auto.py`) : correspondance exacte, puis approchée (mêmes nombres, mêmes mots sensibles comme hommes et femmes), puis un appel IA par onglet avec réponse JSON validée et seuil de confiance. L'IA ne touche jamais aux valeurs ; sans clé ou sans réseau, le pipeline continue sans elle.
 - **Convertisseur des cubes Insee 2023** (format long SDMX vers format large), avec contrôle de cohérence (population = hommes + femmes, logements = résidences principales + secondaires + vacants…).
+- **Référentiel des quartiers** : les noms des grands quartiers et les secteurs de mairie sont tenus dans des YAML (`grand_quartier.yml`, `secteurs_mairie.yml`) ; le pré-contrôle signale tout IRIS absent de `grand_quartier.yml`.
+- **Arrondi contrôlé** : les effectifs additifs sont arrondis par la méthode du plus fort reste, pour que la somme des 38 IRIS égale le total communal officiel (98 286 habitants en 2023).
+- **Mise en page réglable** : largeurs de colonnes, hauteur des lignes et nombre de lignes d'en-tête sont des constantes en tête de `modules/mise_en_page.py` (voir [Régler la mise en page](#régler-la-mise-en-page)).
 - **Petite enfance** : effectifs par âge estimés depuis le fichier détail du recensement (pondération `IPONDI`), lu par blocs.
 - **Non-régression** : chaque évolution est vérifiée en comparant le classeur produit à la version validée, cellule par cellule.
 
@@ -92,7 +97,8 @@ Le projet contient :
 - un convertisseur des cubes Insee du recensement, valable pour 2023 et les millésimes suivants (`scripts/transformer_recensement.py`) ;
 - un guide pour intégrer un nouveau millésime sans toucher au code ([`doc/nouveau_millesime.md`](doc/nouveau_millesime.md)) ;
 - un module qui rattache automatiquement les colonnes inconnues d'un nouveau millésime Insee (`modules/colonnes_auto.py`, IA facultative) ;
-- des lots d'exemple 2022 et 2023 (`exemples/`) pour essayer le portail tout de suite.
+- des lots d'exemple 2022 et 2023 (`exemples/`, avec RPLS 2025) pour essayer le portail tout de suite ;
+- le dernier classeur généré, `TAB_BDDMAS_INSEE2023.xlsx`, à la racine.
 
 Le pipeline fonctionne avec le recensement 2022 (fichiers Insee au format large) et avec le recensement 2023 (cubes Insee au format long, convertis au préalable).
 ## Essayer en 2 minutes
@@ -115,6 +121,10 @@ ApplicationMAJ/
 │  └─ indcvi_roubaix/              FD_INDCVI filtré sur Roubaix
 ├─ dictionnaires/                  Correspondances de fichiers, variables et onglets (YAML)
 │  ├─ millesimes_valides.yml       Dernier millésime validé à la main, par thème
+│  ├─ grand_quartier.yml           Nom du grand quartier de chaque IRIS (colonne « Grands quartiers »)
+│  ├─ secteurs_mairie.yml          Secteur de mairie de chaque IRIS
+│  ├─ superficies_iris_roubaix.yml Superficie de chaque IRIS (densités)
+│  ├─ liens_presentation.yml       Liens vers la documentation Insee de chaque source
 │  ├─ correspondances_auto.yml     Décisions du module colonnes (généré, corrigeable)
 │  └─ meta/                        Métadonnées meta_*.csv (dont meta2023/ généré)
 ├─ modules/
@@ -123,8 +133,9 @@ ApplicationMAJ/
 │  ├─ lecture.py                   Lecture des données en CSV (pandas) ou Parquet (DuckDB)
 │  ├─ indicateurs.py               Calculs dérivés, arrondis et répartitions pondérées des enfants
 │  ├─ export_excel.py              Remplissage du modèle et mise en forme Excel
-│  ├─ mise_en_page.py              Formats, largeurs, couleurs d'en-têtes, ordre des colonnes
+│  ├─ mise_en_page.py              Formats, largeurs, hauteurs, centrage, ligne Total, ordre des colonnes
 │  ├─ pages_info.py                Pages Présentation et Détail calcul générées selon le lot
+│  ├─ portrait_roubaix.py          Onglet Portrait Roubaix (chiffres clés en formules Excel)
 │  ├─ colonnes_auto.py             Colonnes inconnues d'un nouveau millésime (sans IA puis IA, cache YAML)
 │  ├─ llm_wrapper.py               Appel d'un modèle compatible OpenAI (Groq, Mistral, Ollama…)
 │  ├─ export_sig.py                Export des tables attributaires CSV pour les SIG
@@ -144,6 +155,7 @@ ApplicationMAJ/
 ├─ run_portal.py                   Démarrage du serveur Uvicorn
 ├─ .env.example                    Modèle de configuration de l'IA (copier en .env)
 ├─ TAB_BDDMAS_INSEE2022_MODELE.xlsx  Classeur modèle conservé comme gabarit
+├─ TAB_BDDMAS_INSEE2023.xlsx       Dernier classeur généré (lot 2023)
 ├─ requirements.txt                Dépendances Python
 └─ README.md                       Vous êtes ici
 ```
@@ -216,7 +228,7 @@ Pendant l'exécution, `tqdm` affiche la progression des étapes du pipeline, la 
 
 ## Fichiers d'entrée
 
-- `Perimetres_MAS.csv` est le référentiel géographique requis. Il doit contenir au minimum `IRIS` et les colonnes de périmètre utilisées par `modules/socle_geo.py`.
+- `Perimetres_MAS.csv` est le référentiel géographique requis. Il doit contenir au minimum `IRIS` et les colonnes de périmètre utilisées par `modules/socle_geo.py` (`Quartier`, `Grands_quartiers`, `Libellé_IRIS`…). La colonne `Grands_quartiers` suit les noms de `dictionnaires/grand_quartier.yml`. Seules trois colonnes de zonage sont reprises dans le classeur (voir plus bas) ; les autres (centres sociaux, NPNRU, contrats de ville…) restent dans les exports SIG et SQL.
 - Les CSV thématiques Insee, FILO, CAF, CNAM, DEFM et RPLS : le nom du fichier doit correspondre à une entrée de `dictionnaires/files_names.yml` ; les fichiers non mappés sont signalés par le pré-contrôle.
 - Les métadonnées `meta_*.csv` sont appariées par nom normalisé (année ignorée). Les colonnes `COD_VAR` et `LIB_VAR` fournissent les libellés ; les modalités textuelles sont traduites à partir de `COD_MOD` et `LIB_MOD` lorsqu'elles existent. Les dictionnaires YAML restent utilisés en complément ou en repli.
 - Le fichier individuel du recensement commence par `FD_INDCVI_` et doit contenir `IRIS`, `AGEREV`, `AGED` et `IPONDI`. La méta `varmod_indcvi_AAAA.csv` documente ces champs. Seules les colonnes requises sont lues, par blocs.
@@ -269,12 +281,39 @@ Avant les étapes ci-dessous, `analyser_fichiers_entree` vérifie les sources, l
 
 1. `modules/ingestion.py` identifie les CSV thématiques mappés, les nettoie, filtre Roubaix lorsque la source possède une colonne `IRIS` ou `COM`, puis traduit les variables. Chaque table est nommée `THÈME ANNÉE` (ex. `POP 2023`), l'année étant lue dans le nom du fichier.
 2. Le recensement enfants est lu par blocs. `modules/indicateurs.py` filtre les codes IRIS commençant par `59512`, sélectionne les âges inférieurs à 18 ans et additionne le poids `IPONDI` par IRIS et par âge.
-3. Deux répartitions sont produites : âge révolu (`AGEREV`) et âge au millésime (`AGED`). Elles alimentent les onglets `PETITE ENFANCE {année du FD_INDCVI}` et `PETITE ENFANCE MILLÉSIME`, avec les colonnes `Age : 0` à `Age : 17`. Les effectifs sont des estimations pondérées de l'échantillon du recensement. La colonne `Crèches` du modèle reste vide tant qu'aucune source de crèches n'est configurée.
+3. Deux répartitions sont produites : âge révolu (`AGEREV`) et âge au millésime (`AGED`). Elles alimentent les onglets `PETITE ENFANCE {année du FD_INDCVI}` et `PETITE ENFANCE MILLÉSIME`, avec les colonnes `Age : 0` à `Age : 17`. Les effectifs sont des estimations pondérées de l'échantillon du recensement. La colonne `Crèches` du modèle est retirée tant qu'aucune source de crèches n'est configurée.
 4. `modules/socle_geo.py` rattache le référentiel `Perimetres_MAS.csv` et les superficies par IRIS. Les indicateurs configurés dans `calculated_columns.yml` sont ensuite calculés.
 5. `modules/indicateurs.py` applique les règles de `r_gles_d_arrondis_compl_tes.md` à toutes les colonnes : volumes à l'entier (arrondi contrôlé pour les effectifs additifs : la somme des IRIS égale le total communal officiel, ex. 98 286 habitants en 2023 ; arrondi simple, demis vers le haut, pour les autres), parts/taux à 1 décimale, indices/densités/moyennes/superficies à 2 décimales, variables RPLS `TX…` et `…LOY` à 2 décimales. Les identifiants et libellés restent textuels ; toute autre colonne numérique est arrondie à l'entier.
-6. `modules/export_excel.py` remplit les onglets du classeur modèle en conservant leurs en-têtes et leur mise en forme, et écrit les formules de sous-totaux adaptées au nombre de lignes. Les onglets de données du modèle sont vidés avant écriture. Les colonnes du modèle absentes du lot sont supprimées sans laisser de colonnes vides ; les variables nouvelles sont insérées avant `Superficie en km²`, avec le style des colonnes de données.
+6. `modules/export_excel.py` remplit les onglets du classeur modèle en conservant leurs en-têtes et leur mise en forme, et écrit les formules de sous-totaux adaptées au nombre de lignes. Les onglets de données du modèle sont vidés avant écriture. Les colonnes du modèle absentes du lot sont supprimées sans laisser de colonnes vides ; les variables nouvelles sont insérées avant `Superficie en km²`, avec le style des colonnes de données. `modules/mise_en_page.py` applique ensuite les formats, largeurs et hauteurs, et `modules/portrait_roubaix.py` ajoute l'onglet Portrait Roubaix après la Présentation.
 7. `modules/export_sig.py` crée un CSV par thème dans `exports_sig/`, avec `IRIS` en première colonne sur 9 caractères. Ces exports contiennent des attributs à joindre aux couches IRIS existantes, sans géométrie. (Ligne de commande uniquement.)
 8. `modules/persistence.py` insère les tables dans la base configurée uniquement si `BDDMAS_DATABASE_URL` est définie. (Ligne de commande uniquement.)
+
+## Colonnes de zonage et quartiers
+
+Chaque onglet thématique commence par trois colonnes grises, dans cet ordre :
+
+| Colonne | Origine |
+|---|---|
+| Mairies de quartiers | colonne `Quartier` de `Périmètres_MAS.csv` |
+| Grands quartiers | colonne `Grands_quartiers` de `Périmètres_MAS.csv`, alignée sur `dictionnaires/grand_quartier.yml` |
+| Libellé de l'Iris | libellé Insee de l'IRIS |
+
+Pour renommer un quartier ou rattacher un IRIS à un autre, modifier `grand_quartier.yml` et la colonne `Grands_quartiers` de `Périmètres_MAS.csv`. La liste des colonnes conservées est `COLONNES_ZONAGE` dans `modules/export_excel.py`.
+
+## Régler la mise en page
+
+Les réglages sont des constantes en tête de `modules/mise_en_page.py` ; il suffit de les modifier puis de régénérer le classeur.
+
+| Constante | Valeur | Effet |
+|---|---|---|
+| `LARGEUR_MIN`, `LARGEUR_MAX` | 14, 34 | Largeur des colonnes de données |
+| `LARGEUR_TEXTE_MAX` | 45 | Largeur maximale d'une colonne de texte |
+| `LARGEUR_GEO_MIN`, `LARGEUR_GEO_MAX` | 12, 34 | Largeur des colonnes grises de zonage |
+| `LIGNES_ENTETE_MAX` | 4 | Nombre de lignes maximal d'un en-tête avant d'élargir la colonne |
+| `HAUTEUR_LIGNE` | 30 | Hauteur des lignes d'IRIS, en points |
+| `LIGNES_TEXTE_MAX` | 2 | Une colonne de texte s'élargit (jusqu'à `LARGEUR_TEXTE_MAX`) pour que ses valeurs tiennent sur ce nombre de lignes ; les onglets à colonnes de texte (REV DEC, REV DISP) gardent une hauteur automatique |
+
+Les cellules des IRIS sont centrées. Sur la ligne Total, seules les colonnes additives (effectifs, superficie) reçoivent une somme ; les taux, médianes et indicateurs Filosofi restent sans total.
 
 ## Nouveau millésime : colonnes inconnues
 
