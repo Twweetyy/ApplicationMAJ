@@ -1,0 +1,19 @@
+# Lancement du portail BDDMAS : docker compose up --build
+# puis ouvrir http://localhost:5000
+services:
+  portail:
+    build: .
+    image: bddmas-portail
+    container_name: bddmas-portail
+    ports:
+      - "5000:5000"
+    # Clé API et réglages IA lus depuis .env (facultatif, voir .env.exemple)
+    env_file:
+      - path: .env
+        required: false
+    # Dossiers partagés avec le PC : les fichiers Insee déposés et les
+    # métadonnées produites par le transformer restent hors du conteneur
+    volumes:
+      - ./data:/app/data
+      - ./dictionnaires/meta:/app/dictionnaires/meta
+    restart: unless-stopped
