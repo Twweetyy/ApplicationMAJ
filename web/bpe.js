@@ -127,6 +127,8 @@ function showResult(job) {
   }
   summary.hidden = false;
 
+  showColonnes(resume.colonnes_nouvelles || [], resume.colonnes_absentes || []);
+
   const rows = $("#domainRows");
   rows.replaceChildren();
   for (const domaine of resume.domaines) {
@@ -141,6 +143,28 @@ function showResult(job) {
   $("#domainTable").hidden = false;
   $("#downloadButton").href = `/api/bpe/jobs/${job.id}/download`;
   $("#downloadRow").hidden = false;
+}
+
+function fillList(list, colonnes, bloc) {
+  list.replaceChildren();
+  for (const colonne of colonnes) {
+    const item = document.createElement("li");
+    item.textContent = `${colonne.code} : ${colonne.en_tete || colonne.libelle}`;
+    list.append(item);
+  }
+  bloc.hidden = colonnes.length === 0;
+}
+
+function showColonnes(nouvelles, absentes) {
+  const notice = $("#colonnesNotice");
+  notice.hidden = nouvelles.length === 0 && absentes.length === 0;
+  if (notice.hidden) return;
+  const parties = [];
+  if (nouvelles.length) parties.push(`${nouvelles.length} nouvelle${nouvelles.length > 1 ? "s" : ""} colonne${nouvelles.length > 1 ? "s" : ""}`);
+  if (absentes.length) parties.push(`${absentes.length} colonne${absentes.length > 1 ? "s" : ""} absente${absentes.length > 1 ? "s" : ""}`);
+  $("#colonnesNoticeText").textContent = `Ce millésime diffère des colonnes connues : ${parties.join(" et ")}. Vérifiez avant de publier.`;
+  fillList($("#colonnesNouvelles"), nouvelles, $("#colonnesNouvellesBloc"));
+  fillList($("#colonnesAbsentes"), absentes, $("#colonnesAbsentesBloc"));
 }
 
 async function pollJob() {
@@ -178,6 +202,7 @@ function startGeneration() {
   showError($("#generationError"), "");
   $("#resultSummary").hidden = true;
   $("#domainTable").hidden = true;
+  $("#colonnesNotice").hidden = true;
   $("#downloadRow").hidden = true;
   $("#downloadButton").hidden = false;
   setProgress("processing", "Envoi du fichier", "Envoi du fichier au serveur local.");

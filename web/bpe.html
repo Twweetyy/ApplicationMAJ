@@ -7,7 +7,7 @@
   <title>Portail Data SIG | BPE Roubaix</title>
   <link rel="icon" type="image/png" href="/static/logo_institutionnel.png">
   <link rel="stylesheet" href="/static/styles.css?v=7">
-  <script src="/static/bpe.js?v=1" defer></script>
+  <script src="/static/bpe.js?v=2" defer></script>
 </head>
 <body>
   <div class="application-shell">
@@ -96,7 +96,12 @@
         <p class="progress-copy" id="progressCopy">Envoi du fichier au serveur local.</p>
         <p class="inline-error" id="generationError" role="alert" hidden></p>
         <div class="report-summary" id="resultSummary" style="margin-top: 1rem" hidden></div>
-        <div class="report-table-wrap" id="domainTable" hidden>
+        <div class="calc-notice" id="colonnesNotice" hidden>
+          <p id="colonnesNoticeText"></p>
+          <details id="colonnesNouvellesBloc" hidden><summary>Nouvelles colonnes (ajoutées en fin de l'onglet BPE)</summary><ul id="colonnesNouvelles"></ul></details>
+          <details id="colonnesAbsentesBloc" hidden><summary>Colonnes absentes de ce millésime (laissées vides)</summary><ul id="colonnesAbsentes"></ul></details>
+        </div>
+        <div class="report-table-wrap" id="domainTable" style="margin-top: 1rem" hidden>
           <h3>Équipements par domaine</h3>
           <div class="table-scroll"><table>
             <thead><tr><th>Domaine</th><th>Libellé</th><th>Équipements</th></tr></thead>
