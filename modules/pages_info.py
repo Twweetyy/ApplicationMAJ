@@ -1,5 +1,4 @@
 """Mise à jour des pages « Présentation » et « Detail calcul » selon le lot traité."""
-import math
 import os
 import re
 import unicodedata
@@ -119,6 +118,18 @@ def _formule_lisible(params: dict, onglets: dict) -> str:
     return re.sub(r"\s+", " ", expression).strip()
 
 
+def _lignes_coupees(texte: str, capacite: int) -> int:
+    """Nombre de lignes d'un texte renvoyé à la ligne mot par mot."""
+    lignes, longueur = 1, 0
+    for mot in texte.split():
+        if longueur and longueur + 1 + len(mot) > capacite:
+            lignes += 1
+            longueur = len(mot)
+        else:
+            longueur += len(mot) + (1 if longueur else 0)
+    return lignes
+
+
 def _maj_detail_calcul(ws, dico_fichiers: dict, onglets: dict, chemin_calculs: str, titre: str) -> None:
     try:
         with open(chemin_calculs, "r", encoding="utf-8") as fichier:
@@ -187,9 +198,10 @@ def _maj_detail_calcul(ws, dico_fichiers: dict, onglets: dict, chemin_calculs: s
             if not cellule.value:
                 continue
             taille = cellule.font.sz or 11
-            caracteres_par_ligne = max(1, int(LARGEUR_COLONNE_CALCULS * 1.15 * 11 / taille))
-            lignes = sum(math.ceil(max(len(morceau), 1) / caracteres_par_ligne) for morceau in str(cellule.value).split("\n"))
-            hauteur = max(hauteur, lignes * taille * 1.35 + 6)
+            # Estimation prudente (texte centré, coupé aux mots) : mieux vaut une ligne vide qu'un texte coupé
+            caracteres_par_ligne = max(1, int(LARGEUR_COLONNE_CALCULS * 0.95 * 11 / taille))
+            lignes = sum(_lignes_coupees(morceau, caracteres_par_ligne) for morceau in str(cellule.value).split("\n"))
+            hauteur = max(hauteur, lignes * taille * 1.4 + 8)
         ws.row_dimensions[ligne].height = min(hauteur, 409)
 
 
