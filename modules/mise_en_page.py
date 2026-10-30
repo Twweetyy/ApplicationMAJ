@@ -12,8 +12,8 @@ FEUILLES_FIXES = {"Présentation", "Detail calcul"}
 FORMATS = {0: "#,##0", 1: "#,##0.0", 2: "#,##0.00"}
 LARGEUR_MIN, LARGEUR_MAX = 11, 32
 LARGEUR_TEXTE_MAX = 45
-# Colonnes grises : « Mairies de quartiers » (porte aussi le titre en A1) et « Libellé de l'Iris »
-LARGEUR_TITRE, LARGEUR_LIBELLE_IRIS = 30, 24
+# Colonnes grises (« Mairies de quartiers », « Libellé de l'Iris ») : bornes de largeur
+LARGEUR_GEO_MIN, LARGEUR_GEO_MAX = 12, 30
 LIGNES_ENTETE_MAX = 5
 LIGNES_TEXTE_MAX = 2
 # Largeur Excel consommée par caractère, et place prise par le bouton de filtre
@@ -152,15 +152,27 @@ def _mettre_en_page_onglet(ws) -> None:
     ws.sheet_view.topLeftCell = "A1"
     ws.freeze_panes = ws.cell(row=3, column=nombre_colonnes_geo + 1)
 
-    # delete_cols ne décale pas les largeurs : on fixe celles des colonnes grises,
-    # puis le titre (A1, bloqué par « Total » en B1) passe à la ligne
+    # Colonnes grises : largeur ajustée au contenu (delete_cols ne décale pas les largeurs du modèle)
     for colonne in range(1, nombre_colonnes_geo + 1):
-        largeur = LARGEUR_LIBELLE_IRIS if entetes[colonne - 1] == "Libellé de l'Iris" else LARGEUR_TITRE
+        textes = [str(ws.cell(row=ligne, column=colonne).value or "") for ligne in range(3, derniere_ligne + 1)]
+        plus_long = max((len(t) for t in textes), default=0)
+        mot_entete = max((len(mot) for mot in str(entetes[colonne - 1] or "").split()), default=0)
+        largeur = min(max(plus_long + 3, mot_entete + MARGE_FILTRE + 2, LARGEUR_GEO_MIN), LARGEUR_GEO_MAX)
         ws.column_dimensions[get_column_letter(colonne)].width = largeur
+    # Lignes d'IRIS : hauteur automatique (le modèle gardait celles des anciens libellés longs)
+    for ligne in range(3, derniere_ligne + 1):
+        ws.row_dimensions[ligne].height = None
+    # Titre : fusionné sur les colonnes grises (A1 ne déborde plus, la colonne B étant occupée)
     titre = ws.cell(row=1, column=1)
-    if isinstance(titre.value, str) and titre.value:
+    if isinstance(titre.value, str) and titre.value and nombre_colonnes_geo > 1:
+        for colonne in range(2, nombre_colonnes_geo + 1):
+            ws.cell(row=1, column=colonne).value = None
+        ws.merge_cells(start_row=1, start_column=1, end_row=1, end_column=nombre_colonnes_geo)
         titre.alignment = Alignment(horizontal="left", vertical="center", wrap_text=True)
-        ws.row_dimensions[1].height = max(_nb_lignes(titre.value, LARGEUR_TITRE), 2) * 15 + 2
+        largeur_titre = sum(
+            ws.column_dimensions[get_column_letter(c)].width for c in range(1, nombre_colonnes_geo + 1)
+        )
+        ws.row_dimensions[1].height = max(_nb_lignes(titre.value, largeur_titre), 2) * 15 + 2
 
     lignes_entete = 2
     for colonne in range(nombre_colonnes_geo + 1, len(entetes) + 1):

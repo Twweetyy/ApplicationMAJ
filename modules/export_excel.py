@@ -190,9 +190,24 @@ def _retrouver_entete_modele(nom_colonne, entetes_modele):
     return None
 
 
+def libelles_quartier(dataframe: pd.DataFrame) -> pd.Series:
+    """Libellé affiché : nom du quartier (grand_quartier.yml), suivi du libellé IRIS
+    quand plusieurs IRIS partagent ce quartier (« HOMMELET - Hommelet Nord »)."""
+    libelle_iris = dataframe["Libellé de l'Iris"]
+    if "Grands quartiers" not in dataframe.columns:
+        return libelle_iris
+    quartier = dataframe["Grands quartiers"].astype("string").str.strip()
+    doublon = quartier.map(quartier.value_counts()) > 1
+    resultat = quartier.where(~doublon, quartier + " - " + libelle_iris.astype("string"))
+    return resultat.fillna(libelle_iris)
+
+
 def preparer_dataframe_modele(nom_onglet: str, dataframe: pd.DataFrame) -> pd.DataFrame:
     """Adapte les colonnes calculées aux libellés du modèle Excel BDDMAS."""
-    resultat = dataframe.drop(columns=COLONNES_ZONAGE_RETIREES, errors="ignore")
+    resultat = dataframe.copy()
+    if "Libellé de l'Iris" in resultat.columns:
+        resultat["Libellé de l'Iris"] = libelles_quartier(resultat)
+    resultat = resultat.drop(columns=COLONNES_ZONAGE_RETIREES, errors="ignore")
     if nom_onglet.startswith("PETITE ENFANCE"):
         resultat = resultat.rename(columns={"Mairies de quartiers": "Mairies de qartiers"})
         resultat = resultat.drop(columns=["Superficie en km²"], errors="ignore")
@@ -562,6 +577,8 @@ def generer_fichier_bddmas(
         for nom_onglet, df in dico_fichiers.items():
             print(f" -> Export et formatage de l'onglet : {nom_onglet}")
             
+            if "Libellé de l'Iris" in df.columns:
+                df = df.assign(**{"Libellé de l'Iris": libelles_quartier(df)})
             df = df.drop(columns=COLONNES_ZONAGE_RETIREES, errors="ignore")
             # Export du DataFrame avec startrow=1 (laisse la ligne 1 vierge pour nos Totaux)
             df.to_excel(writer, sheet_name=nom_onglet, index=False, startrow=1)
