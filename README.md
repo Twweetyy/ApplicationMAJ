@@ -141,14 +141,15 @@ ApplicationMAJ/
 │  ├─ colonnes_auto.py             Colonnes inconnues d'un nouveau millésime (sans IA puis IA, cache YAML)
 │  ├─ llm_wrapper.py               Appel d'un modèle compatible OpenAI (Groq, Mistral, Ollama…)
 │  ├─ export_sig.py                Export des tables attributaires CSV pour les SIG
-│  └─ persistence.py               Insertion SQLAlchemy configurable
+│  ├─ persistence.py               Insertion SQLAlchemy configurable
+│  └─ bpe.py                       Classeur de la Base permanente des équipements (page BPE du portail)
 ├─ scripts/
 │  ├─ transformer_recensement.py   Conversion des cubes Insee (2023 et suivants)
 │  ├─ extraire_indcvi_roubaix.py   Extraction des lignes Roubaix du FD_INDCVI
 │  ├─ simuler_nouveau_millesime.py Faux millésime +1 pour tester colonnes_auto
 │  └─ diag.py                      Diagnostic des cubes Insee 2023
 ├─ exemples/                       Lots 2022 et 2023 prêts à déposer dans le portail
-├─ web/                            Front du portail (index.html, multi-upload.js, styles.css)
+├─ web/                            Front du portail (index.html, multi-upload.js, bpe.html, bpe.js, styles.css)
 ├─ doc/img/                        Captures et démonstration utilisées dans ce README
 ├─ exports_sig/                    Exportations SIG (ignoré par Git)
 ├─ main_bddmas.py                  Orchestrateur du pipeline
@@ -245,6 +246,26 @@ Pendant l'exécution, `tqdm` affiche la progression des étapes du pipeline, la 
 - Un seul fichier par thème dans un lot (ex. pas de POP 2022 et POP 2023 ensemble : erreur bloquante `versions_multiples_theme`).
 - Les années peuvent différer d'un thème à l'autre (recensement 2023 + Filosofi 2021 + CAF 2024…).
 - Le classeur ne contient que ce qui est déposé : un onglet sans fichier dans le lot reste vide.
+
+## Classeur des équipements (BPE)
+
+La page **Équipements BPE** du portail (menu de gauche, ou `/bpe`) produit le classeur de la Base permanente des équipements de l'Insee, publié à part sur le portail statistique.
+
+1. Choisir le périmètre : **Roubaix (IRIS)** ou **MEL (95 communes)**.
+2. Déposer le fichier BPE de l'Insee, en CSV ou Parquet. Le fichier national convient : il est lu par blocs et filtré sur la colonne `DEPCOM`. Un fichier déjà filtré convient aussi.
+3. Déposer le varmod (`BPE<AA>_anonymisee_varmod.csv`) si le millésime n'est pas 2025 ; sinon celui de `dictionnaires/bpe/` est utilisé.
+4. Cliquer sur **Générer le classeur BPE**, puis télécharger `BPE<AA>_<Périmètre>_equipements_officiel.xlsx`.
+
+Le classeur contient une page d'accueil, l'onglet **BPE** (tous les équipements, codes Insee traduits en libellés), l'onglet **Recap** (nombre d'équipements par type et par IRIS ou par commune, avec des totaux qui suivent les filtres), un onglet par domaine (A à G) et le **Dictionnaire Insee**.
+
+Pour Roubaix, chaque équipement reçoit le libellé de son IRIS, son secteur de mairie (`secteurs_mairie.yml`), son quartier historique (`bpe/quartiers_historiques.yml`) et son grand quartier (`grand_quartier.yml`). Les équipements que l'Insee ne situe dans aucun IRIS (`59512_IND`) sont comptés dans la colonne « NON LOCALISÉ » du Recap.
+
+Le même traitement est disponible en Python :
+
+```python
+from modules.bpe import generer_classeur_bpe
+generer_classeur_bpe("BPE25.csv", "BPE25_Roubaix_equipements_officiel.xlsx", perimetre="roubaix")
+```
 
 ## Fichiers d'entrée
 

@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#1e293b">
+  <title>Portail Data SIG | BPE Roubaix</title>
+  <link rel="icon" type="image/png" href="/static/logo_institutionnel.png">
+  <link rel="stylesheet" href="/static/styles.css?v=7">
+  <script src="/static/bpe.js?v=1" defer></script>
+</head>
+<body>
+  <div class="application-shell">
+    <aside class="sidebar">
+      <a class="logo" href="/" aria-label="Portail Data SIG Roubaix">
+        <img class="logo-institutionnel" src="/static/logo_institutionnel.png" alt="Ville de Roubaix">
+        <span class="logo-badge">PORTAIL DATA SIG</span>
+      </a>
+      <nav class="nav-menu" aria-label="Traitements disponibles">
+        <a class="nav-item" href="/"><span class="nav-icon">01</span> Traitement BDDMAS</a>
+        <p class="nav-section">AUTRES TRAITEMENTS</p>
+        <a class="nav-item active" href="/bpe" aria-current="page"><span class="nav-icon">BPE</span> Équipements BPE</a>
+      </nav>
+      <div class="sidebar-footer">
+        <span class="local-dot"></span>
+        <span>TRAITEMENT LOCAL</span>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="page-header">
+        <div>
+          <p class="eyebrow">PORTAIL DATA SIG <span>/</span> BPE</p>
+          <h1>Base permanente des équipements</h1>
+          <p class="subtitle">Filtre, traduction des codes Insee et classeur prêt à publier (BPE, récapitulatif, un onglet par domaine).</p>
+        </div>
+        <div class="user-info"><span class="user-mark">SIG</span><span>ROUBAIX <small>· DIRECTION DU SIG</small></span></div>
+      </header>
+
+      <div class="perimeter-tabs" role="radiogroup" aria-label="Périmètre du traitement">
+        <button class="perimeter-tab active" type="button" role="radio" aria-checked="true" data-perimetre="roubaix"><span class="tab-dot"></span> Roubaix (IRIS)</button>
+        <button class="perimeter-tab" type="button" role="radio" aria-checked="false" data-perimetre="mel"><span class="tab-dot"></span> MEL (95 communes)</button>
+      </div>
+
+      <section class="card source-card" id="sources" aria-labelledby="sourceTitle">
+        <div class="card-heading">
+          <div><p class="section-kicker">01 / FICHIERS</p><h2 id="sourceTitle">Déposer la BPE</h2></div>
+          <span class="file-limit">CSV ou Parquet · fichier national accepté</span>
+        </div>
+
+        <div class="upload-grid">
+          <section class="upload-panel" aria-labelledby="sourceUploadTitle">
+            <div class="upload-panel-heading">
+              <div><p class="section-kicker">SOURCE INSEE</p><h3 id="sourceUploadTitle">Fichier BPE</h3></div>
+              <span class="panel-index">A</span>
+            </div>
+            <input class="file-input" id="sourceInput" type="file" accept=".csv,.parquet,text/csv">
+            <div class="upload-zone" id="sourceZone" role="button" tabindex="0" aria-controls="sourceInput">
+              <span class="upload-icon" aria-hidden="true">BPE</span>
+              <span class="upload-title">Déposer le fichier BPE ici</span>
+              <span class="upload-subtitle">national, départemental ou déjà filtré</span>
+            </div>
+            <div class="file-list-heading"><span id="sourceCount">Aucun fichier</span></div>
+            <ul class="file-list" id="sourceList" aria-live="polite"></ul>
+          </section>
+
+          <section class="upload-panel" aria-labelledby="varmodUploadTitle">
+            <div class="upload-panel-heading">
+              <div><p class="section-kicker">FACULTATIF</p><h3 id="varmodUploadTitle">Varmod Insee</h3></div>
+              <span class="panel-index">B</span>
+            </div>
+            <input class="file-input" id="varmodInput" type="file" accept=".csv,text/csv">
+            <div class="upload-zone" id="varmodZone" role="button" tabindex="0" aria-controls="varmodInput">
+              <span class="upload-icon upload-icon-meta" aria-hidden="true">META</span>
+              <span class="upload-title">Déposer le varmod ici</span>
+              <span class="upload-subtitle">sinon celui de la BPE 2025 est utilisé</span>
+            </div>
+            <div class="file-list-heading"><span id="varmodCount">Varmod BPE 2025 (par défaut)</span></div>
+            <ul class="file-list" id="varmodList" aria-live="polite"></ul>
+          </section>
+        </div>
+
+        <div class="action-row">
+          <p class="action-note" id="perimetreNote">Les équipements de Roubaix (DEPCOM 59512) sont gardés, avec libellé IRIS, secteur mairie, quartier historique et grand quartier.</p>
+          <button class="button button-primary" id="generateButton" type="button" disabled><span>Générer le classeur BPE</span><span aria-hidden="true">→</span></button>
+        </div>
+        <p class="inline-error" id="uploadError" role="alert" hidden></p>
+      </section>
+
+      <section class="card progress-section" id="progressSection" aria-live="polite" hidden>
+        <div class="card-heading progress-heading">
+          <div><p class="section-kicker">02 / CLASSEUR</p><h2 id="progressTitle">Envoi du fichier</h2></div>
+          <span class="progress-indicator" id="progressIndicator"><i></i> En cours</span>
+        </div>
+        <div class="progress-track"><span id="progressBar"></span></div>
+        <p class="progress-copy" id="progressCopy">Envoi du fichier au serveur local.</p>
+        <p class="inline-error" id="generationError" role="alert" hidden></p>
+        <div class="report-summary" id="resultSummary" style="margin-top: 1rem" hidden></div>
+        <div class="report-table-wrap" id="domainTable" hidden>
+          <h3>Équipements par domaine</h3>
+          <div class="table-scroll"><table>
+            <thead><tr><th>Domaine</th><th>Libellé</th><th>Équipements</th></tr></thead>
+            <tbody id="domainRows"></tbody>
+          </table></div>
+        </div>
+        <div class="download-row" id="downloadRow" hidden>
+          <a class="button button-success" id="downloadButton" href="#">Télécharger le classeur <span aria-hidden="true">↓</span></a>
+          <button class="button button-secondary" id="newJobButton" type="button">Nouveau traitement</button>
+        </div>
+      </section>
+
+      <footer class="page-footer"><span>PORTAIL DATA SIG <b>/</b> ROUBAIX</span><span>Classeur BPE</span></footer>
+    </main>
+  </div>
+</body>
+</html>
