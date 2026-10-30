@@ -11,9 +11,11 @@ services:
     env_file:
       - path: .env
         required: false
-    # Dossiers partagés avec le PC : les fichiers Insee déposés et les
-    # métadonnées produites par le transformer restent hors du conteneur
+    # Dossiers partagés avec le PC : les fichiers Insee déposés, les métadonnées
+    # produites par le transformer, le cache des colonnes auto et les millésimes
+    # validés restent hors du conteneur ; un dictionnaire modifié sur le PC est
+    # pris en compte sans reconstruire l'image
     volumes:
       - ./data:/app/data
-      - ./dictionnaires/meta:/app/dictionnaires/meta
+      - ./dictionnaires:/app/dictionnaires
     restart: unless-stopped
