@@ -59,4 +59,6 @@ doc/bilan_fichiers_complementaires_2023.md
 
 # ===== Exemples =====
 exemples/dataBPE
+# Les lots d'exemple sont versionnés : la règle data/ ci-dessus ne s'applique pas à eux
+!exemples/*/data/
 
