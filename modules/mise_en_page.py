@@ -10,7 +10,7 @@ from .indicateurs import _precision_arrondi
 
 FEUILLES_FIXES = {"Présentation", "Detail calcul"}
 FORMATS = {0: "#,##0", 1: "#,##0.0", 2: "#,##0.00"}
-LARGEUR_MIN, LARGEUR_MAX = 12, 32
+LARGEUR_MIN, LARGEUR_MAX = 14, 34
 LARGEUR_TEXTE_MAX = 45
 # Colonnes grises (« Mairies de quartiers », « Libellé de l'Iris ») : bornes de largeur
 LARGEUR_GEO_MIN, LARGEUR_GEO_MAX = 12, 34
