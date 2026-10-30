@@ -2,7 +2,7 @@
 import re
 from copy import copy
 
-from openpyxl.styles import PatternFill
+from openpyxl.styles import Alignment, PatternFill
 from openpyxl.utils import get_column_letter, range_boundaries
 
 from .colonnes_auto import regle_colonne
@@ -12,6 +12,8 @@ FEUILLES_FIXES = {"Présentation", "Detail calcul"}
 FORMATS = {0: "#,##0", 1: "#,##0.0", 2: "#,##0.00"}
 LARGEUR_MIN, LARGEUR_MAX = 11, 32
 LARGEUR_TEXTE_MAX = 45
+# Colonnes grises : « Mairies de quartiers » (porte aussi le titre en A1) et « Libellé de l'Iris »
+LARGEUR_TITRE, LARGEUR_LIBELLE_IRIS = 30, 24
 LIGNES_ENTETE_MAX = 5
 LIGNES_TEXTE_MAX = 2
 # Largeur Excel consommée par caractère, et place prise par le bouton de filtre
@@ -143,12 +145,22 @@ def _supprimer_colonnes_vides(ws, noms=COLONNES_SANS_SOURCE) -> None:
 def _mettre_en_page_onglet(ws) -> None:
     _supprimer_colonnes_vides(ws)
     entetes = [cellule.value for cellule in ws[2]]
-    # Colonnes géo = jusqu'au libellé IRIS inclus (7, ou 8 si « Crèches » est restée)
-    nombre_colonnes_geo = entetes.index("Libellé de l'Iris") + 1 if "Libellé de l'Iris" in entetes else 7
+    # Colonnes grises = jusqu'au libellé IRIS inclus (Mairies de quartiers + Libellé de l'Iris)
+    nombre_colonnes_geo = entetes.index("Libellé de l'Iris") + 1 if "Libellé de l'Iris" in entetes else 2
     derniere_ligne = _derniere_ligne(ws)
     # Le modèle petite enfance s'ouvre en F1 : sans ça, A-E restent cachées derrière le volet
     ws.sheet_view.topLeftCell = "A1"
     ws.freeze_panes = ws.cell(row=3, column=nombre_colonnes_geo + 1)
+
+    # delete_cols ne décale pas les largeurs : on fixe celles des colonnes grises,
+    # puis le titre (A1, bloqué par « Total » en B1) passe à la ligne
+    for colonne in range(1, nombre_colonnes_geo + 1):
+        largeur = LARGEUR_LIBELLE_IRIS if entetes[colonne - 1] == "Libellé de l'Iris" else LARGEUR_TITRE
+        ws.column_dimensions[get_column_letter(colonne)].width = largeur
+    titre = ws.cell(row=1, column=1)
+    if isinstance(titre.value, str) and titre.value:
+        titre.alignment = Alignment(horizontal="left", vertical="center", wrap_text=True)
+        ws.row_dimensions[1].height = max(_nb_lignes(titre.value, LARGEUR_TITRE), 2) * 15 + 2
 
     lignes_entete = 2
     for colonne in range(nombre_colonnes_geo + 1, len(entetes) + 1):

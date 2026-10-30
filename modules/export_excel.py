@@ -13,6 +13,7 @@ import yaml
 from tqdm.auto import tqdm
 from .pages_info import mettre_a_jour_pages_info
 from .mise_en_page import appliquer_mise_en_page
+from .portrait_roubaix import ajouter_portrait_roubaix
 
 # En-têtes du modèle DEFM renommés selon les libellés des données (clé = en-tête normalisé)
 ALIAS_ENTETES_DEFM = {
@@ -28,6 +29,17 @@ ALIAS_ENTETES_DEFM = {
     "defm categories abc dont motif d inscription est autre":
         "DEFM catégories ABC dont le motif d'inscription est autre",
 }
+
+# Seules colonnes de zonage (grises) conservées dans les onglets du classeur
+COLONNES_ZONAGE = ["Mairies de quartiers", "Libellé de l'Iris"]
+# Colonnes de Périmètres_MAS.csv retirées du classeur (gardées pour les exports SIG / SQL)
+COLONNES_ZONAGE_RETIREES = [
+    "Centres sociaux",
+    "Périmètres NPNRU",
+    "Contrats de Ville 2024 (CDV)",
+    "Cités éducatives",
+    "Grands quartiers",
+]
 
 # Libellés CNAM des données -> en-têtes du modèle
 RENOMMAGES_CNAM = {
@@ -90,7 +102,9 @@ def formater_onglet_thematique(worksheet, dataframe, titre_onglet):
     worksheet.row_dimensions[2].height = 80
 
     # Détection des séparations de colonnes (Géo vs Données vs Calculs)
-    col_geo_max = 8 # Par défaut, les colonnes A à H sont géographiques
+    colonnes = list(dataframe.columns)
+    derniere_geo = "IRIS" if "IRIS" in colonnes else "Libellé de l'Iris"
+    col_geo_max = colonnes.index(derniere_geo) + 1 if derniere_geo in colonnes else len(COLONNES_ZONAGE)
     
     # On cherche "Superficie en km²" ou la fin des données brutes pour appliquer l'orange
     try:
@@ -178,13 +192,9 @@ def _retrouver_entete_modele(nom_colonne, entetes_modele):
 
 def preparer_dataframe_modele(nom_onglet: str, dataframe: pd.DataFrame) -> pd.DataFrame:
     """Adapte les colonnes calculées aux libellés du modèle Excel BDDMAS."""
-    resultat = dataframe.copy()
+    resultat = dataframe.drop(columns=COLONNES_ZONAGE_RETIREES, errors="ignore")
     if nom_onglet.startswith("PETITE ENFANCE"):
-        resultat = resultat.rename(columns={
-            "Contrats de Ville 2024 (CDV)": "Contrats de Ville (CDV)",
-            "Grands quartiers": "Quartiers SIG (Grands quartiers)",
-            "Mairies de quartiers": "Mairies de qartiers",
-        })
+        resultat = resultat.rename(columns={"Mairies de quartiers": "Mairies de qartiers"})
         resultat = resultat.drop(columns=["Superficie en km²"], errors="ignore")
         colonnes_ages = [f"Age : {age}" for age in range(18) if f"Age : {age}" in resultat.columns]
         resultat["TOTAL 0-17"] = resultat[colonnes_ages].sum(axis=1)
@@ -274,26 +284,9 @@ def creer_modele_si_absent(dico_fichiers: dict, chemin_modele: str, chemin_infos
         feuille.cell(row=1, column=1, value=titre)
 
         if nom_onglet.startswith("PETITE ENFANCE"):
-            colonnes_model = [
-                "Centres sociaux",
-                "Crèches",
-                "Périmètres NPNRU",
-                "Contrats de Ville (CDV)",
-                "Cités éducatives",
-                "Quartiers SIG (Grands quartiers)",
-                "Mairies de qartiers",
-                "Libellé de l'Iris",
-            ]
+            colonnes_model = ["Mairies de qartiers", "Libellé de l'Iris"]
         else:
-            colonnes_model = [
-                "Centres sociaux",
-                "Périmètres NPNRU",
-                "Contrats de Ville 2024 (CDV)",
-                "Cités éducatives",
-                "Grands quartiers",
-                "Mairies de quartiers",
-                "Libellé de l'Iris",
-            ]
+            colonnes_model = list(COLONNES_ZONAGE)
 
         colonnes_fin = [col for col in donnees.columns if col not in colonnes_model]
         colonnes_totales = colonnes_model + colonnes_fin
@@ -467,7 +460,12 @@ def _generer_depuis_modele(
 
         titre = titre = titre_onglet(titres, nom_onglet)
         worksheet.cell(row=1, column=1, value=titre)
-        nombre_colonnes_geo = 8 if "Age : 0" in entetes_modele else 7
+        # Colonnes grises = jusqu'au libellé IRIS inclus
+        nombre_colonnes_geo = (
+            entetes_modele.index("Libellé de l'Iris") + 1
+            if "Libellé de l'Iris" in entetes_modele
+            else len(COLONNES_ZONAGE)
+        )
         worksheet.cell(row=1, column=nombre_colonnes_geo, value="Total")
         derniere_ligne_donnees = max(derniere_ligne, 3)
         for colonne in range(nombre_colonnes_geo + 1, worksheet.max_column + 1):
@@ -518,6 +516,7 @@ def _generer_depuis_modele(
 
     mettre_a_jour_pages_info(workbook, dico_fichiers, chemin_calculs)
     appliquer_mise_en_page(workbook)
+    ajouter_portrait_roubaix(workbook)
     os.makedirs(os.path.dirname(os.path.abspath(chemin_sortie)), exist_ok=True)
     workbook.save(chemin_sortie)
 
@@ -563,6 +562,7 @@ def generer_fichier_bddmas(
         for nom_onglet, df in dico_fichiers.items():
             print(f" -> Export et formatage de l'onglet : {nom_onglet}")
             
+            df = df.drop(columns=COLONNES_ZONAGE_RETIREES, errors="ignore")
             # Export du DataFrame avec startrow=1 (laisse la ligne 1 vierge pour nos Totaux)
             df.to_excel(writer, sheet_name=nom_onglet, index=False, startrow=1)
             
