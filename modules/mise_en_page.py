@@ -2,7 +2,7 @@
 import re
 from copy import copy
 
-from openpyxl.styles import Alignment, PatternFill
+from openpyxl.styles import Alignment, Border, PatternFill
 from openpyxl.utils import get_column_letter, range_boundaries
 
 from .colonnes_auto import regle_colonne
@@ -10,11 +10,11 @@ from .indicateurs import _precision_arrondi
 
 FEUILLES_FIXES = {"Présentation", "Detail calcul"}
 FORMATS = {0: "#,##0", 1: "#,##0.0", 2: "#,##0.00"}
-LARGEUR_MIN, LARGEUR_MAX = 11, 32
+LARGEUR_MIN, LARGEUR_MAX = 9, 32
 LARGEUR_TEXTE_MAX = 45
 # Colonnes grises (« Mairies de quartiers », « Libellé de l'Iris ») : bornes de largeur
 LARGEUR_GEO_MIN, LARGEUR_GEO_MAX = 12, 30
-LIGNES_ENTETE_MAX = 5
+LIGNES_ENTETE_MAX = 6
 LIGNES_TEXTE_MAX = 2
 # Largeur Excel consommée par caractère, et place prise par le bouton de filtre
 LARGEUR_CARACTERE, MARGE_FILTRE = 1.1, 2
@@ -172,7 +172,7 @@ def _mettre_en_page_onglet(ws) -> None:
         largeur_titre = sum(
             ws.column_dimensions[get_column_letter(c)].width for c in range(1, nombre_colonnes_geo + 1)
         )
-        ws.row_dimensions[1].height = max(_nb_lignes(titre.value, largeur_titre), 2) * 15 + 2
+        ws.row_dimensions[1].height = _nb_lignes(titre.value, largeur_titre) * 15 + 6
 
     lignes_entete = 2
     for colonne in range(nombre_colonnes_geo + 1, len(entetes) + 1):
@@ -239,6 +239,15 @@ def _mettre_en_page_onglet(ws) -> None:
         lignes_entete = max(lignes_entete, _nb_lignes(entete, largeur))
 
     ws.row_dimensions[2].height = lignes_entete * 15 + 5
+
+    # Ligne Total : valeurs centrées ; sans total (taux, médianes...), la cellule n'est plus verte
+    for colonne in range(nombre_colonnes_geo + 1, len(entetes) + 1):
+        cellule = ws.cell(row=1, column=colonne)
+        if cellule.value in (None, ""):
+            cellule.fill = PatternFill(fill_type=None)
+            cellule.border = Border()
+        else:
+            cellule.alignment = Alignment(horizontal="center", vertical="center")
     _regrouper_colonnes(ws, nombre_colonnes_geo + 1)
 
 

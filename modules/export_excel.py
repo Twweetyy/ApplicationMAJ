@@ -203,7 +203,6 @@ def preparer_dataframe_modele(nom_onglet: str, dataframe: pd.DataFrame) -> pd.Da
         resultat = resultat.drop(columns=["Superficie en km²"], errors="ignore")
         colonnes_ages = [f"Age : {age}" for age in range(18) if f"Age : {age}" in resultat.columns]
         resultat["TOTAL 0-17"] = resultat[colonnes_ages].sum(axis=1)
-        resultat["Crèches"] = ""
     if nom_onglet.startswith("COU FAM"):
         resultat = resultat.rename(columns={
             "Pop 15-24 ans en 2022 (princ)": "Pop 15-24 ans",
