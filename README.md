@@ -155,6 +155,8 @@ ApplicationMAJ/
 ├─ webapp.py                       API FastAPI du portail
 ├─ run_portal.bat                  Lanceur du portail (double-clic)
 ├─ run_portal.py                   Démarrage du serveur Uvicorn
+├─ Dockerfile                      Recette de l'image Docker du portail
+├─ docker-compose.yml              Lancement du portail avec Docker (port, .env, dossiers partagés)
 ├─ .env.example                    Modèle de configuration de l'IA (copier en .env)
 ├─ TAB_BDDMAS_INSEE2022_MODELE.xlsx  Classeur modèle conservé comme gabarit
 ├─ TAB_BDDMAS_INSEE2023.xlsx       Dernier classeur généré (lot 2023)
@@ -194,6 +196,22 @@ python -m uvicorn webapp:app --host 127.0.0.1 --port 8000
 puis ouvrir `http://127.0.0.1:8000`.
 
 L'interface affiche le pré-contrôle avant d'autoriser la génération. Les jobs sont isolés dans le répertoire temporaire du système (`%TEMP%\bddmas-web-jobs`) et nettoyés après 12 heures. Les exports SIG et SQL ne sont pas produits par l'interface.
+
+### Portail web avec Docker (sans Python ni `.venv`)
+
+Prérequis : [Docker Desktop](https://www.docker.com/products/docker-desktop/) installé et démarré. Depuis le dossier du projet :
+
+```powershell
+docker compose up --build
+```
+puis ouvrir `http://localhost:5000`.
+
+- Le premier lancement construit l'image (quelques minutes) ; les suivants démarrent en quelques secondes.
+- Au démarrage, `scripts/transformer_recensement.py` convertit les cubes Insee présents dans `data/`, comme `run_portal.bat`.
+- `data/` et `dictionnaires/meta/` sont partagés avec le PC : les fichiers déposés et les métadonnées produites restent dans le dossier du projet.
+- Le `.env` est lu s'il existe (IA du module colonnes) ; il n'est jamais copié dans l'image.
+- Pour arrêter : `Ctrl+C`, ou `docker compose down` si le portail a été lancé en arrière-plan avec `docker compose up -d`.
+- Après une modification du code, relancer `docker compose up --build` pour reconstruire l'image.
 
 ### Pipeline en ligne de commande
 
