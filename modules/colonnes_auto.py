@@ -97,12 +97,9 @@ def _est_technique(code: str, nom: str) -> bool:
     return str(code).upper() in COLONNES_GEO or _normaliser_simple(nom) in COLONNES_TECHNIQUES
 
 
-def _cle_variable(code_source: str, theme: str) -> str:
-    """Code sans millésime : P24_POP0014 -> POP0014, DEC_MED21 -> DEC_MED (Filosofi)."""
-    code = re.sub(r"^[A-Z]\d{2}_", "", str(code_source).strip())
-    if theme.startswith("REV"):
-        code = re.sub(r"\d{2}$", "", code)
-    return code
+def _cle_variable(code_source: str) -> str:
+    """Code sans millésime : P24_POP0014 -> POP0014."""
+    return re.sub(r"^[A-Z]\d{2}_", "", str(code_source).strip())
 
 
 # --------------------------------------------------------------------------- références
@@ -421,7 +418,7 @@ def resoudre_colonnes(
 
     def entree_cache(code, nom, entete, decision, methode, confiance, **details):
         nonlocal cache_modifie
-        cache_theme[_cle_variable(code, theme)] = {
+        cache_theme[_cle_variable(code)] = {
             "libelle_source": nom,
             "entete": entete or nom,
             "decision": decision,
@@ -454,7 +451,7 @@ def resoudre_colonnes(
     # 2. Cache, puis correspondance approchée
     pour_llm = []
     for code, nom in a_traiter:
-        entree = cache_theme.get(_cle_variable(code, theme))
+        entree = cache_theme.get(_cle_variable(code))
         if entree and (entree.get("methode") == "manuel" or _normaliser(entree.get("libelle_source", "")) == _normaliser(nom)):
             entete = entree.get("entete") or nom
             if entete in pris or (entete in noms and entete != nom):

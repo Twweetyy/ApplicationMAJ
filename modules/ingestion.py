@@ -524,7 +524,7 @@ def preparer_colonnes_thematiques(
             else:
                 nouveaux_noms.append(col.rsplit("_", 1)[-1])
                 
-        elif theme in {"CAF", "CNAM", "DEFM", "RPLS", "REV"}:
+        elif theme in {"CAF", "CNAM", "DEFM", "RPLS"}:
             nouveaux_noms.append(col)
         else: # LOG, DIP, etc.
             nouveaux_noms.append(col.rsplit("_", 1)[-1])

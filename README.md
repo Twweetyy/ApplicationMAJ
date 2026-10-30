@@ -13,7 +13,7 @@
 
 ## Le projet en bref
 
-**Le besoin.** Le service SIG de la Ville de Roubaix publie une base de données infra-communale (BDDMAS) : population, emploi, familles, diplômes, logement, revenus, prestations CAF, assurance maladie, demandeurs d'emploi, logement social et petite enfance, quartier par quartier. Chaque mise à jour demandait de récupérer une dizaine de fichiers aux formats différents, de filtrer Roubaix, de recalculer des dizaines d'indicateurs et de reporter le tout dans un classeur Excel d'une quinzaine d'onglets, avec de nombreuses manipulations manuelles.
+**Le besoin.** Le service SIG de la Ville de Roubaix publie une base de données infra-communale (BDDMAS) : population, emploi, familles, diplômes, logement, prestations CAF, assurance maladie, demandeurs d'emploi, logement social et petite enfance, quartier par quartier. Chaque mise à jour demandait de récupérer une dizaine de fichiers aux formats différents, de filtrer Roubaix, de recalculer des dizaines d'indicateurs et de reporter le tout dans un classeur Excel d'une quinzaine d'onglets, avec de nombreuses manipulations manuelles.
 
 **La solution.** Un portail web local : on dépose les fichiers, l'application contrôle le lot, puis génère le classeur complet (valeurs, indicateurs calculés, mise en forme, pages de présentation, portrait de la ville) en moins d'une minute.
 
@@ -43,7 +43,7 @@ La page **Présentation** est générée selon le lot : millésime de chaque sou
 
 ![Classeur : page Présentation](doc/img/excel-presentation.png)
 
-Juste après, l'onglet **Portrait Roubaix** donne les chiffres clés de la ville en quatre blocs (démographie, emploi et formation, revenus et prestations, logement). Chaque valeur est une formule Excel qui pointe vers les onglets thématiques : un effectif est la somme des IRIS, une part est une somme divisée par une somme, et les indicateurs Filosofi affichent l'IRIS le plus bas et le plus haut. Un lien renvoie vers l'onglet source.
+Juste après, l'onglet **Portrait Roubaix** donne les chiffres clés de la ville en quatre blocs (démographie, emploi et formation, revenus et prestations, logement). Chaque valeur est une formule Excel qui pointe vers les onglets thématiques : un effectif est la somme des IRIS, une part est une somme divisée par une somme. Seuls le niveau de vie médian et le taux de pauvreté de Roubaix (Filosofi 2021) sont écrits en dur, pour comparaison : leurs onglets ne sont plus dans le classeur. Un lien renvoie vers l'onglet source.
 
 ![Classeur : onglet Portrait Roubaix](doc/img/excel-portrait.png)
 
@@ -228,7 +228,6 @@ Pendant l'exécution, `tqdm` affiche la progression des étapes du pipeline, la 
 **Zone A – Données**
 - `Perimetres_MAS.csv` (obligatoire)
 - Recensement : `base-ic-evol-struct-pop-AAAA.CSV`, `base-ic-activite-residents-AAAA.CSV`, `base-ic-couples-familles-menages-AAAA.CSV`, `base-ic-diplomes-formation-AAAA.CSV`, `base-ic-logement-AAAA.CSV`
-- Filosofi : `BASE_TD_FILO_IRIS_AAAA_DEC.csv`, `BASE_TD_FILO_IRIS_AAAA_DISP.csv`
 - `data_CAF…`, `data_CNAM…`, `data_DEFM…`, `data_RPLS…`
 - `FD_INDCVI_AAAA.csv` (version filtrée Roubaix, voir plus bas)
 
@@ -244,7 +243,7 @@ Pendant l'exécution, `tqdm` affiche la progression des étapes du pipeline, la 
 
 **Règles**
 - Un seul fichier par thème dans un lot (ex. pas de POP 2022 et POP 2023 ensemble : erreur bloquante `versions_multiples_theme`).
-- Les années peuvent différer d'un thème à l'autre (recensement 2023 + Filosofi 2021 + CAF 2024…).
+- Les années peuvent différer d'un thème à l'autre (recensement 2023 + CAF 2024 + CNAM 2025…).
 - Le classeur ne contient que ce qui est déposé : un onglet sans fichier dans le lot reste vide.
 
 ## Classeur des équipements (BPE)
@@ -278,7 +277,7 @@ generer_classeur_bpe("BPE25.csv", "BPE25_Roubaix_equipements_officiel.xlsx", per
 ## Fichiers d'entrée
 
 - `Perimetres_MAS.csv` est le référentiel géographique requis. Il doit contenir au minimum `IRIS` et les colonnes de périmètre utilisées par `modules/socle_geo.py` (`Quartier`, `Grands_quartiers`, `Libellé_IRIS`…). La colonne `Grands_quartiers` suit les noms de `dictionnaires/grand_quartier.yml`. Seules trois colonnes de zonage sont reprises dans le classeur (voir plus bas) ; les autres (centres sociaux, NPNRU, contrats de ville…) restent dans les exports SIG et SQL.
-- Les CSV thématiques Insee, FILO, CAF, CNAM, DEFM et RPLS : le nom du fichier doit correspondre à une entrée de `dictionnaires/files_names.yml` ; les fichiers non mappés sont signalés par le pré-contrôle.
+- Les CSV thématiques Insee, CAF, CNAM, DEFM et RPLS : le nom du fichier doit correspondre à une entrée de `dictionnaires/files_names.yml` ; les fichiers non mappés sont signalés par le pré-contrôle.
 - Les métadonnées `meta_*.csv` sont appariées par nom normalisé (année ignorée). Les colonnes `COD_VAR` et `LIB_VAR` fournissent les libellés ; les modalités textuelles sont traduites à partir de `COD_MOD` et `LIB_MOD` lorsqu'elles existent. Les dictionnaires YAML restent utilisés en complément ou en repli.
 - Le fichier individuel du recensement commence par `FD_INDCVI_` et doit contenir `IRIS`, `AGEREV`, `AGED` et `IPONDI`. La méta `varmod_indcvi_AAAA.csv` documente ces champs. Seules les colonnes requises sont lues, par blocs.
 - `dictionnaires/superficies_iris_roubaix.yml` fournit les superficies par code IRIS, utilisées pour les densités et superficies calculées.
@@ -360,9 +359,9 @@ Les réglages sont des constantes en tête de `modules/mise_en_page.py` ; il suf
 | `LARGEUR_GEO_MIN`, `LARGEUR_GEO_MAX` | 12, 34 | Largeur des colonnes grises de zonage |
 | `LIGNES_ENTETE_MAX` | 4 | Nombre de lignes maximal d'un en-tête avant d'élargir la colonne |
 | `HAUTEUR_LIGNE` | 30 | Hauteur des lignes d'IRIS, en points |
-| `LIGNES_TEXTE_MAX` | 2 | Une colonne de texte s'élargit (jusqu'à `LARGEUR_TEXTE_MAX`) pour que ses valeurs tiennent sur ce nombre de lignes ; les onglets à colonnes de texte (REV DEC, REV DISP) gardent une hauteur automatique |
+| `LIGNES_TEXTE_MAX` | 2 | Une colonne de texte s'élargit (jusqu'à `LARGEUR_TEXTE_MAX`) pour que ses valeurs tiennent sur ce nombre de lignes |
 
-Les cellules des IRIS sont centrées. Sur la ligne Total, seules les colonnes additives (effectifs, superficie) reçoivent une somme ; les taux, médianes et indicateurs Filosofi restent sans total.
+Les cellules des IRIS sont centrées. Sur la ligne Total, seules les colonnes additives (effectifs, superficie) reçoivent une somme ; les taux et médianes restent sans total.
 
 ## Nouveau millésime : colonnes inconnues
 

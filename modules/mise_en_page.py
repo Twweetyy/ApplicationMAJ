@@ -22,16 +22,12 @@ LIGNES_TEXTE_MAX = 2
 LARGEUR_CARACTERE, MARGE_FILTRE = 1.1, 2
 # En-tête orange = indicateur (taux, part, médiane...) : pas de total
 REMPLISSAGE_INDICATEUR = PatternFill(start_color="F8CBAD", end_color="F8CBAD", fill_type="solid")
-# Thèmes dont aucune colonne ne s'additionne (quartiles, médianes, taux Filosofi)
-THEMES_NON_ADDITIFS = ("REV DEC", "REV DISP")
 # Colonnes du modèle sans source de données : supprimées si vides
 COLONNES_SANS_SOURCE = {"Crèches"}
 
 
 def _est_additive(nom_colonne: str, nom_feuille: str, precision: int) -> bool:
     """Une somme sur Roubaix n'a de sens que pour des effectifs (et la superficie)."""
-    if nom_feuille.startswith(THEMES_NON_ADDITIFS):
-        return False
     # Colonne créée par modules/colonnes_auto.py : additivité donnée par le module
     regle = regle_colonne(nom_colonne, nom_feuille)
     if regle and regle.get("additive") is not None:
@@ -184,7 +180,7 @@ def _mettre_en_page_onglet(ws) -> None:
         entete = str(entete)
         lettre = get_column_letter(colonne)
 
-        # Colonne de texte (ex. « Incertitude » REV DEC) : large, 2 lignes max par IRIS
+        # Colonne de texte : large, 2 lignes max par IRIS
         textes = [
             str(ws.cell(row=ligne, column=colonne).value)
             for ligne in range(3, derniere_ligne + 1)

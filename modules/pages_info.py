@@ -82,7 +82,7 @@ def _maj_presentation(ws, onglets: dict, titre: str, liens: dict) -> None:
         ),
         None,
     )
-    themes = sorted(set(onglets) | set(ORDRE_THEMES_CALCULS) | {"REV DEC", "REV DISP", "PETITE ENFANCE"})
+    themes = sorted(set(onglets) | set(ORDRE_THEMES_CALCULS) | {"PETITE ENFANCE"})
     ligne = 4
     while ws.cell(row=ligne, column=1).value not in (None, ""):
         theme = _theme_de_libelle(ws.cell(row=ligne, column=1).value, themes)

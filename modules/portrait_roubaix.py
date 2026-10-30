@@ -3,7 +3,7 @@
 Chaque valeur est une formule Excel qui pointe vers les onglets thématiques du classeur :
 - effectif : somme des IRIS ;
 - part / taux : somme du numérateur / somme du dénominateur (jamais une moyenne de taux) ;
-- Filosofi (médianes, taux de pauvreté) : non additif, on donne l'IRIS le plus bas et le plus haut.
+- fixe : valeur écrite en dur (revenus Filosofi 2021, dont les onglets ne sont plus dans le classeur).
 Un indicateur dont l'onglet ou la colonne manque est simplement omis.
 """
 import re
@@ -20,7 +20,7 @@ MOTIF_ANNEE = re.compile(r"^(.*\S)\s+(\d{4})$")
 # Source affichée sous chaque indicateur, par thème d'onglet
 SOURCES = {
     "POP": "RP", "ACT RES": "RP", "COU FAM": "RP", "DIP FORMATION": "RP", "LOG": "RP",
-    "PETITE ENFANCE": "RP (fichier détail)", "REV DEC": "Filosofi", "REV DISP": "Filosofi",
+    "PETITE ENFANCE": "RP (fichier détail)",
     "CAF": "CAF", "CNAM": "CNAM", "DEFM": "France Travail", "RPLS": "RPLS",
 }
 
@@ -31,14 +31,15 @@ BLOCS = [
     ("Emploi et formation", "C55A11", "FBE5D6",
      "Activité, emploi, chômage, diplômes de la population non scolarisée et demandeurs d'emploi."),
     ("Revenus et prestations", "7030A0", "EADCF4",
-     "Revenus et pauvreté (Filosofi), allocataires CAF, RSA, AAH et complémentaire santé solidaire (CNAM)."),
+     "Revenus et pauvreté (Filosofi 2021, valeurs figées), allocataires CAF, RSA, AAH "
+     "et complémentaire santé solidaire (CNAM)."),
     ("Logement", "548235", "E2F0D9",
      "Parc, vacance, typologie, statut d'occupation, logements sociaux, ancienneté et suroccupation."),
 ]
 
 # Indicateurs : (bloc, libellé, onglet, calcul, colonnes, format)
 #   somme : colonnes = [colonne]           ratio : colonnes = ([numérateurs], [dénominateurs])
-#   min / max : colonnes = [colonne]       (valeur de l'IRIS le plus bas / le plus haut)
+#   fixe : onglet = source affichée, colonnes = (valeur, territoire)
 INDICATEURS = [
     ("Démographie", "Habitants", "POP", "somme", ["Population"], "entier"),
     ("Démographie", "Habitants au km²", "POP", "ratio", (["Population"], ["Superficie en km²"]), "entier"),
@@ -77,12 +78,10 @@ INDICATEURS = [
     ("Emploi et formation", "Demandeurs ABC depuis 2 ans ou plus", "DEFM", "ratio",
      (["DEFM catégories ABC d'ancienneté au chômage d'au moins 2 ans"], ["DEFM catégories ABC"]), "pct"),
 
-    ("Revenus et prestations", "Revenu disponible médian : IRIS le plus bas", "REV DISP", "min", ["Médiane (€)"], "euro"),
-    ("Revenus et prestations", "Revenu disponible médian : IRIS le plus haut", "REV DISP", "max", ["Médiane (€)"], "euro"),
-    ("Revenus et prestations", "Taux de pauvreté : IRIS le plus bas", "REV DISP", "min",
-     ["Taux de pauvreté au seuil de 60 % (%)"], "pct100"),
-    ("Revenus et prestations", "Taux de pauvreté : IRIS le plus haut", "REV DISP", "max",
-     ["Taux de pauvreté au seuil de 60 % (%)"], "pct100"),
+    # Filosofi 2021 (onglet REV DISP retiré, données trop anciennes) : gardé pour comparaison
+    ("Revenus et prestations", "Niveau de vie médian", "Filosofi 2021", "fixe", (16080, "Roubaix"), "euro"),
+    ("Revenus et prestations", "Taux de pauvreté (seuil de 60 % du niveau de vie médian)", "Filosofi 2021", "fixe",
+     (47.4, "Roubaix"), "pct100"),
     ("Revenus et prestations", "Allocataires CAF", "CAF", "somme", ["Nombre total d'allocataires"], "entier"),
     ("Revenus et prestations", "Population couverte par la CAF", "CAF", "ratio",
      (["Personnes couvertes"], ["Population (CAF)"]), "pct"),
@@ -118,8 +117,9 @@ INDICATEURS = [
 
 NOTES = [
     "Les parts et taux sont recalculés sur Roubaix entière (somme des IRIS), pas en moyenne des IRIS.",
-    "Les revenus Filosofi (médianes, taux de pauvreté) ne s'additionnent pas : l'IRIS le plus bas et le plus haut sont donnés.",
     "Les valeurs sont des formules : elles suivent les onglets du classeur. Cliquer sur une source ouvre l'onglet.",
+    "Revenus Filosofi 2021 (Roubaix) : valeurs figées pour comparaison, les onglets Filosofi étant retirés "
+    "(données trop anciennes).",
 ]
 
 
@@ -165,8 +165,7 @@ def _formule(calcul: str, colonnes, plages: dict) -> str | None:
     ref = plages.get(_normaliser(colonnes[0]))
     if ref is None:
         return None
-    fonction = {"somme": "SUM", "min": "MIN", "max": "MAX"}[calcul]
-    return f"={fonction}({ref})"
+    return f"=SUM({ref})"
 
 
 def _fusion(ws, plage, valeur=None, font=None, fill=None, align=None):
@@ -218,9 +217,14 @@ def ajouter_portrait_roubaix(workbook) -> None:
                 PatternFill("solid", fgColor=clair), Alignment(wrap_text=True, vertical="top"))
         ligne = 8
         for bloc_indicateur, libelle, theme, calcul, colonnes, fmt in INDICATEURS:
-            if bloc_indicateur != bloc or theme not in onglets:
+            if bloc_indicateur != bloc:
                 continue
-            formule = _formule(calcul, colonnes, plages[theme])
+            if calcul == "fixe":
+                formule = colonnes[0]
+            elif theme not in onglets:
+                continue
+            else:
+                formule = _formule(calcul, colonnes, plages[theme])
             if formule is None:
                 continue
             a, b = ws[f"{c1}{ligne}"], ws[f"{c2}{ligne}"]
@@ -230,11 +234,15 @@ def ajouter_portrait_roubaix(workbook) -> None:
             b.font = Font(bold=True, size=13, color=couleur)
             b.alignment = Alignment(horizontal="right", vertical="center")
             a.border = b.border = filet
-            nom_onglet = onglets[theme]
             source = ws[f"{c1}{ligne + 1}"]
-            source.value = f"{SOURCES.get(theme, theme)} {MOTIF_ANNEE.match(nom_onglet).group(2)} · onglet {nom_onglet}"
-            source.hyperlink = f"#'{nom_onglet}'!A1"
-            source.font = Font(size=8, color=GRIS, underline="single")
+            if calcul == "fixe":
+                source.value = f"{theme} · valeur figée · {colonnes[1]}"
+                source.font = Font(size=8, color=GRIS)
+            else:
+                nom_onglet = onglets[theme]
+                source.value = f"{SOURCES.get(theme, theme)} {MOTIF_ANNEE.match(nom_onglet).group(2)} · onglet {nom_onglet}"
+                source.hyperlink = f"#'{nom_onglet}'!A1"
+                source.font = Font(size=8, color=GRIS, underline="single")
             ws.row_dimensions[ligne].height = 30
             ligne += 2
         hauteur_max = max(hauteur_max, ligne)
