@@ -149,6 +149,7 @@ ApplicationMAJ/
 │  └─ diag.py                      Diagnostic des cubes Insee 2023
 ├─ exemples/                       Lots 2022 et 2023 prêts à déposer dans le portail
 ├─ web/                            Front du portail (index.html, multi-upload.js, styles.css)
+├─ projets_annexes/               Mini-projets qui exploitent le classeur produit (voir plus bas)
 ├─ doc/img/                        Captures et démonstration utilisées dans ce README
 ├─ exports_sig/                    Exportations SIG (ignoré par Git)
 ├─ main_bddmas.py                  Orchestrateur du pipeline
@@ -369,6 +370,15 @@ except ErreurPrecontrole as erreur:
 ```
 
 Le rapport de pré-contrôle est également renvoyé dans `resultat["precontrole"]`. `dossier_export_sig=None` et `persister_sql=False` désactivent ces sorties, ce qui convient à une génération web isolée. Le périmètre est fourni dans `dossier_data` ; les chemins du modèle, des superficies, des calculs et des titres peuvent être surchargés si besoin.
+
+## Projets annexes
+
+Le dossier `projets_annexes/` regroupe deux mini-projets qui partent du classeur `TAB_BDDMAS_Tout_perimetre_<ANNEE>.xlsx` produit par l'application :
+
+- **CreationMASGeojson** : statistiques Insee par IRIS au format `stat_insee_iris2` (Excel avec historique depuis 2016) et deux GeoJSON des 38 IRIS pour ArcGIS ;
+- **CreationPortraitRoubaix** : portrait des 14 Comités de Quartier (Excel avec page d'accueil et pages récap, GeoJSON des CQ), avec les équipements de la Base permanente des équipements (BPE) de l'Insee.
+
+Le portrait lit les sorties de CreationMASGeojson : les deux dossiers doivent rester côte à côte. Chaque dossier a son README. Seuls les scripts et les référentiels (`data/ref/`) sont versionnés ; les fichiers bruts (`data/brut/`) et les sorties (`data/traite/`) restent en local.
 
 ## Base de données
 

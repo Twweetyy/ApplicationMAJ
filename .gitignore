@@ -20,6 +20,9 @@ tmp/
 
 # ===== Données volumineuses (non versionnées) =====
 data/
+!projets_annexes/*/data/
+projets_annexes/*/data/*
+!projets_annexes/*/data/ref/
 exports_sig/
 sorties/
 

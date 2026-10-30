@@ -12,5 +12,6 @@ exports_sig/
 archives/
 doc/
 exemples/
+projets_annexes/
 *.bat
 *.log

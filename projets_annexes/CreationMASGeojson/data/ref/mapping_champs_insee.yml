@@ -1,0 +1,209 @@
+# Correspondance champ_insee_N (schéma stat_insee_iris2) -> source dans TAB_BDDMAS_Tout_perimetre_<ANNEE>.xlsx
+#
+# Trois façons de remplir un champ :
+#   src:  [ONGLET, "Nom de colonne"]  -> ONGLET = préfixe du nom d'onglet SANS l'année (POP, LOG, ACT RES...),
+#                                        ainsi le fichier reste valable pour 2024, 2025...
+#                                        Les accents / apostrophes typographiques sont ignorés à la comparaison.
+#   yml:  fichier.yml                 -> valeur lue dans un YAML {LIBELLE IRIS: valeur} de data/ref
+#   expr: "champ_insee_27 / champ_insee_24 * 100"  -> calcul à partir d'autres champs (évalué après src/yml)
+#   na:   "raison"                    -> indicateur non disponible dans le millésime : laissé vide
+#   supprimer: "raison"               -> champ retiré de toutes les sorties (année, historique, GeoJSON)
+#
+# Option sur toute ligne :
+#   libelle: "..."                    -> remplace le libellé du modèle stat_insee_iris2 (ex. découpage Insee modifié).
+# Un champ absent du modèle (ex. champ_insee_168) est ajouté en fin de table ; vide pour les années passées.
+#
+# Pour un nouveau millésime : vérifier seulement les lignes dont le nom de colonne INSEE a changé.
+
+# --- Population -------------------------------------------------------------
+# Depuis le RP 2023, l'Insee publie les âges en 0-2, 3-5, 6-10, 11-17, 18-24, 25-39, 40-54, 55-64, 65-79, 80+
+# (et 15-24, 0-19, 65+). Les champs 9 à 13 et 15 suivent ce découpage ; le libellé rappelle l'ancien.
+# 55-64 ans, nouvelle tranche, est en champ_insee_168 (fin de table).
+champ_insee_2:   {src: [POP, "Population"]}
+champ_insee_3:   {yml: variable_population_2006.yml}
+champ_insee_4:   {expr: "champ_insee_2 - champ_insee_3"}
+champ_insee_5:   {expr: "champ_insee_4 / champ_insee_3 * 100"}
+champ_insee_6:   {yml: variable_population_2011.yml}
+champ_insee_7:   {yml: variable_population_2016.yml}
+champ_insee_8:   {src: [POP, "Pop 0-14 ans"]}
+champ_insee_9:   {src: [POP, "Pop 15-24 ans"], libelle: "Population entre 15 et 24 ans (15-29 ans jusqu'en 2022)"}
+champ_insee_10:  {src: [POP, "Pop 25-39 ans"], libelle: "Population entre 25 et 39 ans (30-44 ans jusqu'en 2022)"}
+champ_insee_11:  {src: [POP, "Pop 40-54 ans"], libelle: "Population entre 40 et 54 ans (45-59 ans jusqu'en 2022)"}
+champ_insee_12:  {src: [POP, "Pop 65-79 ans"], libelle: "Population entre 65 et 79 ans (60-74 ans jusqu'en 2022)"}
+champ_insee_13:  {src: [POP, "Pop 80 ans ou plus"], libelle: "Population de 80 ans et plus (75 ans et plus jusqu'en 2022)"}
+champ_insee_14:  {src: [POP, "Part de la population de moins de 20 ans (%) parmi la population iris"]}
+champ_insee_15:  {expr: "(champ_insee_12 + champ_insee_13) / champ_insee_2 * 100", libelle: "Part de la population de 65 ans et plus (%) (60 ans et plus jusqu'en 2022)"}
+champ_insee_16:  {src: [POP, "Pop 15 ans ou plus Agriculteurs exploitants"]}
+champ_insee_17:  {src: [POP, "Pop 15 ans ou plus Artisans, Comm., Chefs entr."]}
+champ_insee_18:  {src: [POP, "Pop 15 ans ou plus Cadres, Prof. intel. sup."]}
+champ_insee_19:  {src: [POP, "Pop 15 ans ou plus Prof. intermédiaires"]}
+champ_insee_20:  {src: [POP, "Pop 15 ans ou plus Employés"]}
+champ_insee_21:  {src: [POP, "Pop 15 ans ou plus Ouvriers"]}
+champ_insee_22:  {src: [POP, "Pop 15 ans ou plus Retraités"]}
+champ_insee_23:  {src: [POP, "Pop 15 ans ou plus Autres"]}
+
+# --- Logement ---------------------------------------------------------------
+champ_insee_24:  {src: [LOG, "Logements"]}
+champ_insee_25:  {src: [LOG, "Résidences principales"]}
+champ_insee_26:  {src: [LOG, "Maisons"]}
+champ_insee_27:  {src: [LOG, "Appartements"]}
+champ_insee_28:  {src: [LOG, "Rés princ 1 pièce"]}
+champ_insee_29:  {src: [LOG, "Rés princ 2 pièces"]}
+champ_insee_30:  {src: [LOG, "Rés princ 3 pièces"]}
+champ_insee_31:  {src: [LOG, "Rés princ 4 pièces"]}
+champ_insee_32:  {src: [LOG, "Rés princ 5 pièces ou plus"]}
+champ_insee_33:  {src: [LOG, "Rés princ de moins de 30 m2"]}
+champ_insee_34:  {src: [LOG, "Rés princ de 30 à moins de 40 m2"]}
+champ_insee_35:  {src: [LOG, "Rés princ de 40 à moins de 60 m2"]}
+champ_insee_36:  {src: [LOG, "Rés princ de 60 à moins de 80 m2"]}
+champ_insee_37:  {src: [LOG, "Rés princ de 80 à moins de 100 m2"]}
+champ_insee_38:  {src: [LOG, "Rés princ de 100 à moins de 120 m2"]}
+champ_insee_39:  {src: [LOG, "Rés princ de 120 m2 ou plus"]}
+champ_insee_40:  {src: [LOG, "Part des logements vacants (%)"]}
+champ_insee_41:  {src: [LOG, "Part des logements individuels (%)"]}
+champ_insee_42:  {expr: "champ_insee_27 / champ_insee_24 * 100"}
+champ_insee_43:  {src: [LOG, "Part des RP de petite typologie (%)"]}
+champ_insee_44:  {src: [LOG, "Part des RP de grande typologie (%)"]}
+champ_insee_45:  {src: [LOG, "Part des ménages emménagés depuis moins de 2 ans (%)"]}
+champ_insee_46:  {src: [LOG, "Part propriétaire dans les RP parc privé (%)"]}
+champ_insee_47:  {expr: "champ_insee_53 / champ_insee_25 * 100"}
+champ_insee_48:  {src: [LOG, "Part HLM dans RP totale (%)"]}
+champ_insee_49:  {src: [LOG, "Part HLM dans les RP locataires (%)"]}
+champ_insee_50:  {src: [LOG, "Rés secondaires et logts occasionnels"]}
+champ_insee_51:  {src: [LOG, "Logements vacants"]}
+champ_insee_52:  {src: [LOG, "Rés princ occupées Propriétaires"]}
+champ_insee_53:  {src: [LOG, "Rés princ occupées Locataires"]}
+champ_insee_54:  {src: [LOG, "Rés princ logé gratuit"]}
+champ_insee_55:  {na: "Personnes des RP occupées par propriétaires : absent du millésime 2023"}
+champ_insee_56:  {na: "Personnes des RP occupées par locataires : absent du millésime 2023"}
+champ_insee_57:  {na: "Personnes des RP logées gratuitement : absent du millésime 2023"}
+
+# --- Activité des résidents -------------------------------------------------
+champ_insee_58:  {src: [ACT RES, "Pop 15-64 ans"]}
+champ_insee_59:  {src: [ACT RES, "Actifs 15-64 ans"]}
+champ_insee_60:  {src: [ACT RES, "Chômeurs 15-64 ans"]}
+champ_insee_61:  {src: [ACT RES, "Actifs occupés 15-64 ans"]}
+champ_insee_62:  {src: [ACT RES, "Salariés 15 ans ou plus"]}
+champ_insee_63:  {src: [ACT RES, "Non-salariés 15 ans ou plus"]}
+champ_insee_64:  {src: [ACT RES, "Part de la population en âge de travailler (%)"]}
+champ_insee_65:  {src: [ACT RES, "Taux de chômage dans la pop active (%)"]}
+champ_insee_66:  {src: [ACT RES, "Taux d'emploi des 15-64 ans (%)"]}
+champ_insee_67:  {src: [ACT RES, "Taux d'emploi des 15-24 ans (%)"]}
+champ_insee_68:  {src: [ACT RES, "Taux de chômage chez les 15-24 ans dans la pop active (%)"]}
+champ_insee_69:  {src: [ACT RES, "Part des actifs occupés travaillant dans la commune de résidence (%)"]}
+champ_insee_70:  {src: [ACT RES, "Actifs 15-64 ans Agriculteurs exploitants"]}
+champ_insee_71:  {src: [ACT RES, "Actifs 15-64 ans Artisans, Comm., Chefs entr."]}
+champ_insee_72:  {src: [ACT RES, "Actifs 15-64 ans Cadres, Prof. intel. sup."]}
+champ_insee_73:  {src: [ACT RES, "Actifs 15-64 ans Prof. intermédiaires"]}
+champ_insee_74:  {src: [ACT RES, "Actifs 15-64 ans Employés"]}
+champ_insee_75:  {src: [ACT RES, "Salariés 15 ans ou plus Fonct publ, CDI"]}
+champ_insee_76:  {na: "Salariés en CDD : absent du millésime 2023"}
+champ_insee_77:  {na: "Salariés en intérim : absent du millésime 2023"}
+champ_insee_78:  {na: "Salariés en emplois aidés : absent du millésime 2023"}
+champ_insee_79:  {na: "Salariés en apprentissage-stage : absent du millésime 2023"}
+champ_insee_80:  {src: [ACT RES, "Actifs occ 15 ans ou plus pas de transport pour travail"]}
+champ_insee_81:  {src: [ACT RES, "Actifs occ 15 ans ou plus marche à pied pour travail"]}
+champ_insee_82:  {src: [ACT RES, "Actifs occ 15 ans ou plus vélo"]}
+champ_insee_83:  {src: [ACT RES, "Actifs occ 15 ans ou plus deux-roues motorisé"]}
+champ_insee_84:  {src: [ACT RES, "Actifs occ 15 ans ou plus voiture"]}
+champ_insee_85:  {src: [ACT RES, "Actifs occ 15 ans ou plus transport en commun"]}
+
+# --- Couples, familles, ménages ---------------------------------------------
+champ_insee_86:  {src: [COU FAM, "Ménages"]}
+champ_insee_87:  {src: [COU FAM, "Familles"]}
+champ_insee_88:  {src: [COU FAM, "Part des familles couple avec enfant(s) (%)"]}
+champ_insee_89:  {src: [LOG, "Taille moyenne des ménages"]}
+champ_insee_90:  {src: [COU FAM, "Part de familles monoparentales (%)"]}
+# Corrigé : couples sans enfant / familles (avant : 100 - champ_88, qui incluait les monoparentales).
+# Recalculé aussi sur tout l'historique par le script (RECALCUL_HISTO).
+champ_insee_91:  {expr: "champ_insee_106 / champ_insee_87 * 100"}
+champ_insee_92:  {src: [COU FAM, "Part de familles nombreuses (%)"]}
+champ_insee_93:  {src: [COU FAM, "Ménages Hommes seuls"]}
+champ_insee_94:  {src: [COU FAM, "Ménages Femmes seules"]}
+champ_insee_95:  {src: [COU FAM, "Ménages Autres sans famille"]}
+champ_insee_96:  {src: [COU FAM, "Ménages avec famille(s)"]}
+champ_insee_97:  {src: [COU FAM, "Pop 15 ans ou plus célibataire"]}
+champ_insee_98:  {src: [COU FAM, "Pop 15 ans ou plus divorcée"]}
+champ_insee_99:  {src: [COU FAM, "Pop 15 ans ou plus en concubinage ou union libre"]}
+champ_insee_100: {src: [COU FAM, "Pop 15 ans ou plus mariée"]}
+champ_insee_101: {expr: "champ_insee_97 + champ_insee_98 + champ_insee_99 + champ_insee_102 + champ_insee_103"}
+champ_insee_102: {src: [COU FAM, "Pop 15 ans ou plus pacsée"]}
+champ_insee_103: {src: [COU FAM, "Pop 15 ans ou plus veuves ou veufs"]}
+champ_insee_104: {src: [COU FAM, "Fam Couple avec enfant(s)"]}
+champ_insee_105: {src: [COU FAM, "Fam Monoparentales"]}
+champ_insee_106: {src: [COU FAM, "Fam Couple sans enfant"]}
+champ_insee_107: {src: [COU FAM, "Fam 0 enfant moins 25 ans"]}
+champ_insee_108: {src: [COU FAM, "Fam 1 enfant moins 25 ans"]}
+champ_insee_109: {src: [COU FAM, "Fam 2 enfants moins 25 ans"]}
+champ_insee_110: {src: [COU FAM, "Fam 3 enfants moins 25 ans"]}
+champ_insee_111: {src: [COU FAM, "Fam 4 enfants ou plus moins 25 ans"]}
+
+# --- Diplômes / formation ---------------------------------------------------
+champ_insee_112: {src: [DIP FORMATION, "Part pop 15 ans et plus non scol sans dip ou CEP max (%)"]}
+champ_insee_113: {src: [DIP FORMATION, "Part pop 15 ans et plus non scol dipl Ens Sup (%)"]}
+champ_insee_114: {src: [DIP FORMATION, "Pop scolarisée 15-17 ans"]}
+champ_insee_115: {src: [DIP FORMATION, "Pop scolarisée 18-24 ans"]}
+champ_insee_116: {src: [DIP FORMATION, "Pop scolarisée 25-29 ans"]}
+champ_insee_117: {src: [DIP FORMATION, "Pop scolarisée 30 ans ou plus"]}
+champ_insee_118: {src: [DIP FORMATION, "Pop 15 ans ou plus non scolarisée"]}
+champ_insee_119: {src: [DIP FORMATION, "Pop 15 ans ou plus non scol. Sans diplôme ou CEP"]}
+champ_insee_120: {src: [DIP FORMATION, "Pop 15 ans ou plus non scol. BEPC, brevet des collèges, DNB"]}
+champ_insee_121: {src: [DIP FORMATION, "Pop 15 ans ou plus non scol. CAP-BEP ou équiv."]}
+champ_insee_122: {src: [DIP FORMATION, "Pop 15 ans ou plus non scol. Bac, brevet pro. ou équiv."]}
+champ_insee_123: {src: [DIP FORMATION, "Pop 15 ans ou plus non scol. Enseignement sup de niveau bac + 2"]}
+champ_insee_124: {src: [DIP FORMATION, "Pop 15 ans ou plus non scol. Enseignement sup de niveau bac + 3 ou 4"]}
+champ_insee_125: {src: [DIP FORMATION, "Pop 15 ans ou plus non scol. Enseignement sup de niveau bac + 5 ou plus"]}
+
+# --- CAF --------------------------------------------------------------------
+champ_insee_126: {src: [CAF, "Personnes couvertes"]}
+champ_insee_127: {src: [CAF, "Part de la population couverte par une allocation CAF (%)"]}
+champ_insee_128: {src: [CAF, "Allocataires isolés sans enfant"]}
+champ_insee_129: {src: [CAF, "Allocataires mono-parent"]}
+champ_insee_130: {src: [CAF, "Allocataires couples sans enfant"]}
+champ_insee_131: {src: [CAF, "Allocataires couples avec enfant(s)"]}
+champ_insee_132: {src: [CAF, "Enfants de moins de 3 ans"]}
+champ_insee_133: {src: [CAF, "Enfants de 3 à moins de 6 ans"]}
+champ_insee_134: {src: [CAF, "Enfants de 6 à moins de 11 ans"]}
+champ_insee_135: {src: [CAF, "Enfants de 11 à moins de 15 ans"]}
+champ_insee_136: {src: [CAF, "Enfants de 15 à moins de 18 ans"]}
+champ_insee_137: {src: [CAF, "Enfants de 18 à moins de 25 ans"]}
+
+# --- CNAM -------------------------------------------------------------------
+champ_insee_138: {src: [CNAM, "Population couverte"]}
+champ_insee_139: {src: [CNAM, "Part de la population couverte bénéficiaire de la C2S non participative (%)"]}
+champ_insee_140: {src: [CNAM, "Part des bénéficiaires de la C2S non participative de moins de 18 ans (%)"]}
+champ_insee_141: {src: [CNAM, "Bénéficiaires de la C2S non participative de moins de 18 ans"]}
+champ_insee_142: {src: [CNAM, "Bénéficiaires de la C2S non participative de 18 ans à moins de 25 ans"]}
+champ_insee_143: {src: [CNAM, "Bénéficiaires de la C2S non participative de 25 ans à moins de 50 ans"]}
+champ_insee_144: {src: [CNAM, "Bénéficiaires de la C2S non participative de 50 ans à moins de 60 ans"]}
+champ_insee_145: {src: [CNAM, "Bénéficiaires de la C2S non participative de 60 ans ou plus"]}
+
+# --- Revenus ----------------------------------------------------------------
+champ_insee_146: {src: [REV DISP, "Taux de pauvreté au seuil de 60 % (%)"]}
+champ_insee_147: {src: [REV DISP, "Médiane (€)"]}
+champ_insee_148: {src: [REV DISP, "Indice de Gini"]}
+# Ménages fiscaux : retirés de toutes les sorties (aussi de l'historique)
+champ_insee_149: {supprimer: "Nombre de ménages fiscaux : retiré à la demande"}
+champ_insee_150: {supprimer: "Part des ménages fiscaux imposés : retiré à la demande"}
+champ_insee_151: {src: [REV DISP, "Part de l'ensemble des prestations sociales (%)"]}
+champ_insee_152: {src: [REV DISP, "dont part des salaires et traitements (%)"]}
+champ_insee_153: {src: [REV DISP, "dont part des indemnités de chômage (%)"]}
+champ_insee_154: {src: [REV DISP, "dont part des revenus des activités non salariées (%)"]}
+champ_insee_155: {src: [REV DISP, "Part des pensions, retraites et rentes (%)"]}
+champ_insee_156: {src: [REV DEC, "Part des autres revenus (%)"]}
+
+# --- Demandeurs d'emploi ----------------------------------------------------
+champ_insee_157: {src: [DEFM, "DEFM"]}
+champ_insee_158: {src: [DEFM, "DEFM catégories ABC"]}
+champ_insee_159: {src: [DEFM, "DEFM catégories ABC nationalité française"]}
+champ_insee_160: {src: [DEFM, "DEFM catégories ABC nationalité étrangère"]}
+champ_insee_161: {src: [DEFM, "DEFM catégories ABC d'ancienneté au chômage d'au moins 2 ans"]}
+champ_insee_162: {src: [DEFM, "Part des DEFM ABC au chômage depuis plus de 2 ans dans l'ensemble des chômeurs inscrits à PE (%)"]}
+champ_insee_163: {src: [DEFM, "DEFM catégories ABC de 50 ans et plus"]}
+champ_insee_164: {expr: "champ_insee_163 / champ_insee_158 * 100"}
+
+# --- Champs ajoutés en fin de table -----------------------------------------
+champ_insee_165: {src: [POP, "Densité de population en hab/km²"]}
+champ_insee_166: {supprimer: "Indice de jeunesse : retiré à la demande"}
+champ_insee_167: {src: [POP, "Pop Hommes"], libelle: "Population hommes"}
+champ_insee_168: {src: [POP, "Pop 55-64 ans"], libelle: "Population entre 55 et 64 ans (nouveau en 2023)"}

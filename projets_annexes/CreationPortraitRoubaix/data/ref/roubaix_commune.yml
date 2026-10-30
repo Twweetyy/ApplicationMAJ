@@ -1,0 +1,8 @@
+# Indicateurs publiés par l'Insee au niveau de la COMMUNE de Roubaix (59512), plus récents que
+# ceux disponibles par IRIS. Ils s'affichent sur la ligne Roubaix et sur la page d'accueil.
+# Filosofi 2023 : https://www.insee.fr/fr/statistiques/8984752 (fichier FILOSOFI_CC)
+# Attention : Filosofi 2023 n'est pas comparable aux millésimes 2012-2021 (changement de méthode Insee).
+source: Filosofi 2023, commune
+indicateurs:
+  Niveau de vie médian (€): 16080
+  Taux de pauvreté au seuil de 60 % (%): 47.4

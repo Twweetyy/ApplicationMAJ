@@ -1,0 +1,23 @@
+# Rattachement des IRIS (code Insee à 9 chiffres) aux Comités de Quartier (CQ) de Roubaix.
+# Un IRIS absent de cette liste est compté dans « Hors CQ » (et toujours dans le total Roubaix).
+# Pour modifier un rattachement : déplacer le code IRIS d'une liste à l'autre, puis relancer
+#   python scripts/portrait_cq.py
+
+CQ Servir: ["595120603"]                                       # Anseele (Motte-Bossut)
+CQ UPC: ["595120504", "595120601"]                             # Trichon, Espérance Centre (Crouy)
+CQ ESCRE: ["595121103"]                                        # Sartel (Carihem)
+CQ Pile: ["595121001", "595121002", "595121003"]               # Pile Est, Centre, Nord
+CQ Le Fil: ["595120501", "595120502", "595120503"]             # Épeule Nord, Centre, Sud
+CQ FM: ["595120101", "595120102"]                              # Mackellerie, Fresnoy
+CQ Justice: ["595121202"]                                      # Justice
+CQ MP: ["595120801", "595120802", "595120803"]                 # Moulin Nord, Moulin Sud, Potennerie
+CQ 6 Quartiers: ["595121201", "595121301", "595120703", "595121302"]  # Linné-Chemin Neuf, Nouveau Roubaix, Édouard Vaillant, Hauts Champs
+CQ BEH Alma: ["595120202", "595120203"]                        # Alma Sud, Alma Nord
+CQ ECHO: ["595120301", "595120302"]                            # Entrepont-Cartigny, Hutin-Oran
+CQ Hommelet: ["595120401", "595120402", "595120403"]           # Hommelet Nord, Centre, Sud
+CQ ARC: ["595120602"]                                          # Nations Unies (Centre-ville)
+CQ Sainte Elisabeth: ["595120901", "595120902", "595120903"]   # Sainte-Élisabeth Centre, Sud, Nord
+
+# Hors CQ : Fosse aux Chênes (595120201), Cul de Four (595120303), Barbieux-Vauban (595120701),
+#           Barbieux Sud (595120702), Trois Ponts Nord (595121101), Trois Ponts Sud (595121102),
+#           Fraternité (595121203)
