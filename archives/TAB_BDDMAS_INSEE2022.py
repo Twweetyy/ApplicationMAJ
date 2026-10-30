@@ -2,7 +2,6 @@
 ================================================================================
 PROJET      : Traitement et structuration BDDMAS INSEE - Ville de Roubaix
 FICHIER     : TAB_BDDMAS_INSEE2022.py
-AUTEUR      : Bilal Boulahyan
 DATE        : 28/09/2026
 PYTHON      : >= 3.11
 DÉPENDANCES : pandas, openpyxl, tqdm, pyyaml (optionnel si chargeur custom)
