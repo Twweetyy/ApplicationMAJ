@@ -9,7 +9,7 @@
 | Diplômes - Formation | base-ic-diplomes-formation-2023.CSV | La base infracommunale « Diplôme - Formation » fournit des données sur l'âge des personnes scolarisées et les niveaux de diplôme des personnes non scolarisées. | 2023 | https://www.insee.fr/fr/statistiques/9054820?sommaire=9054862#consulter | https://www.insee.fr/fr/statistiques/fichier/9054820/base-ic-diplomes-formation-2023_csv.zip |
 | Population | base-ic-evol-struct-pop-2023.CSV | La base infracommunale « Population » fournit des données sur les caractéristiques de la population selon le sexe, l'âge, la catégorie socio-professionnelle et la catégorie de nationalité. | 2023 | https://www.insee.fr/fr/statistiques/9054332?sommaire=9054352#consulter | https://www.insee.fr/fr/statistiques/fichier/9054332/base-ic-evol-struct-pop-2023_csv.zip |
 | Logement | base-ic-logement-2023.CSV | La base infracommunale « Logement » fournit des données sur les caractéristiques des résidences principales, la date d'emménagement, la possession d'une voiture ainsi que le parc de logements, maisons et appartements. | 2023 | https://www.insee.fr/fr/statistiques/9061333?sommaire=9061358#consulter | https://www.insee.fr/fr/statistiques/fichier/9061333/base-ic-logement-2023_csv.zip |
-| Individus localisés au canton ou ville | FD_INDCVI_2022.csv | Fichier détail des individus (microdonnées). Permet d'extraire la distribution par âge révolu des enfants par IRIS après traitement via le programme `traitement_enfants_roubaix`. | 2022 | https://www.insee.fr/fr/statistiques/8647104?sommaire=8590191 | https://www.insee.fr/fr/statistiques/fichier/8647104/RP2022_indcvi.zip |
+| Individus localisés au canton ou ville | FD_INDCVI_2023.csv | Fichier détail des individus (microdonnées). Permet d'extraire la distribution par âge révolu des enfants par IRIS, après filtrage sur Roubaix avec `scripts/extraire_indcvi_roubaix.py`. | 2023 | https://www.insee.fr/fr/statistiques/9075625?sommaire=9004842#consulter-sommaire | https://www.insee.fr/fr/statistiques/fichier/9075625/RP2023_indcvi.zip |
 | CAF | data_CAF_2024_IRIS.csv | Cette base fournit des indicateurs sur les bénéficiaires des prestations légales versées par les CAF dans les quartiers politique de la ville. | 2024 | https://www.insee.fr/fr/statistiques/8682393 | https://www.insee.fr/fr/statistiques/fichier/8682393/beneficiaires_CAF_31-12-2024_Iris.zip |
 | CNAM | data_CNAM_2025_IRIS.csv | Cette base fournit des indicateurs sur les bénéficiaires du régime général de l'assurance maladie ainsi que sur les bénéficiaires de la Complémentaire Santé Solidaire (C2S) dans les quartiers prioritaires de la politique de la ville. | 2025 | https://www.insee.fr/fr/statistiques/8736938 | https://www.insee.fr/fr/statistiques/fichier/8736938/beneficiaires_CNAM_01-01-2025_Iris_csv.zip |
 | Demandeurs d'emploi | data_DEFM2024_iris.csv | Cette base fournit des indicateurs sur les demandeurs d'emploi en fin de mois au 31 décembre dans les quartiers prioritaires de la politique de la ville. | 2024 | https://www.insee.fr/fr/statistiques/8644875 | https://www.insee.fr/fr/statistiques/fichier/8644875/DEFM2024_Iris_csv.zip |
@@ -46,9 +46,15 @@ Les fichiers meta contiennent le dictionnaire des variables, ils ne nous intére
 
 ## Fichier Individus localisés au canton ou ville (Microdonnées)
 
-- Aller sur la page **Fichiers détail du recensement de la population** : https://www.insee.fr/fr/statistiques/8647104?sommaire=8590191
+- Aller sur la page **Fichiers détail du recensement de la population** : https://www.insee.fr/fr/statistiques/9075625?sommaire=9004842#consulter-sommaire
 - Télécharger l'archive ZIP des **Individus localisés au canton-ou-ville (INDCVI)**.
-- Extraire le fichier CSV brut (`FD_INDCVI_2022.csv`) à placer à la racine du projet pour exécution dans `traitement_enfants_roubaix.ipynb`.
+- Extraire le fichier brut (`FD_INDCVI_2023.csv`, plusieurs Go) puis garder seulement Roubaix :
+
+  ```
+  python scripts/extraire_indcvi_roubaix.py "chemin\vers\FD_INDCVI_2023.csv"
+  ```
+
+- Déposer dans le portail la sortie `data/indcvi_roubaix/FD_INDCVI_2023.csv` (quelques Mo) avec la méta `varmod_indcvi_2023.csv`.
 
 ## Fichiers Revenus disponibles, Revenus déclarés, Demandeurs d'emploi, CAF, CNAM, Répertoire du logement social
 
