@@ -2,7 +2,8 @@
 
 Chaque valeur est une formule Excel qui pointe vers les onglets thématiques du classeur :
 - effectif : somme des IRIS ;
-- part / taux : somme du numérateur / somme du dénominateur (jamais une moyenne de taux).
+- part / taux : somme du numérateur / somme du dénominateur (jamais une moyenne de taux) ;
+- fixe : valeur écrite en dur (revenus Filosofi 2021, dont les onglets ne sont plus dans le classeur).
 Un indicateur dont l'onglet ou la colonne manque est simplement omis.
 """
 import re
@@ -13,7 +14,7 @@ from openpyxl.utils import get_column_letter
 
 NOM_ONGLET = "Portrait Roubaix"
 BLEU, GRIS, BLANC = "1F4E78", "595959", "FFFFFF"
-FORMATS = {"entier": "#,##0", "pct": "0.0 %", "dec2": "0.00"}
+FORMATS = {"entier": "#,##0", "pct": "0.0 %", "euro": '#,##0" €"', "dec2": "0.00", "pct100": '0" %"'}
 MOTIF_ANNEE = re.compile(r"^(.*\S)\s+(\d{4})$")
 
 # Source affichée sous chaque indicateur, par thème d'onglet
@@ -29,14 +30,16 @@ BLOCS = [
      "Population, densité, âges, sexe, nationalité, ménages et familles (monoparentales, nombreuses)."),
     ("Emploi et formation", "C55A11", "FBE5D6",
      "Activité, emploi, chômage, diplômes de la population non scolarisée et demandeurs d'emploi."),
-    ("Prestations sociales", "7030A0", "EADCF4",
-     "Allocataires CAF, RSA, AAH et complémentaire santé solidaire (CNAM)."),
+    ("Revenus et prestations", "7030A0", "EADCF4",
+     "Revenus et pauvreté (Filosofi 2021, valeurs figées), allocataires CAF, RSA, AAH "
+     "et complémentaire santé solidaire (CNAM)."),
     ("Logement", "548235", "E2F0D9",
      "Parc, vacance, typologie, statut d'occupation, logements sociaux, ancienneté et suroccupation."),
 ]
 
 # Indicateurs : (bloc, libellé, onglet, calcul, colonnes, format)
 #   somme : colonnes = [colonne]           ratio : colonnes = ([numérateurs], [dénominateurs])
+#   fixe : onglet = source affichée, colonnes = (valeur, IRIS concerné)
 INDICATEURS = [
     ("Démographie", "Habitants", "POP", "somme", ["Population"], "entier"),
     ("Démographie", "Habitants au km²", "POP", "ratio", (["Population"], ["Superficie en km²"]), "entier"),
@@ -75,18 +78,27 @@ INDICATEURS = [
     ("Emploi et formation", "Demandeurs ABC depuis 2 ans ou plus", "DEFM", "ratio",
      (["DEFM catégories ABC d'ancienneté au chômage d'au moins 2 ans"], ["DEFM catégories ABC"]), "pct"),
 
-    ("Prestations sociales", "Allocataires CAF", "CAF", "somme", ["Nombre total d'allocataires"], "entier"),
-    ("Prestations sociales", "Population couverte par la CAF", "CAF", "ratio",
+    # Filosofi 2021 (onglet REV DISP retiré, données trop anciennes) : gardé pour comparaison
+    ("Revenus et prestations", "Revenu disponible médian : IRIS le plus bas", "Filosofi 2021", "fixe",
+     (12380, "Cul de Four"), "euro"),
+    ("Revenus et prestations", "Revenu disponible médian : IRIS le plus haut", "Filosofi 2021", "fixe",
+     (28370, "Barbieux Sud"), "euro"),
+    ("Revenus et prestations", "Taux de pauvreté : IRIS le plus bas", "Filosofi 2021", "fixe",
+     (10, "Barbieux Sud"), "pct100"),
+    ("Revenus et prestations", "Taux de pauvreté : IRIS le plus haut", "Filosofi 2021", "fixe",
+     (61, "Trois Ponts Sud"), "pct100"),
+    ("Revenus et prestations", "Allocataires CAF", "CAF", "somme", ["Nombre total d'allocataires"], "entier"),
+    ("Revenus et prestations", "Population couverte par la CAF", "CAF", "ratio",
      (["Personnes couvertes"], ["Population (CAF)"]), "pct"),
-    ("Prestations sociales", "Allocataires CAF au RSA socle", "CAF", "ratio",
+    ("Revenus et prestations", "Allocataires CAF au RSA socle", "CAF", "ratio",
      (["Allocataires percevant le RSA socle"], ["Nombre total d'allocataires"]), "pct"),
-    ("Prestations sociales", "Allocataires CAF mono-parents", "CAF", "ratio",
+    ("Revenus et prestations", "Allocataires CAF mono-parents", "CAF", "ratio",
      (["Allocataires mono-parent"], ["Nombre total d'allocataires"]), "pct"),
-    ("Prestations sociales", "Allocataires de l'AAH", "CAF", "somme",
+    ("Revenus et prestations", "Allocataires de l'AAH", "CAF", "somme",
      ["Allocataires percevant l’Allocation Adulte Handicapé"], "entier"),
-    ("Prestations sociales", "Bénéficiaires de la C2S non participative", "CNAM", "ratio",
+    ("Revenus et prestations", "Bénéficiaires de la C2S non participative", "CNAM", "ratio",
      (["Population couverte bénéficiaire de la C2S non participative"], ["Population couverte"]), "pct"),
-    ("Prestations sociales", "Bénéficiaires de la C2S participative", "CNAM", "ratio",
+    ("Revenus et prestations", "Bénéficiaires de la C2S participative", "CNAM", "ratio",
      (["Population couverte bénéficiaire de la C2S participative"], ["Population couverte"]), "pct"),
 
     ("Logement", "Logements", "LOG", "somme", ["Logements"], "entier"),
@@ -111,6 +123,8 @@ INDICATEURS = [
 NOTES = [
     "Les parts et taux sont recalculés sur Roubaix entière (somme des IRIS), pas en moyenne des IRIS.",
     "Les valeurs sont des formules : elles suivent les onglets du classeur. Cliquer sur une source ouvre l'onglet.",
+    "Revenus Filosofi 2021 : valeurs figées pour comparaison (onglets retirés, données trop anciennes) ; "
+    "ils ne s'additionnent pas, l'IRIS le plus bas et le plus haut sont donnés.",
 ]
 
 
@@ -208,9 +222,14 @@ def ajouter_portrait_roubaix(workbook) -> None:
                 PatternFill("solid", fgColor=clair), Alignment(wrap_text=True, vertical="top"))
         ligne = 8
         for bloc_indicateur, libelle, theme, calcul, colonnes, fmt in INDICATEURS:
-            if bloc_indicateur != bloc or theme not in onglets:
+            if bloc_indicateur != bloc:
                 continue
-            formule = _formule(calcul, colonnes, plages[theme])
+            if calcul == "fixe":
+                formule = colonnes[0]
+            elif theme not in onglets:
+                continue
+            else:
+                formule = _formule(calcul, colonnes, plages[theme])
             if formule is None:
                 continue
             a, b = ws[f"{c1}{ligne}"], ws[f"{c2}{ligne}"]
@@ -220,11 +239,15 @@ def ajouter_portrait_roubaix(workbook) -> None:
             b.font = Font(bold=True, size=13, color=couleur)
             b.alignment = Alignment(horizontal="right", vertical="center")
             a.border = b.border = filet
-            nom_onglet = onglets[theme]
             source = ws[f"{c1}{ligne + 1}"]
-            source.value = f"{SOURCES.get(theme, theme)} {MOTIF_ANNEE.match(nom_onglet).group(2)} · onglet {nom_onglet}"
-            source.hyperlink = f"#'{nom_onglet}'!A1"
-            source.font = Font(size=8, color=GRIS, underline="single")
+            if calcul == "fixe":
+                source.value = f"{theme} · valeur figée · IRIS {colonnes[1]}"
+                source.font = Font(size=8, color=GRIS)
+            else:
+                nom_onglet = onglets[theme]
+                source.value = f"{SOURCES.get(theme, theme)} {MOTIF_ANNEE.match(nom_onglet).group(2)} · onglet {nom_onglet}"
+                source.hyperlink = f"#'{nom_onglet}'!A1"
+                source.font = Font(size=8, color=GRIS, underline="single")
             ws.row_dimensions[ligne].height = 30
             ligne += 2
         hauteur_max = max(hauteur_max, ligne)
