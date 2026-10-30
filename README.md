@@ -252,13 +252,21 @@ Pendant l'exécution, `tqdm` affiche la progression des étapes du pipeline, la 
 La page **Équipements BPE** du portail (menu de gauche, ou `/bpe`) produit le classeur de la Base permanente des équipements de l'Insee, publié à part sur le portail statistique.
 
 1. Choisir le périmètre : **Roubaix (IRIS)** ou **MEL (95 communes)**.
-2. Déposer le fichier BPE de l'Insee, en CSV ou Parquet. Le fichier national convient : il est lu par blocs et filtré sur la colonne `DEPCOM`. Un fichier déjà filtré convient aussi.
+2. Déposer le fichier BPE de l'Insee, en CSV ou Parquet (par exemple `BPE25.parquet`, le fichier national). Seules les lignes dont `DEPCOM` est dans le périmètre sont gardées : le CSV est lu par blocs, le Parquet est filtré directement par DuckDB. Un fichier déjà filtré sur Roubaix convient aussi (sa colonne d'index `Unnamed: 0` est retirée) ; pour la MEL, il faut le fichier national ou un fichier filtré MEL, sinon le classeur ne contient que les communes présentes.
 3. Déposer le varmod (`BPE<AA>_anonymisee_varmod.csv`) si le millésime n'est pas 2025 ; sinon celui de `dictionnaires/bpe/` est utilisé.
 4. Cliquer sur **Générer le classeur BPE**, puis télécharger `BPE<AA>_<Périmètre>_equipements_officiel.xlsx`.
 
 Le classeur contient une page d'accueil, l'onglet **BPE** (tous les équipements, codes Insee traduits en libellés), l'onglet **Recap** (nombre d'équipements par type et par IRIS ou par commune, avec des totaux qui suivent les filtres), un onglet par domaine (A à G) et le **Dictionnaire Insee**.
 
 Pour Roubaix, chaque équipement reçoit le libellé de son IRIS, son secteur de mairie (`secteurs_mairie.yml`), son quartier historique (`bpe/quartiers_historiques.yml`) et son grand quartier (`grand_quartier.yml`). Les équipements que l'Insee ne situe dans aucun IRIS (`59512_IND`) sont comptés dans la colonne « NON LOCALISÉ » du Recap.
+
+Les nombres du Parquet sont écrits comme dans le CSV de l'Insee (`12` et non `12.0`) : les deux formats donnent le même classeur.
+
+**Nouveau millésime (BPE 2026 et suivantes).** L'année est lue dans la colonne `AN` (titre de l'accueil et nom du fichier). Il faut déposer le varmod du millésime, sinon les nouveaux codes restent non traduits. Si l'Insee change les colonnes :
+- une colonne **absente** reste dans le classeur, vide ;
+- une colonne **inconnue** est ajoutée en fin de l'onglet BPE, sous le libellé du varmod (`LIB_VAR`).
+
+La page liste les nouvelles colonnes et les colonnes absentes à la fin de la génération, pour vérifier avant de publier. Pour donner un libellé court et une place définitive à une nouvelle colonne, l'ajouter dans `LIBELLES_COLONNES` et `COLONNES_EXPORT` en tête de `modules/bpe.py`. La BPE 2024, dont le dictionnaire est un fichier `.xls`, n'est pas prise en charge.
 
 Le même traitement est disponible en Python :
 
