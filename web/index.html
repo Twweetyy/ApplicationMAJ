@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#1e293b">
   <title>Portail Data SIG | BDDMAS Roubaix</title>
   <link rel="icon" type="image/png" href="/static/logo_institutionnel.png">
-  <link rel="stylesheet" href="/static/styles.css?v=7">
+  <link rel="stylesheet" href="/static/styles.css?v=8">
   <script src="/static/multi-upload.js?v=10" defer></script>
 </head>
 <body>
@@ -38,6 +38,55 @@
         </div>
         <div class="user-info"><span class="user-mark">SIG</span><span>ROUBAIX <small>· DIRECTION DU SIG</small></span></div>
       </header>
+
+      <section class="card presentation-card" id="presentation" aria-labelledby="presentationTitle">
+        <div class="card-heading">
+          <div><p class="section-kicker">RÉSUMÉ</p><h2 id="presentationTitle">Base « MAS »</h2></div>
+        </div>
+        <div class="presentation-texte">
+          <p>Compilation des fichiers INSEE du recensement de la population et des données statistiques de l’INSEE (2022) par IRIS et sur les découpages spécifiques à Roubaix : Centres sociaux, NPNRU, Contrats de Ville (CDV), Cités éducatives, Quartiers, Mairies de quartiers.</p>
+          <p>Ces données couvrent divers domaines qui façonnent la ville, de la démographie à la santé en passant par l’économie. Vous trouverez des informations qui peuvent alimenter vos projets, vos recherches et vos actions : population, famille, revenus, emploi, logement, formation, santé…</p>
+        </div>
+        <details class="presentation-sources">
+          <summary>Sources de la base</summary>
+          <div class="sources-grid">
+            <article class="source-bloc source-bloc-large">
+              <h3>Recensement de la population – Base infracommunale (IRIS) 2022</h3>
+              <dl>
+                <dt>Population</dt><dd>Caractéristiques de la population selon le sexe, l’âge, la catégorie socio-professionnelle et la catégorie de nationalité.</dd>
+                <dt>Logement</dt><dd>Caractéristiques des résidences principales, date d’emménagement, possession d’une voiture ainsi que le parc de logements, maisons et appartements.</dd>
+                <dt>Diplôme – Formation</dt><dd>Âge des personnes scolarisées et niveaux de diplôme des personnes non scolarisées.</dd>
+                <dt>Couples – Familles – Ménages</dt><dd>Caractéristiques des ménages, des personnes qui les composent (âge, statut conjugal, catégorie socio-professionnelle) et des familles (nombre d’enfants).</dd>
+                <dt>Activité des résidents</dt><dd>Caractéristiques des actifs (sexe, âge, catégorie socio-professionnelle), des salariés et non-salariés (sexe et âge).</dd>
+              </dl>
+            </article>
+            <article class="source-bloc">
+              <h3>Enfance 2022</h3>
+              <p>Nombre d’enfants par âge, entre 0 et 17 ans.</p>
+            </article>
+            <article class="source-bloc">
+              <h3>Revenus, pauvreté et niveau de vie en 2022</h3>
+              <p>Dispositif Fichier localisé social et fiscal (Filosofi).</p>
+            </article>
+            <article class="source-bloc">
+              <h3>Demandeurs d’emploi (DEFM) au 31/12/2024</h3>
+              <p>Indicateurs sur les demandeurs d’emploi en fin de mois au 31 décembre dans les IRIS.</p>
+            </article>
+            <article class="source-bloc">
+              <h3>Répertoire du parc locatif social (RPLS) au 1er janvier 2024</h3>
+              <p>Indicateurs sur le parc des logements locatifs des bailleurs sociaux dans les IRIS.</p>
+            </article>
+            <article class="source-bloc">
+              <h3>Bénéficiaires des prestations légales versées par les CAF au 31/12/2024</h3>
+              <p>Indicateurs sur les bénéficiaires des prestations légales versées par la CAF.</p>
+            </article>
+            <article class="source-bloc">
+              <h3>Bénéficiaires du régime général de l’assurance maladie (CNAM) au 01/01/2024</h3>
+              <p>Indicateurs sur les bénéficiaires du régime général de l’assurance maladie ainsi que sur les bénéficiaires de la Complémentaire Santé Solidaire (C2S).</p>
+            </article>
+          </div>
+        </details>
+      </section>
 
       <div class="perimeter-tabs" role="radiogroup" aria-label="Périmètre du traitement">
         <button class="perimeter-tab active" type="button" role="radio" aria-checked="true" data-perimetre="roubaix"><span class="tab-dot"></span> Roubaix (IRIS)</button>
