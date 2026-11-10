@@ -327,3 +327,18 @@ td:first-child { min-width: 175px; color: var(--primary); font-weight: 650; }
   .action-row .button { align-self: flex-start; }
   .page-footer { font-size: 7px; }
 }
+
+/* Présentation de la base MAS */
+.presentation-card .card-heading { margin-bottom: 12px; }
+.presentation-texte p { margin: 0 0 10px; color: var(--ink); font-size: 13px; line-height: 1.6; max-width: 80ch; }
+.presentation-sources { margin-top: 6px; border-top: 1px solid var(--line); padding-top: 12px; }
+.presentation-sources summary { cursor: pointer; color: var(--accent-dark); font-size: 12px; font-weight: 700; }
+.sources-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin-top: 14px; }
+.source-bloc { padding: 12px 14px; border: 1px solid var(--line); border-radius: 6px; background: var(--soft); }
+.source-bloc-large { grid-column: 1 / -1; }
+.source-bloc-large h3 { margin-bottom: 10px; }
+.source-bloc h3 { margin: 0 0 6px; color: var(--primary); font-size: 12px; font-weight: 750; }
+.source-bloc p, .source-bloc dd { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
+.source-bloc dl { margin: 0; display: grid; grid-template-columns: minmax(150px, max-content) 1fr; gap: 6px 14px; }
+.source-bloc dt { color: var(--primary); font-size: 12px; font-weight: 650; }
+@media (max-width: 640px) { .source-bloc dl { grid-template-columns: 1fr; gap: 2px; } .source-bloc dd { margin-bottom: 6px; } }
