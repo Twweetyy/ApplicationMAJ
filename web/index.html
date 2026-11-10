@@ -39,8 +39,9 @@
         <div class="user-info"><span class="user-mark">SIG</span><span>ROUBAIX <small>· DIRECTION DU SIG</small></span></div>
       </header>
 
-      <div class="perimeter-tabs" aria-label="Périmètre du traitement">
-        <span class="perimeter-tab active"><span class="tab-dot"></span> Périmètre : Roubaix (IRIS)</span>
+      <div class="perimeter-tabs" role="radiogroup" aria-label="Périmètre du traitement">
+        <button class="perimeter-tab active" type="button" role="radio" aria-checked="true" data-perimetre="roubaix"><span class="tab-dot"></span> Roubaix (IRIS)</button>
+        <button class="perimeter-tab" type="button" role="radio" aria-checked="false" data-perimetre="mel"><span class="tab-dot"></span> MEL (95 communes)</button>
       </div>
 
       <section class="card source-card" id="sources" aria-labelledby="sourceTitle">
@@ -87,7 +88,7 @@
 
 
         <div class="action-row">
-          <p class="action-note">Le fichier Périmètres_MAS.csv est requis. Les métadonnées sont rapprochées des sources automatiquement.</p>
+          <p class="action-note" id="perimetreNote">Le fichier Périmètres_MAS.csv est requis. Les métadonnées sont rapprochées des sources automatiquement.</p>
           <button class="button button-primary" id="analyzeButton" type="button" disabled><span>Analyser le lot</span><span aria-hidden="true">→</span></button>
         </div>
         <div class="analyze-progress" id="analyzeProgress" hidden>

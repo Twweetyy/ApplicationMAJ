@@ -15,6 +15,13 @@ from modules.export_excel import generer_fichier_bddmas
 from modules.export_sig import exporter_tables_sig
 from modules.persistence import persister_dans_bddmas
 from modules.colonnes_auto import resumer_decisions
+from modules.perimetre_mel import (
+    PERIMETRES,
+    agreger_par_commune,
+    charger_communes_mel,
+    codes_communes,
+    vider_communes_absentes,
+)
 
 DOSSIER_COURANT = os.path.dirname(os.path.abspath(__file__))
 DOSSIER_DATA = os.path.join(DOSSIER_COURANT, "data")
@@ -26,6 +33,7 @@ DOSSIER_EXPORT_SIG = os.path.join(DOSSIER_COURANT, "exports_sig")
 FICHIER_CALCULS = os.path.join(DOSSIER_DICOS, "calculated_columns.yml")
 FICHIER_INFOS = os.path.join(DOSSIER_DICOS, "info_pages.yml")
 FICHIER_SORTIE = os.path.join(DOSSIER_COURANT, "sorties", "TAB_BDDMAS_INSEE_Tout_perimetre.xlsx")
+FICHIER_SORTIE_MEL = os.path.join(DOSSIER_COURANT, "sorties", "TAB_BDDMAS_INSEE_MEL_communes.xlsx")
 
 class ErreurPrecontrole(ValueError):
     def __init__(self, rapport: dict):
@@ -46,10 +54,18 @@ def executer_pipeline(
     afficher_progression: bool = False,
     afficher_messages: bool = False,
     dossier_dicos_reference: str | None = None,
+    perimetre: str = "roubaix",
 ) -> dict:
-    """Exécute un lot fourni par l'appelant et retourne les résultats du traitement."""
+    """Exécute un lot fourni par l'appelant et retourne les résultats du traitement.
+
+    perimetre « roubaix » : une ligne par IRIS de Roubaix ; « mel » : une ligne par commune de la MEL.
+    """
+    if perimetre not in PERIMETRES:
+        raise ValueError(f"Périmètre inconnu : {perimetre} (attendu : {', '.join(PERIMETRES)})")
     debut = perf_counter()
-    rapport_precontrole = analyser_fichiers_entree(dossier_data, dossier_dicos)
+    mel = perimetre == "mel"
+    communes_retenues = codes_communes(perimetre, dossier_dicos)
+    rapport_precontrole = analyser_fichiers_entree(dossier_data, dossier_dicos, perimetre=perimetre)
     nombre_themes = sum(source["role"] == "theme" for source in rapport_precontrole["sources"])
     if afficher_messages:
         print(
@@ -69,9 +85,10 @@ def executer_pipeline(
         raise ErreurPrecontrole(rapport_precontrole)
 
     source_perimetre = next(
-        source for source in rapport_precontrole["sources"] if source["role"] == "perimetre"
+        (source for source in rapport_precontrole["sources"] if source["role"] == "perimetre"),
+        None,
     )
-    chemin_perimetre = os.path.join(dossier_data, source_perimetre["fichier"])
+    chemin_perimetre = os.path.join(dossier_data, source_perimetre["fichier"]) if source_perimetre else None
     source_individus = next(
         (source for source in rapport_precontrole["sources"] if source["role"] == "microdonnees_enfants"),
         None,
@@ -105,6 +122,7 @@ def executer_pipeline(
             chemin_calculs=chemin_calculs,
             decisions_colonnes=decisions_colonnes,
             dossier_reference=dossier_dicos_reference,
+            codes_communes=communes_retenues,
         )
         # Colonnes inconnues du modèle : décisions tracées dans le rapport de pré-contrôle
         avertissements_colonnes = resumer_decisions(decisions_colonnes)
@@ -126,7 +144,7 @@ def executer_pipeline(
                 chemin_individus,
                 chemin_meta=meta_individus,
             )
-            repartitions = calculer_repartition_enfants(blocs_individus)
+            repartitions = calculer_repartition_enfants(blocs_individus, communes_retenues)
             annee_enfants = source_individus.get("millesime") or "2022"
             dico_fichiers[f"PETITE ENFANCE {annee_enfants}"] = repartitions["Enfants âge révolu"]
             dico_fichiers["PETITE ENFANCE MILLÉSIME"] = repartitions["Enfants âge millésime"]
@@ -135,9 +153,14 @@ def executer_pipeline(
 
         if progression is not None:
             progression.set_postfix_str("référentiel géographique")
-        df_perimetre = charger_referentiel_mas(chemin_perimetre)
-        dico_fichiers = joindre_perimetre(dico_fichiers, df_perimetre)
-        dico_fichiers = ajouter_superficies_iris(dico_fichiers, chemin_superficies)
+        presences = {}
+        if mel:
+            # Une ligne par commune : somme des IRIS, quartiers de Roubaix et superficies sans objet
+            dico_fichiers, presences = agreger_par_commune(dico_fichiers, charger_communes_mel(dossier_dicos))
+        else:
+            df_perimetre = charger_referentiel_mas(chemin_perimetre)
+            dico_fichiers = joindre_perimetre(dico_fichiers, df_perimetre)
+            dico_fichiers = ajouter_superficies_iris(dico_fichiers, chemin_superficies)
         if progression is not None:
             progression.update(1)
 
@@ -151,6 +174,8 @@ def executer_pipeline(
         if progression is not None:
             progression.set_postfix_str("calcul des indicateurs")
         dico_fichiers = ajouter_indicateurs_calcules(dico_fichiers, chemin_calculs)
+        if mel:
+            dico_fichiers = vider_communes_absentes(dico_fichiers, presences)
         if progression is not None:
             progression.update(1)
 
@@ -162,7 +187,9 @@ def executer_pipeline(
 
         if progression is not None:
             progression.set_postfix_str("export du classeur")
-        generer_fichier_bddmas(dico_fichiers, chemin_sortie, chemin_infos_onglets, chemin_modele, chemin_calculs)
+        generer_fichier_bddmas(
+            dico_fichiers, chemin_sortie, chemin_infos_onglets, chemin_modele, chemin_calculs, perimetre=perimetre
+        )
         if progression is not None:
             progression.update(1)
 
@@ -184,6 +211,7 @@ def executer_pipeline(
             progression.set_postfix_str(f"terminé en {perf_counter() - debut:.1f} s")
 
     return {
+        "perimetre": PERIMETRES[perimetre],
         "precontrole": rapport_precontrole,
         "classeur": chemin_sortie,
         "exports_sig": [str(chemin) for chemin in exports_sig],
@@ -195,17 +223,25 @@ def executer_pipeline(
 
 
 def main():
-    print("=== PIPELINE BDDMAS ROUBAIX ===")
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Pipeline BDDMAS : Roubaix (IRIS) ou MEL (communes).")
+    parser.add_argument("--perimetre", choices=sorted(PERIMETRES), default="roubaix")
+    perimetre = parser.parse_args().perimetre
+    mel = perimetre == "mel"
+    print(f"=== PIPELINE BDDMAS {PERIMETRES[perimetre].upper()} ===")
     return executer_pipeline(
         DOSSIER_DATA,
         DOSSIER_DICOS,
-        FICHIER_SORTIE,
+        FICHIER_SORTIE_MEL if mel else FICHIER_SORTIE,
+        perimetre=perimetre,
         chemin_modele=FICHIER_MODELE,
-        dossier_export_sig=DOSSIER_EXPORT_SIG,
+        # Exports SIG et SQL à l'IRIS : Roubaix uniquement
+        dossier_export_sig=None if mel else DOSSIER_EXPORT_SIG,
         chemin_superficies=FICHIER_SUPERFICIES,
         chemin_calculs=FICHIER_CALCULS,
         chemin_infos_onglets=FICHIER_INFOS,
-        persister_sql=True,
+        persister_sql=not mel,
         afficher_progression=True,
         afficher_messages=True,
     )

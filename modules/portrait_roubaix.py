@@ -115,6 +115,13 @@ INDICATEURS = [
     ("Logement", "Logements sociaux (RPLS)", "RPLS", "somme", ["Nombre de logements du Parc Locatif Social"], "entier"),
 ]
 
+# Périmètre MEL : une ligne par commune, Filosofi (valeurs de Roubaix) non repris
+NOTES_MEL = [
+    "Les parts et taux sont recalculés sur la MEL entière (somme des communes), pas en moyenne des communes.",
+    "Les valeurs sont des formules : elles suivent les onglets du classeur. Cliquer sur une source ouvre l'onglet.",
+    "CAF, CNAM, DEFM et RPLS ne couvrent que les communes découpées en IRIS : leurs totaux sont partiels.",
+]
+
 NOTES = [
     "Les parts et taux sont recalculés sur Roubaix entière (somme des IRIS), pas en moyenne des IRIS.",
     "Les valeurs sont des formules : elles suivent les onglets du classeur. Cliquer sur une source ouvre l'onglet.",
@@ -182,26 +189,31 @@ def _fusion(ws, plage, valeur=None, font=None, fill=None, align=None):
     return cellule
 
 
-def ajouter_portrait_roubaix(workbook) -> None:
-    """Crée (ou recrée) l'onglet « Portrait Roubaix » juste après « Présentation »."""
-    if NOM_ONGLET in workbook.sheetnames:
-        del workbook[NOM_ONGLET]
+def ajouter_portrait_roubaix(workbook, territoire: str = "Roubaix") -> None:
+    """Crée (ou recrée) l'onglet « Portrait Roubaix » (ou « Portrait MEL ») juste après « Présentation »."""
+    mel = territoire == "MEL"
+    nom_onglet_portrait = f"Portrait {territoire}"
+    nom_territoire = "la MEL" if mel else territoire
+    for nom in {NOM_ONGLET, nom_onglet_portrait}:
+        if nom in workbook.sheetnames:
+            del workbook[nom]
     onglets = _onglets_par_theme(workbook)
     if not onglets:
         return
     position = workbook.sheetnames.index("Présentation") + 1 if "Présentation" in workbook.sheetnames else 0
-    ws = workbook.create_sheet(NOM_ONGLET, position)
+    ws = workbook.create_sheet(nom_onglet_portrait, position)
     ws.sheet_view.showGridLines = False
     for i, largeur in enumerate([2] + [32, 12, 3] * len(BLOCS), start=1):
         ws.column_dimensions[get_column_letter(i)].width = largeur
     fin = get_column_letter(1 + 3 * len(BLOCS) - 1)
 
     annee = MOTIF_ANNEE.match(onglets.get("POP", "")) if "POP" in onglets else None
-    titre = f"Portrait de Roubaix · {annee.group(2)}" if annee else "Portrait de Roubaix"
+    titre = f"Portrait de {nom_territoire}" + (f" · {annee.group(2)}" if annee else "")
     _fusion(ws, f"B2:{fin}2", titre, Font(bold=True, size=20, color=BLEU))
     ws.row_dimensions[2].height = 34
     _fusion(ws, f"B3:{fin}3",
-            "Chiffres clés de Roubaix (ensemble des IRIS), toutes sources du classeur confondues. "
+            f"Chiffres clés de {nom_territoire} (ensemble des {'communes' if mel else 'IRIS'}), "
+            "toutes sources du classeur confondues. "
             "Chaque indicateur indique sa source et son année.",
             Font(italic=True, size=10, color=GRIS))
     ws.row_dimensions[3].height = 22
@@ -213,11 +225,15 @@ def ajouter_portrait_roubaix(workbook) -> None:
         c1, c2 = get_column_letter(2 + 3 * k), get_column_letter(3 + 3 * k)
         _fusion(ws, f"{c1}5:{c2}6", bloc.upper(), Font(bold=True, size=14, color=BLANC),
                 PatternFill("solid", fgColor=couleur), Alignment(horizontal="center", vertical="center"))
+        if mel:
+            description = description.replace("Revenus et pauvreté (Filosofi 2021, valeurs figées), a", "A")
         _fusion(ws, f"{c1}7:{c2}7", description, Font(size=9, color=GRIS),
                 PatternFill("solid", fgColor=clair), Alignment(wrap_text=True, vertical="top"))
         ligne = 8
         for bloc_indicateur, libelle, theme, calcul, colonnes, fmt in INDICATEURS:
             if bloc_indicateur != bloc:
+                continue
+            if calcul == "fixe" and mel:
                 continue
             if calcul == "fixe":
                 formule = colonnes[0]
@@ -250,7 +266,7 @@ def ajouter_portrait_roubaix(workbook) -> None:
 
     r = hauteur_max + 1
     _fusion(ws, f"B{r}:{fin}{r}", "À savoir", Font(bold=True, color=BLANC), PatternFill("solid", fgColor=GRIS))
-    for i, note in enumerate(NOTES, start=1):
+    for i, note in enumerate(NOTES_MEL if mel else NOTES, start=1):
         _fusion(ws, f"B{r + i}:{fin}{r + i}", "• " + note, Font(size=9))
         ws.row_dimensions[r + i].height = 18
     ws.sheet_view.topLeftCell = "A1"

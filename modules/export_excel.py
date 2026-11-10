@@ -14,6 +14,18 @@ from tqdm.auto import tqdm
 from .pages_info import mettre_a_jour_pages_info
 from .mise_en_page import appliquer_mise_en_page
 from .portrait_roubaix import ajouter_portrait_roubaix
+from .perimetre_mel import RENOMMAGES_ZONAGE_MEL, adapter_textes_mel
+
+# Dernière colonne grise d'un onglet : libellé IRIS (Roubaix) ou nom de commune (MEL)
+COLONNES_LIBELLE_GEO = ("Libellé de l'Iris", "Commune")
+
+
+def nombre_colonnes_geo(entetes: list, defaut: int) -> int:
+    """Nombre de colonnes grises : jusqu'au libellé IRIS ou au nom de commune inclus."""
+    for libelle in COLONNES_LIBELLE_GEO:
+        if libelle in entetes:
+            return entetes.index(libelle) + 1
+    return defaut
 
 # En-têtes du modèle DEFM renommés selon les libellés des données (clé = en-tête normalisé)
 ALIAS_ENTETES_DEFM = {
@@ -318,8 +330,12 @@ def _generer_depuis_modele(
     chemin_infos_onglets: str,
     chemin_modele: str,
     chemin_calculs: str | None = None,
+    perimetre: str = "roubaix",
 ) -> None:
-    """Remplit une copie du classeur modèle sans conserver ses lignes d'exemple."""
+    """Remplit une copie du classeur modèle sans conserver ses lignes d'exemple.
+
+    perimetre « mel » : les colonnes grises du modèle deviennent Code Insee et Commune.
+    """
     titres = charger_titres_onglets(chemin_infos_onglets)
     workbook = load_workbook(chemin_modele)
     feuilles_fixes = {"Présentation", "Detail calcul"}
@@ -360,6 +376,11 @@ def _generer_depuis_modele(
             worksheet = workbook[nom_onglet]
 
         donnees = preparer_dataframe_modele(nom_onglet, dataframe)
+        if perimetre == "mel":
+            for colonne in range(1, worksheet.max_column + 1):
+                entete = worksheet.cell(row=2, column=colonne).value
+                if entete in RENOMMAGES_ZONAGE_MEL:
+                    worksheet.cell(row=2, column=colonne, value=RENOMMAGES_ZONAGE_MEL[entete])
         entetes_modele = [
             worksheet.cell(row=2, column=colonne).value
             for colonne in range(1, worksheet.max_column + 1)
@@ -478,15 +499,11 @@ def _generer_depuis_modele(
 
         titre = titre = titre_onglet(titres, nom_onglet)
         worksheet.cell(row=1, column=1, value=titre)
-        # Colonnes grises = jusqu'au libellé IRIS inclus
-        nombre_colonnes_geo = (
-            entetes_modele.index("Libellé de l'Iris") + 1
-            if "Libellé de l'Iris" in entetes_modele
-            else len(COLONNES_ZONAGE)
-        )
-        worksheet.cell(row=1, column=nombre_colonnes_geo, value="Total")
+        # Colonnes grises = jusqu'au libellé IRIS (ou au nom de commune) inclus
+        colonnes_geo = nombre_colonnes_geo(entetes_modele, len(COLONNES_ZONAGE))
+        worksheet.cell(row=1, column=colonnes_geo, value="Total MEL" if perimetre == "mel" else "Total")
         derniere_ligne_donnees = max(derniere_ligne, 3)
-        for colonne in range(nombre_colonnes_geo + 1, worksheet.max_column + 1):
+        for colonne in range(colonnes_geo + 1, worksheet.max_column + 1):
             lettre = get_column_letter(colonne)
             worksheet.cell(
                 row=1,
@@ -534,7 +551,11 @@ def _generer_depuis_modele(
 
     mettre_a_jour_pages_info(workbook, dico_fichiers, chemin_calculs)
     appliquer_mise_en_page(workbook)
-    ajouter_portrait_roubaix(workbook)
+    if perimetre == "mel":
+        adapter_textes_mel(workbook)
+        ajouter_portrait_roubaix(workbook, territoire="MEL")
+    else:
+        ajouter_portrait_roubaix(workbook)
     os.makedirs(os.path.dirname(os.path.abspath(chemin_sortie)), exist_ok=True)
     workbook.save(chemin_sortie)
 
@@ -545,6 +566,7 @@ def generer_fichier_bddmas(
     chemin_infos_onglets: str,
     chemin_modele: str = None,
     chemin_calculs: str | None = None,
+    perimetre: str = "roubaix",
 ):
     """
     Génère le classeur Excel final à partir du dictionnaire de DataFrames.
@@ -556,7 +578,9 @@ def generer_fichier_bddmas(
 
     if chemin_modele and os.path.exists(chemin_modele):
         print("GÉNÉRATION DU CLASSEUR À PARTIR DU MODÈLE...")
-        _generer_depuis_modele(dico_fichiers, chemin_sortie, chemin_infos_onglets, chemin_modele, chemin_calculs)
+        _generer_depuis_modele(
+            dico_fichiers, chemin_sortie, chemin_infos_onglets, chemin_modele, chemin_calculs, perimetre
+        )
         print(f"Fichier Excel enregistré avec succès sous : {chemin_sortie}")
         return
 

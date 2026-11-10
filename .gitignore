@@ -25,6 +25,7 @@ data/dataBPE
 data/simulation_2023
 data/Périmètres_MAS.csv
 data/indcvi_roubaix
+data/indcvi_mel
 
 exports_sig/
 sorties/
