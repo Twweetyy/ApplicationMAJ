@@ -123,7 +123,8 @@ ApplicationMAJ/
 │  ├─ data2023/                    CSV 2023 transformés
 │  │  ├─ complementaires/          Fichiers complémentaires Insee DS_RP_…_IRIS_2023
 │  │  └─ sources_brutes_insee/     Cubes Insee 2023 bruts
-│  └─ indcvi_roubaix/              FD_INDCVI filtré sur Roubaix
+│  ├─ indcvi_roubaix/              FD_INDCVI filtré sur Roubaix
+│  └─ indcvi_mel/                  FD_INDCVI filtré sur la MEL
 ├─ dictionnaires/                  Correspondances de fichiers, variables et onglets (YAML)
 │  ├─ millesimes_valides.yml       Dernier millésime validé à la main, par thème
 │  ├─ grand_quartier.yml           Nom du grand quartier de chaque IRIS (colonne « Grands quartiers »)
@@ -152,7 +153,7 @@ ApplicationMAJ/
 │  └─ bpe.py                       Classeur de la Base permanente des équipements (page BPE du portail)
 ├─ scripts/
 │  ├─ transformer_recensement.py   Conversion des cubes Insee (2023 et suivants)
-│  ├─ extraire_indcvi_roubaix.py   Extraction des lignes Roubaix du FD_INDCVI
+│  ├─ extraire_indcvi_roubaix.py   Extraction des lignes Roubaix (ou MEL, --perimetre mel) du FD_INDCVI
 │  └─ simuler_nouveau_millesime.py Faux millésime +1 pour tester colonnes_auto
 ├─ exemples/                       Lots 2022 et 2023 prêts à déposer dans le portail
 ├─ web/                            Front du portail (index.html, multi-upload.js, bpe.html, bpe.js, styles.css)
@@ -268,7 +269,7 @@ En haut du portail, l'onglet **MEL (95 communes)** produit la base MAS sur les c
   - CAF, CNAM, DEFM et RPLS ne sont diffusés par l'Insee que pour les communes découpées en IRIS (42 communes de la MEL sur 95). Les autres restent vides dans ces onglets, et le pré-contrôle le signale. Les valeurs soumises au secret statistique ne sont pas comptées dans les sommes.
   - Les taux et loyers moyens du RPLS ne s'additionnent pas : ils ne sont pas repris.
   - Il n'y a pas de superficie par commune dans le dépôt : les densités ne sont pas calculées.
-  - La petite enfance n'est calculée que pour les communes présentes dans le FD_INDCVI déposé (l'exemple du dépôt ne contient que Roubaix).
+  - La petite enfance n'est calculée que pour les communes présentes dans le FD_INDCVI déposé : extraire la MEL avec `scripts/extraire_indcvi_roubaix.py --perimetre mel` (l'exemple du dépôt ne contient que Roubaix).
 
 ## Classeur des équipements (BPE)
 
@@ -329,13 +330,15 @@ Points clés du transformer :
 
 ## Fichier enfants FD_INDCVI (portail)
 
-Le fichier national (~4 Go) sature le disque C: lors de l'envoi au portail, qui le copie dans `%TEMP%`. Il faut en extraire une fois les lignes de Roubaix :
+Le fichier national (~4 Go) sature le disque C: lors de l'envoi au portail, qui le copie dans `%TEMP%`. Il faut en extraire une fois les lignes de Roubaix, ou de la MEL pour le périmètre MEL :
 
 ```powershell
 python scripts/extraire_indcvi_roubaix.py "chemin\vers\FD_INDCVI_AAAA.csv"
+python scripts/extraire_indcvi_roubaix.py "chemin\vers\FD_INDCVI_AAAA.csv" --perimetre mel
 ```
 - Le fichier national peut être en CSV ou en Parquet.
-- Sortie : `data/indcvi_roubaix/FD_INDCVI_AAAA.csv` (quelques Mo), même nom et mêmes colonnes que l'original. Aucune modification du pipeline n'est nécessaire.
+- Sortie : `data/indcvi_roubaix/FD_INDCVI_AAAA.csv` (quelques Mo), ou `data/indcvi_mel/FD_INDCVI_AAAA.csv` pour la MEL, même nom et mêmes colonnes que l'original. Aucune modification du pipeline n'est nécessaire.
+- MEL : seules les communes découpées en IRIS sont dans le FD_INDCVI (les autres ont l'IRIS `ZZZZZZZZZ`), la petite enfance reste donc vide pour les petites communes.
 - En cas d'erreur `No space left on device`, vider `%TEMP%\bddmas-web-jobs`.
 
 ## Dictionnaires
@@ -448,7 +451,7 @@ Depuis le poste de la mairie, les appels HTTPS vers les API d'IA sont bloqués :
 ## Gestion du dépôt Git
 
 - Les dossiers `build/`, `dist/`, `*.spec`, `*.exe` et les caches Python sont ignorés via `.gitignore`.
-- Les sous-dossiers de données (`data/data2022`, `data/data2023`, `data/dataBPE`, `data/indcvi_roubaix`…), `exports_sig/`, `sorties/` et les métadonnées locales (`dictionnaires/meta/meta2022/`, `meta2023/`) sont également exclus.
+- Les sous-dossiers de données (`data/data2022`, `data/data2023`, `data/dataBPE`, `data/indcvi_roubaix`, `data/indcvi_mel`…), `exports_sig/`, `sorties/` et les métadonnées locales (`dictionnaires/meta/meta2022/`, `meta2023/`) sont également exclus.
 - `exemples/*/data/` est ré-autorisé dans `.gitignore` : les lots d'exemple sont versionnés.
 - `archives/` est ignoré : les anciens scripts ont été retirés du dépôt (ils restent dans l'historique Git).
 - Un hook `pre-commit` local (non versionné, à recréer sur un nouveau poste) peut empêcher d'ajouter des fichiers de plus de 5 Mo ; pour un fichier d'exemple plus lourd, commit avec `git commit --no-verify`.
