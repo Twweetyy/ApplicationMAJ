@@ -20,6 +20,7 @@ tmp/
 
 # ===== Données volumineuses (non versionnées) =====
 data/data2023
+data/data2023_mel
 data/data2022
 data/dataBPE
 data/simulation_2023

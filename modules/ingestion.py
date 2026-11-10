@@ -71,7 +71,8 @@ def trouver_fichier_meta(fichier: str, dossiers: list[str]) -> str | None:
                     continue
                 est_meta_source = nom_normalise.startswith("meta_") and _cle_nom_fichier_meta(nom) == cle_source
                 est_meta_individus = (
-                    cle_source == _normaliser_nom_fichier("FD_INDCVI")
+                    # FD_INDCVI_2023.csv, ou suffixé (FD_INDCVI_2023_MEL.csv)
+                    cle_source.startswith(_normaliser_nom_fichier("FD_INDCVI"))
                     and _cle_nom_fichier_meta(nom) == _normaliser_nom_fichier("varmod_indcvi")
                 )
                 if est_meta_source or est_meta_individus:
