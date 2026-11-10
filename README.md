@@ -1,6 +1,6 @@
-# BDDMAS Roubaix – ApplicationMAJ
+# BDDMAS Roubaix et MEL – ApplicationMAJ
 
-**Portail web et pipeline ETL qui transforment les fichiers bruts de l'Insee et de ses partenaires en un classeur Excel prêt à l'emploi sur les 38 IRIS de Roubaix.**
+**Portail web et pipeline ETL qui transforment les fichiers bruts de l'Insee et de ses partenaires en un classeur Excel prêt à l'emploi : les 38 IRIS de Roubaix, ou les 95 communes de la Métropole Européenne de Lille.**
 
 ![Python](https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/FastAPI-portail%20web-009688?logo=fastapi&logoColor=white)
@@ -15,7 +15,7 @@
 
 **Le besoin :** Le service SIG de la Ville de Roubaix publie une base de données infra-communale (BDDMAS) : population, emploi, familles, diplômes, logement, prestations CAF, assurance maladie, demandeurs d'emploi, logement social et petite enfance, quartier par quartier. Chaque mise à jour demandait de récupérer une dizaine de fichiers aux formats différents, de filtrer Roubaix, de recalculer des dizaines d'indicateurs et de reporter le tout dans un classeur Excel d'une quinzaine d'onglets, avec de nombreuses manipulations manuelles.
 
-**La solution :** Un portail web local : on dépose les fichiers, l'application contrôle le lot, puis génère le classeur complet (valeurs, indicateurs calculés, mise en forme, pages de présentation, portrait de la ville) en moins d'une minute.
+**La solution :** Un portail web local : on choisit le périmètre (Roubaix par IRIS, ou MEL par commune), on dépose les fichiers, l'application contrôle le lot, puis génère le classeur complet (valeurs, indicateurs calculés, mise en forme, pages de présentation, portrait du territoire) en moins d'une minute.
 
 **Ce qui le rend robuste :**
 - Fonctionne d'un millésime à l'autre (recensements 2022 et 2023, formats Insee différents) sans toucher au code.
