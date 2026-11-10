@@ -219,7 +219,7 @@ docker compose up --build
 puis ouvrir `http://localhost:5000`.
 
 - Le premier lancement construit l'image (quelques minutes) ; les suivants démarrent en quelques secondes.
-- Au démarrage, `scripts/transformer_recensement.py` convertit les cubes Insee présents dans `data/`, comme `run_portal.bat`.
+- Au démarrage, `scripts/transformer_recensement.py --perimetre tous` convertit les cubes Insee présents dans `data/`, pour Roubaix puis pour la MEL, comme `run_portal.bat`.
 - `data/` et `dictionnaires/` sont partagés avec le PC : les fichiers déposés, les métadonnées produites, le cache des colonnes auto (`correspondances_auto.yml`) et les millésimes validés restent dans le dossier du projet. Un dictionnaire modifié sur le PC est pris en compte sans reconstruire l'image.
 - Le `.env` est lu s'il existe (IA du module colonnes) ; il n'est jamais copié dans l'image.
 - Pour arrêter : `Ctrl+C`, ou `docker compose down` si le portail a été lancé en arrière-plan avec `docker compose up -d`.
@@ -319,8 +319,9 @@ Depuis 2023, les fichiers Insee sont des cubes au format long (`GEO`, `SEX`, `AG
    python scripts/transformer_recensement.py --annee 2024
    python scripts/transformer_recensement.py --force    # régénère même si les sorties sont à jour
    python scripts/transformer_recensement.py --perimetre mel  # 95 communes de la MEL, dans data/dataAAAA_mel/
+   python scripts/transformer_recensement.py --perimetre tous # Roubaix puis MEL
    ```
-   Pour la MEL, les mêmes cubes nationaux sont filtrés sur `communes_mel.yml` : une commune découpée en IRIS garde ses IRIS, une commune non découpée devient une ligne `code + 0000`. `run_portal.bat` ne lance que Roubaix.
+   Pour la MEL, les mêmes cubes nationaux sont filtrés sur `communes_mel.yml` : une commune découpée en IRIS garde ses IRIS, une commune non découpée devient une ligne `code + 0000`. `run_portal.bat` (et le conteneur Docker) produit les deux à chaque lancement (`--perimetre tous`) : la première fois après un nouveau millésime, compter quelques minutes ; ensuite, les sorties à jour ne sont pas recalculées.
 3. Le script écrit les 5 CSV au format large dans `data/dataAAAA/` (`base-ic-evol-struct-pop-AAAA.CSV`, etc.) et leurs métadonnées dans `dictionnaires/meta/metaAAAA/`. Les codes de variables portent l'année du millésime (`P24_POP`, `C24_MEN`…).
 4. Vérifier le bloc « Contrôle de cohérence » affiché en fin d'exécution : Population = Hommes + Femmes, Logements = RP + résidences secondaires + vacants, etc.
 
