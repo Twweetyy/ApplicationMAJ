@@ -18,4 +18,4 @@ EXPOSE 5000
 
 # Transforme les cubes Insee présents dans data/ (sans bloquer le portail en cas
 # d'échec), puis démarre le portail accessible depuis l'hôte
-CMD ["sh", "-c", "python scripts/transformer_recensement.py || echo '[ATTENTION] Le transformer a échoué, le portail démarre quand même.'; exec uvicorn webapp:app --host 0.0.0.0 --port 5000"]
+CMD ["sh", "-c", "python scripts/transformer_recensement.py --perimetre tous || echo '[ATTENTION] Le transformer a échoué, le portail démarre quand même.'; exec uvicorn webapp:app --host 0.0.0.0 --port 5000"]

@@ -30,6 +30,9 @@ def _ensure_web_stack(python_exe: str) -> None:
         sys.exit(1)
 
 
+DELAI_DEMARRAGE_SECONDES = 180
+
+
 def main() -> None:
     python_exe = sys.executable
     _ensure_web_stack(python_exe)
@@ -41,7 +44,8 @@ def main() -> None:
     print(f"Demarrage du portail BDDMAS sur {url}...")
 
     # Attendre que le serveur soit pret avant d'ouvrir le navigateur
-    deadline = time.time() + 120
+    # Démarrage lent depuis un partage réseau : jusqu'à 3 minutes avant d'abandonner l'ouverture
+    deadline = time.time() + DELAI_DEMARRAGE_SECONDES
     server_ready = False
     while time.time() < deadline:
         if proc.poll() is not None:
@@ -59,7 +63,7 @@ def main() -> None:
         print(f"Serveur pret. Ouverture du navigateur sur {url}")
         webbrowser.open(url)
     elif proc.poll() is None:
-        print("⚠️  Le serveur n'a pas repondu apres 30 s d'attente.")
+        print(f"⚠️  Le serveur n'a pas repondu apres {DELAI_DEMARRAGE_SECONDES} s d'attente : ouvrir {url} a la main.")
 
     try:
         for line in proc.stdout:

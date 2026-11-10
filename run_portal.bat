@@ -20,9 +20,10 @@ if exist .venv\Scripts\activate.bat (
 rem Transformer les cubes bruts Insee du recensement (data\dataAAAA\sources_brutes_insee),
 rem quel que soit le millesime ; le script ne fait rien s'il n'y a pas de cube ou s'il est a jour
 echo ============================================================
-echo  Transformation recensement - Roubaix
+echo  Transformation recensement - Roubaix puis MEL
+echo  (premier lancement apres un nouveau millesime : quelques minutes)
 echo ============================================================
-python scripts\transformer_recensement.py
+python scripts\transformer_recensement.py --perimetre tous
 if errorlevel 1 (
     echo.
     echo [ATTENTION] Le transformer a echoue, le portail demarre quand meme.

@@ -32,6 +32,7 @@ scolarisation, occupation des logements). Chacun est facultatif.
     python scripts/transformer_recensement.py --annee 2024 # un seul millésime
     python scripts/transformer_recensement.py --force      # recalcule même si à jour
     python scripts/transformer_recensement.py --perimetre mel  # MEL, sorties dans data/dataAAAA_mel/
+    python scripts/transformer_recensement.py --perimetre tous # Roubaix puis MEL (lancement du portail)
 
 Périmètre MEL : les mêmes cubes nationaux sont lus, filtrés sur communes_mel.yml. Une commune
 découpée en IRIS garde ses IRIS ; une commune non découpée devient une ligne « code + 0000 ».
@@ -922,8 +923,8 @@ def ajouter_complementaires(theme, res, meta_rows, annee):
 
 def transformer_millesime(annee, force=False):
     if not force and sorties_a_jour(annee):
-        print(f"=== Fichiers Insee {annee} déjà transformés et à jour : rien à refaire ===")
-        print("  (pour tout recalculer : python scripts/transformer_recensement.py --force)")
+        print(f"=== Fichiers Insee {annee} ({TERRITOIRES[PERIMETRE]}) déjà transformés et à jour : rien à refaire ===")
+        print(f"  (pour tout recalculer : python scripts/transformer_recensement.py --perimetre {PERIMETRE} --force)")
         return
     print(f"=== Démarrage de la transformation Insee {annee} pour {TERRITOIRES[PERIMETRE]} ===")
     manquants = [
@@ -1063,19 +1064,20 @@ def main():
     parser.add_argument("--annee", help="millésime à traiter (par défaut : tous ceux présents dans data/)")
     parser.add_argument("--force", action="store_true", help="recalcule même si les fichiers produits sont à jour")
     parser.add_argument(
-        "--perimetre", choices=sorted(TERRITOIRES), default="roubaix",
-        help="roubaix (38 IRIS, data/dataAAAA/) ou mel (95 communes, data/dataAAAA_mel/)",
+        "--perimetre", choices=sorted(TERRITOIRES) + ["tous"], default="roubaix",
+        help="roubaix (38 IRIS, data/dataAAAA/), mel (95 communes, data/dataAAAA_mel/) ou tous (les deux)",
     )
     arguments = parser.parse_args()
-    PERIMETRE = arguments.perimetre
+    perimetres = ["roubaix", "mel"] if arguments.perimetre == "tous" else [arguments.perimetre]
 
     annees = [arguments.annee] if arguments.annee else millesimes_disponibles()
     if not annees:
         print("Aucun cube brut dans data/dataAAAA/sources_brutes_insee/ : rien à transformer.")
         return
-    for annee in annees:
-        transformer_millesime(annee, force=arguments.force)
-        print()
+    for PERIMETRE in perimetres:
+        for annee in annees:
+            transformer_millesime(annee, force=arguments.force)
+            print()
 
 if __name__ == "__main__":
     main()
