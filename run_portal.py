@@ -41,7 +41,7 @@ def main() -> None:
     print(f"Demarrage du portail BDDMAS sur {url}...")
 
     # Attendre que le serveur soit pret avant d'ouvrir le navigateur
-    deadline = time.time() + 30
+    deadline = time.time() + 120
     server_ready = False
     while time.time() < deadline:
         if proc.poll() is not None:
