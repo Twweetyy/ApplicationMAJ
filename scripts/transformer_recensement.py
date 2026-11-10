@@ -4,7 +4,7 @@ transformer_recensement.py
 ==========================
 Convertit les cubes multidimensionnels Insee du recensement (format long / SDMX,
 publié depuis le RP 2023) en tables plates infracommunales (format large) pour la
-Ville de Roubaix (38 IRIS).
+Ville de Roubaix (38 IRIS), ou pour les 95 communes de la MEL avec --perimetre mel.
 
 Le millésime n'est pas fixé : chaque dossier data/dataAAAA/sources_brutes_insee/
 contenant des cubes base-ic-{pop,log,emp,men,dip}-AAAA est traité. Les codes de
@@ -31,6 +31,11 @@ scolarisation, occupation des logements). Chacun est facultatif.
     python scripts/transformer_recensement.py              # tous les millésimes présents
     python scripts/transformer_recensement.py --annee 2024 # un seul millésime
     python scripts/transformer_recensement.py --force      # recalcule même si à jour
+    python scripts/transformer_recensement.py --perimetre mel  # MEL, sorties dans data/dataAAAA_mel/
+
+Périmètre MEL : les mêmes cubes nationaux sont lus, filtrés sur communes_mel.yml. Une commune
+découpée en IRIS garde ses IRIS ; une commune non découpée devient une ligne « code + 0000 ».
+Le portail (onglet MEL) additionne ensuite ces lignes par commune.
 """
 
 import argparse
@@ -64,7 +69,8 @@ def dossier_sources(annee):
 
 
 def dossier_sortie_data(annee):
-    return os.path.join(DOSSIER_DATA, f"data{annee}")
+    # Périmètre MEL : dossier à part, pour ne pas écraser les fichiers de Roubaix
+    return os.path.join(DOSSIER_DATA, f"data{annee}" + ("_mel" if PERIMETRE == "mel" else ""))
 
 
 def dossier_sortie_meta(annee):
@@ -98,8 +104,8 @@ def avec_millesime(code, annee):
 
 
 def sorties_a_jour(annee):
-    """Vrai si les 10 fichiers produits existent, comptent 38 IRIS et sont plus
-    récents que les sources Insee et que ce script."""
+    """Vrai si les 10 fichiers produits existent, couvrent le périmètre (38 IRIS de Roubaix,
+    ou les 95 communes de la MEL) et sont plus récents que les sources Insee et que ce script."""
     sorties = []
     for nom_data, nom_meta in noms_sorties(annee):
         sorties.append(os.path.join(dossier_sortie_data(annee), nom_data))
@@ -119,7 +125,10 @@ def sorties_a_jour(annee):
         return False
     for nom_data, _ in noms_sorties(annee):
         df = pd.read_csv(os.path.join(dossier_sortie_data(annee), nom_data), sep=";", dtype=str, encoding="utf-8-sig")
-        if len(df) != NB_IRIS_ROUBAIX:
+        if PERIMETRE == "mel":
+            if df["IRIS"].astype(str).str[:5].nunique() != len(CODES_COMMUNES_MEL):
+                return False
+        elif len(df) != NB_IRIS_ROUBAIX:
             return False
     return True
 
@@ -128,6 +137,13 @@ def sorties_a_jour(annee):
 GRAND_QUARTIER_PATH = os.path.join(DOSSIER_RACINE, "dictionnaires", "grand_quartier.yml")
 with open(GRAND_QUARTIER_PATH, "r", encoding="utf-8") as f:
     ALLOWED_GEO = {str(k) for k in yaml.safe_load(f).keys()}
+
+# Périmètre MEL : les 95 communes de communes_mel.yml (choisi par --perimetre mel)
+COMMUNES_MEL_PATH = os.path.join(DOSSIER_RACINE, "dictionnaires", "communes_mel.yml")
+with open(COMMUNES_MEL_PATH, "r", encoding="utf-8") as f:
+    CODES_COMMUNES_MEL = sorted(str(k).strip() for k in (yaml.safe_load(f) or {}))
+PERIMETRE = "roubaix"
+TERRITOIRES = {"roubaix": "Roubaix", "mel": "la MEL"}
 
 # Colonnes qui ne sont pas des dimensions du cube (identifiants, libellés, mesure, statut)
 COLONNES_NON_DIMENSION = {
@@ -164,18 +180,54 @@ def chemin_source(theme, annee):
 
 
 def _lire_roubaix_parquet(chemin_parquet):
-    """Lignes de Roubaix d'un cube Parquet, filtrées par DuckDB, toutes les colonnes en texte (comme le CSV)."""
+    """Lignes du périmètre d'un cube Parquet, filtrées par DuckDB, toutes les colonnes en texte (comme le CSV)."""
     import duckdb
 
-    codes = ", ".join("'" + code.replace("'", "''") + "'" for code in sorted(ALLOWED_GEO))
     source = chemin_parquet.replace("'", "''")
+    if PERIMETRE == "mel":
+        # IRIS (9 caractères) et communes non découpées (5 caractères) des communes de la MEL
+        return duckdb.execute(
+            f"SELECT COLUMNS(*)::VARCHAR FROM read_parquet('{source}') "
+            "WHERE substr(CAST(GEO AS VARCHAR), 1, 5) IN (SELECT unnest(?)) "
+            "AND length(CAST(GEO AS VARCHAR)) IN (5, 9)",
+            [CODES_COMMUNES_MEL],
+        ).df()
+    codes = ", ".join("'" + code.replace("'", "''") + "'" for code in sorted(ALLOWED_GEO))
     return duckdb.sql(
         f"SELECT COLUMNS(*)::VARCHAR FROM read_parquet('{source}') WHERE CAST(GEO AS VARCHAR) IN ({codes})"
     ).df()
 
 
+def _garder_lignes_mel(chunk):
+    """Lignes MEL d'un bloc CSV : IRIS et communes (5 caractères) des communes de communes_mel.yml."""
+    geo = chunk["GEO"].astype(str)
+    return chunk[geo.str[:5].isin(CODES_COMMUNES_MEL) & geo.str.len().isin([5, 9])]
+
+
+def _normaliser_geo_mel(df):
+    """Une seule maille par commune de la MEL : ses IRIS si elle est découpée, sinon la commune entière.
+
+    Les cubes donnent les communes découpées en IRIS à la fois par IRIS et en total communal :
+    le total est écarté pour ne pas compter deux fois. Une commune non découpée n'a qu'une
+    ligne communale, recodée en IRIS « commune + 0000 » (convention Insee des fichiers IRIS).
+    """
+    geo = df["GEO"].astype(str)
+    if "GEO_OBJECT" in df.columns:
+        df = df[df["GEO_OBJECT"].isin(["IRIS", "COM"]) | geo.str.len().eq(9)]
+        geo = df["GEO"].astype(str)
+    communes_iris = set(geo[geo.str.len() == 9].str[:5])
+    df = df[(geo.str.len() == 9) | ~geo.isin(communes_iris)].copy()
+    communes = df["GEO"].astype(str).str.len() == 5
+    df.loc[communes, "GEO"] = df.loc[communes, "GEO"].astype(str) + "0000"
+    if "GEO_OBJECT" in df.columns:
+        df.loc[communes, "GEO_OBJECT"] = "IRIS"
+    if "TYP_IRIS" in df.columns:
+        df.loc[communes, "TYP_IRIS"] = "Z"
+    return df
+
+
 def charger_roubaix(chemin_source):
-    """Charge et filtre uniquement les lignes de Roubaix (GEO dans ALLOWED_GEO), depuis un CSV ou un Parquet."""
+    """Charge et filtre les lignes du périmètre (IRIS de Roubaix, ou communes de la MEL), depuis un CSV ou un Parquet."""
     print(f"  -> Lecture et filtrage de {os.path.basename(chemin_source)}...")
     if chemin_source.casefold().endswith(".parquet"):
         chunks = [_lire_roubaix_parquet(chemin_source)]
@@ -183,23 +235,25 @@ def charger_roubaix(chemin_source):
     else:
         chunks = []
         for chunk in pd.read_csv(chemin_source, sep=";", chunksize=100000, dtype=str):
-            m = chunk[chunk["GEO"].astype(str).isin(ALLOWED_GEO)]
+            m = _garder_lignes_mel(chunk) if PERIMETRE == "mel" else chunk[chunk["GEO"].astype(str).isin(ALLOWED_GEO)]
             if not m.empty:
                 chunks.append(m)
     if not chunks:
-        raise ValueError(f"Aucune ligne pour Roubaix dans {chemin_source}")
+        raise ValueError(f"Aucune ligne pour {TERRITOIRES[PERIMETRE]} dans {chemin_source}")
     df = pd.concat(chunks, ignore_index=True)
+    if PERIMETRE == "mel":
+        df = _normaliser_geo_mel(df)
     df["GEO"] = df["GEO"].astype(str)
     df["OBS_VALUE"] = pd.to_numeric(df["OBS_VALUE"], errors="coerce").fillna(0.0)
     return df
 
 def extraire_socle_geo(df_source):
-    """Extrait le socle géographique des IRIS de Roubaix (IRIS, COM, TYP_IRIS, LAB_IRIS)."""
+    """Extrait le socle géographique des IRIS du périmètre (IRIS, COM, TYP_IRIS, LAB_IRIS)."""
     iris_rows = df_source[df_source["GEO_OBJECT"] == "IRIS"] if "GEO_OBJECT" in df_source.columns else df_source
     iris_rows = iris_rows[iris_rows["GEO"].astype(str).str.len() == 9]
     socle = iris_rows.groupby("GEO").first().reset_index()
     socle["IRIS"] = socle["GEO"].astype(str)
-    socle["COM"] = "59512"
+    socle["COM"] = socle["IRIS"].str[:5]
     socle["TYP_IRIS"] = socle.get("TYP_IRIS", "H")
     socle["LAB_IRIS"] = socle.get("LAB_IRIS", "2")
     return socle[["IRIS", "COM", "TYP_IRIS", "LAB_IRIS"]].drop_duplicates("IRIS").sort_values("IRIS").reset_index(drop=True)
@@ -871,7 +925,7 @@ def transformer_millesime(annee, force=False):
         print(f"=== Fichiers Insee {annee} déjà transformés et à jour : rien à refaire ===")
         print("  (pour tout recalculer : python scripts/transformer_recensement.py --force)")
         return
-    print(f"=== Démarrage de la transformation Insee {annee} pour Roubaix ===")
+    print(f"=== Démarrage de la transformation Insee {annee} pour {TERRITOIRES[PERIMETRE]} ===")
     manquants = [
         theme for theme in THEMES_SOURCES
         if not os.path.exists(chemin_source(theme, annee))
@@ -886,7 +940,10 @@ def transformer_millesime(annee, force=False):
     fichier_pop = chemin_source("pop", annee)
     df_pop_raw = charger_roubaix(fichier_pop)
     socle = extraire_socle_geo(df_pop_raw)
-    print(f"Socle géographique : {len(socle)} IRIS trouvés pour Roubaix.")
+    print(
+        f"Socle géographique : {len(socle)} IRIS trouvés pour {TERRITOIRES[PERIMETRE]} "
+        f"({socle['COM'].nunique()} commune(s))."
+    )
 
     # 1. POP
     df_pop, meta_pop = transformer_population(df_pop_raw, socle)
@@ -925,7 +982,7 @@ def transformer_millesime(annee, force=False):
         )
     ]
 
-    print("\n=== Contrôle de cohérence (somme Roubaix) ===")
+    print(f"\n=== Contrôle de cohérence (somme {TERRITOIRES[PERIMETRE]}) ===")
     for libelle, valeur in [
         ("Population", df_pop["POP"].sum()),
         ("Pop Hommes + Femmes", df_pop["POPH"].sum() + df_pop["POPF"].sum()),
@@ -972,7 +1029,7 @@ def transformer_millesime(annee, force=False):
         and pd.api.types.is_numeric_dtype(df_res[colonne]) and df_res[colonne].sum() == 0
     ]
     if colonnes_nulles:
-        print(f"\n  [À VÉRIFIER] Colonnes à 0 sur tout Roubaix : {', '.join(colonnes_nulles)}")
+        print(f"\n  [À VÉRIFIER] Colonnes à 0 sur tout {TERRITOIRES[PERIMETRE]} : {', '.join(colonnes_nulles)}")
 
     print("\n=== Écriture des fichiers de données et métadonnées ===")
     os.makedirs(dossier_sortie_data(annee), exist_ok=True)
@@ -1001,10 +1058,16 @@ def transformer_millesime(annee, force=False):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Conversion des cubes Insee du recensement pour Roubaix.")
+    global PERIMETRE
+    parser = argparse.ArgumentParser(description="Conversion des cubes Insee du recensement pour Roubaix ou la MEL.")
     parser.add_argument("--annee", help="millésime à traiter (par défaut : tous ceux présents dans data/)")
     parser.add_argument("--force", action="store_true", help="recalcule même si les fichiers produits sont à jour")
+    parser.add_argument(
+        "--perimetre", choices=sorted(TERRITOIRES), default="roubaix",
+        help="roubaix (38 IRIS, data/dataAAAA/) ou mel (95 communes, data/dataAAAA_mel/)",
+    )
     arguments = parser.parse_args()
+    PERIMETRE = arguments.perimetre
 
     annees = [arguments.annee] if arguments.annee else millesimes_disponibles()
     if not annees:

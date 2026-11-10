@@ -121,6 +121,7 @@ ApplicationMAJ/
 ├─ .venv/                          Environnement virtuel (non versionné)
 ├─ data/                           Fichiers bruts (sous-dossiers ignorés par Git) et référentiel Périmètres_MAS.csv
 │  ├─ data2023/                    CSV 2023 transformés
+│  ├─ data2023_mel/                CSV 2023 transformés sur la MEL (--perimetre mel)
 │  │  ├─ complementaires/          Fichiers complémentaires Insee DS_RP_…_IRIS_2023
 │  │  └─ sources_brutes_insee/     Cubes Insee 2023 bruts
 │  ├─ indcvi_roubaix/              FD_INDCVI filtré sur Roubaix
@@ -262,7 +263,7 @@ Pendant l'exécution, `tqdm` affiche la progression des étapes du pipeline, la 
 
 En haut du portail, l'onglet **MEL (95 communes)** produit la base MAS sur les communes de `dictionnaires/communes_mel.yml`, avec les mêmes onglets et indicateurs que Roubaix. Le choix se fait avant **Analyser le lot** ; changer d'onglet après l'analyse oblige à la relancer (les fichiers déposés sont gardés).
 
-- **Fichiers :** les mêmes que pour Roubaix, mais non filtrés sur Roubaix (fichiers nationaux ou du Nord). `Périmètres_MAS.csv` n'est pas demandé.
+- **Fichiers :** les mêmes que pour Roubaix, mais non filtrés sur Roubaix (fichiers nationaux ou du Nord). `Périmètres_MAS.csv` n'est pas demandé. Recensement 2023 et suivants : déposer les CSV de `data/dataAAAA_mel/`, produits par `python scripts/transformer_recensement.py --perimetre mel` (ceux de `data/dataAAAA/` ne contiennent que Roubaix). Fichier enfants : produit par `scripts/extraire_indcvi_roubaix.py --perimetre mel`.
 - **Calcul :** les sources restent lues à l'IRIS, puis les effectifs sont additionnés par commune (5 premiers caractères du code IRIS). Les indicateurs (parts, taux, indices) sont calculés ensuite, sur ces sommes : jamais une moyenne de taux. La ligne Total donne la MEL.
 - **Classeur :** deux colonnes grises, **Code Insee** et **Commune**, puis les données. L'onglet **Portrait MEL** remplace le Portrait Roubaix (sans les valeurs Filosofi figées, propres à Roubaix). Le fichier téléchargé s'appelle `TAB_BDDMAS_MEL_communes.xlsx`.
 - **Limites :**
@@ -317,7 +318,9 @@ Depuis 2023, les fichiers Insee sont des cubes au format long (`GEO`, `SEX`, `AG
    python scripts/transformer_recensement.py            # tous les millésimes présents
    python scripts/transformer_recensement.py --annee 2024
    python scripts/transformer_recensement.py --force    # régénère même si les sorties sont à jour
+   python scripts/transformer_recensement.py --perimetre mel  # 95 communes de la MEL, dans data/dataAAAA_mel/
    ```
+   Pour la MEL, les mêmes cubes nationaux sont filtrés sur `communes_mel.yml` : une commune découpée en IRIS garde ses IRIS, une commune non découpée devient une ligne `code + 0000`. `run_portal.bat` ne lance que Roubaix.
 3. Le script écrit les 5 CSV au format large dans `data/dataAAAA/` (`base-ic-evol-struct-pop-AAAA.CSV`, etc.) et leurs métadonnées dans `dictionnaires/meta/metaAAAA/`. Les codes de variables portent l'année du millésime (`P24_POP`, `C24_MEN`…).
 4. Vérifier le bloc « Contrôle de cohérence » affiché en fin d'exécution : Population = Hommes + Femmes, Logements = RP + résidences secondaires + vacants, etc.
 
