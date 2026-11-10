@@ -237,10 +237,15 @@ def _identifier_theme_fichier(nom_fichier: str, mapping_noms: dict) -> tuple[str
     return None, annee
 
 
-def analyser_fichiers_entree(dossier_data: str, dossier_dicos: str) -> dict:
-    """Inspecte un lot d'entrée et retourne un rapport JSON-compatible sans traiter les lignes."""
+def analyser_fichiers_entree(dossier_data: str, dossier_dicos: str, perimetre: str = "roubaix") -> dict:
+    """Inspecte un lot d'entrée et retourne un rapport JSON-compatible sans traiter les lignes.
+
+    perimetre « mel » : le référentiel Périmètres_MAS n'est pas requis et le contrôle porte
+    sur les communes de communes_mel.yml au lieu des IRIS de Roubaix.
+    """
     rapport = {
         "statut": "ok",
+        "perimetre": perimetre,
         "sources": [],
         "avertissements": [],
         "erreurs": [],
@@ -259,7 +264,9 @@ def analyser_fichiers_entree(dossier_data: str, dossier_dicos: str) -> dict:
     perimetre_trouve = False
     individus_trouves = False
     dossier_meta = os.path.join(dossier_dicos, "meta")
-    iris_reference = _charger_iris_reference(dossier_dicos)
+    iris_reference = _charger_iris_reference(dossier_dicos) if perimetre == "roubaix" else set()
+    communes_mel = load_mapping(os.path.join(dossier_dicos, "communes_mel.yml")) if perimetre == "mel" else {}
+    communes_mel = {str(code): nom for code, nom in communes_mel.items()}
 
     for fichier in sorted(os.listdir(dossier_data)):
         if not est_fichier_donnees(fichier):
@@ -312,7 +319,11 @@ def analyser_fichiers_entree(dossier_data: str, dossier_dicos: str) -> dict:
             "colonnes_non_documentees": [],
         }
         rapport["sources"].append(source)
-        _auditer_iris(rapport, source, chemin, entetes, separateur, iris_reference)
+        if perimetre == "mel":
+            if role != "perimetre":
+                _auditer_communes(rapport, source, chemin, entetes, separateur, communes_mel)
+        else:
+            _auditer_iris(rapport, source, chemin, entetes, separateur, iris_reference)
 
         if role == "perimetre":
             perimetre_trouve = True
@@ -418,7 +429,7 @@ def analyser_fichiers_entree(dossier_data: str, dossier_dicos: str) -> dict:
 
         sources_par_theme.setdefault(theme, []).append({"fichier": fichier, "millesime": annee})
 
-    if not perimetre_trouve:
+    if not perimetre_trouve and perimetre != "mel":
         rapport["erreurs"].append({
             "code": "perimetre_absent",
             "message": "Le fichier Périmètres_MAS (CSV ou Parquet) est requis pour joindre les données géographiques.",
@@ -614,6 +625,59 @@ def _vocabulaire_valide(dossier_dicos: str, millesimes_valides: dict, mapping_no
     return vocabulaire
 
 
+def _communes_presentes(chemin: str, colonne: str, separateur: str, codes_communes: set[str]) -> set[str]:
+    """Lit uniquement la colonne IRIS, par blocs, et garde les codes commune du périmètre."""
+    presentes = set()
+    lecteur = lire_par_blocs(
+        chemin,
+        500_000,
+        sep=separateur,
+        usecols=[colonne],
+        dtype={colonne: str},
+        encoding="utf-8-sig",
+        encoding_errors="replace",
+    )
+    for bloc in lecteur:
+        valeurs = bloc[colonne].dropna().str.strip().str[:5]
+        presentes.update(valeurs[valeurs.isin(codes_communes)])
+    return presentes
+
+
+def _auditer_communes(rapport: dict, source: dict, chemin: str, entetes: list, separateur: str, communes: dict) -> None:
+    """Périmètre MEL : avertit si le fichier ne couvre pas les 95 communes (sources sans les communes non découpées)."""
+    colonne_iris = next(
+        (entete for entete in entetes if _normaliser_identifiant(entete) in {"iris", "codgeo"}),
+        None,
+    )
+    if colonne_iris is None:
+        return
+    try:
+        presentes = _communes_presentes(chemin, colonne_iris, separateur, set(communes))
+    except (OSError, ValueError, pd.errors.ParserError, pd.errors.EmptyDataError):
+        return
+    source["communes_mel"] = f"{len(presentes)}/{len(communes)}"
+    absentes = sorted(set(communes) - presentes)
+    if not absentes:
+        return
+    if source["role"] == "microdonnees_enfants":
+        message = (
+            f"{source['communes_mel']} communes de la MEL trouvées : la petite enfance ne sera calculée "
+            "que pour ces communes (fichier détail limité aux IRIS renseignés)."
+        )
+    else:
+        message = (
+            f"{source['communes_mel']} communes de la MEL trouvées : les {len(absentes)} autres "
+            "(en général les communes non découpées en IRIS) resteront vides dans cet onglet."
+        )
+    rapport["avertissements"].append({
+        "code": "communes_incompletes",
+        "fichier": source["fichier"],
+        "theme": source.get("theme"),
+        "manquants": absentes,
+        "message": message,
+    })
+
+
 def ingerer_donnees_thematiques(
     dossier_data: str,
     dossier_dicos: str,
@@ -621,10 +685,11 @@ def ingerer_donnees_thematiques(
     chemin_calculs: str | None = None,
     decisions_colonnes: list | None = None,
     dossier_reference: str | None = None,
+    codes_communes: set[str] | None = None,
 ) -> dict:
     """
     Fonction principale d'ingestion. Lit tous les CSV et Parquet du dossier, 
-    filtre sur Roubaix, nettoie et renomme les variables.
+    filtre sur le périmètre (Roubaix par défaut, ou les codes_communes donnés), nettoie et renomme les variables.
     Retourne un dictionnaire { 'POP 2022': DataFrame, ... }
     Avec le modèle et/ou calculated_columns.yml, les colonnes inconnues sont rattachées
     ou nommées par modules/colonnes_auto.py ; les décisions sont ajoutées à decisions_colonnes.
@@ -678,11 +743,12 @@ def ingerer_donnees_thematiques(
         if colonne_code_iris and colonne_code_iris != "IRIS":
             df_brut = df_brut.rename(columns={colonne_code_iris: "IRIS"})
 
-        # Filtrage strict sur Roubaix
+        # Filtrage strict sur le périmètre (Roubaix, ou communes de la MEL)
+        communes_retenues = codes_communes or {"59512"}
         if "IRIS" in df_brut.columns:
-            df_brut = df_brut[df_brut["IRIS"].str.startswith("59512", na=False)]
+            df_brut = df_brut[df_brut["IRIS"].str.strip().str[:5].isin(communes_retenues)]
         elif "COM" in df_brut.columns:
-            df_brut = df_brut[df_brut["COM"] == "59512"]
+            df_brut = df_brut[df_brut["COM"].isin(communes_retenues)]
 
         df_brut = df_brut.reset_index(drop=True)
         df_propre = nettoyage_valeurs_insee(df_brut)

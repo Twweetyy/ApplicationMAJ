@@ -15,10 +15,17 @@ const downloadButton = $("#downloadButton");
 const newJobButton = $("#newJobButton");
 
 const selected = { data: [], meta: [] };
+let perimetre = "roubaix";
+
+// Périmètre MEL : une ligne par commune, sans le référentiel des quartiers de Roubaix
+const NOTES_PERIMETRE = {
+  roubaix: "Le fichier Périmètres_MAS.csv est requis. Les métadonnées sont rapprochées des sources automatiquement.",
+  mel: "Une ligne par commune de la MEL (somme des IRIS). Périmètres_MAS.csv n’est pas utilisé. Déposez les fichiers nationaux ou départementaux.",
+};
 
 // Fichiers de données attendus avec prédicats de détection robustes
 const expectedDataFiles = [
-  { label: "Périmètres MAS (requis)", test: (n) => n.includes("perimetresmas") },
+  { label: "Périmètres MAS (requis)", test: (n) => n.includes("perimetresmas"), perimetres: ["roubaix"] },
   { label: "Évolution structure pop. (POP)", test: (n) => n.includes("evolstructpop") || n.includes("pop2023") },
   { label: "Diplômes et formation", test: (n) => n.includes("diplomesformation") || n.includes("dip2023") },
   { label: "Logement", test: (n) => n.includes("logement") || n.includes("log2023") },
@@ -93,7 +100,7 @@ function renderStatusList(containerId, expectedList, selectedFiles, title) {
 
   const normalizedSelected = selectedFiles.map((f) => normaliseNom(f.name));
 
-  for (const item of expectedList) {
+  for (const item of expectedList.filter((attendu) => !attendu.perimetres || attendu.perimetres.includes(perimetre))) {
     const isPresent = normalizedSelected.some((nom) => item.test(nom));
     const row = document.createElement("div");
     row.className = "import-status";
@@ -280,6 +287,7 @@ function analyzeFiles() {
 
   const form = new FormData();
   [...selected.data, ...selected.meta].forEach((file) => form.append("files", file, file.name));
+  form.append("perimetre", perimetre);
 
   const xhr = new XMLHttpRequest();
   xhr.open("POST", "/api/jobs");
@@ -486,6 +494,32 @@ function clearSelectedGroup(group) {
   renderFiles();
 }
 
+function setPerimetre(valeur) {
+  if (valeur === perimetre) return;
+  // Le pré-contrôle dépend du périmètre : un lot déjà analysé est à relancer (fichiers gardés)
+  if (currentJobId) {
+    fetch(`/api/jobs/${currentJobId}`, { method: "DELETE" }).catch(() => {});
+    currentJobId = null;
+    reportSection.hidden = true;
+    progressSection.hidden = true;
+    showColonnesAuto([]);
+    $("#generateButton").disabled = true;
+    analyzeButton.disabled = selected.data.length === 0;
+    setStep(0);
+  }
+  perimetre = valeur;
+  document.querySelectorAll("[data-perimetre]").forEach((tab) => {
+    const actif = tab.dataset.perimetre === valeur;
+    tab.classList.toggle("active", actif);
+    tab.setAttribute("aria-checked", String(actif));
+  });
+  $("#perimetreNote").textContent = NOTES_PERIMETRE[valeur];
+  updateImportStatus();
+}
+
+document.querySelectorAll("[data-perimetre]").forEach((tab) => {
+  tab.addEventListener("click", () => setPerimetre(tab.dataset.perimetre));
+});
 bindDropzone(dataZone, dataInput, "data");
 bindDropzone(metaZone, metaInput, "meta");
 $("#clearData").addEventListener("click", () => clearSelectedGroup("data"));

@@ -143,8 +143,11 @@ def _supprimer_colonnes_vides(ws, noms=COLONNES_SANS_SOURCE) -> None:
 def _mettre_en_page_onglet(ws) -> None:
     _supprimer_colonnes_vides(ws)
     entetes = [cellule.value for cellule in ws[2]]
-    # Colonnes grises = jusqu'au libellé IRIS inclus (Mairies de quartiers + Libellé de l'Iris)
-    nombre_colonnes_geo = entetes.index("Libellé de l'Iris") + 1 if "Libellé de l'Iris" in entetes else 2
+    # Colonnes grises = jusqu'au libellé IRIS (ou au nom de commune, périmètre MEL) inclus
+    nombre_colonnes_geo = next(
+        (entetes.index(libelle) + 1 for libelle in ("Libellé de l'Iris", "Commune") if libelle in entetes),
+        2,
+    )
     derniere_ligne = _derniere_ligne(ws)
     # Le modèle petite enfance s'ouvre en F1 : sans ça, A-E restent cachées derrière le volet
     ws.sheet_view.topLeftCell = "A1"

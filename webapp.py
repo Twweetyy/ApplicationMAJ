@@ -16,6 +16,7 @@ from fastapi.staticfiles import StaticFiles
 from main_bddmas import DOSSIER_DICOS, FICHIER_MODELE, ErreurPrecontrole, executer_pipeline
 from modules.bpe import PERIMETRES as PERIMETRES_BPE, ErreurBPE, generer_classeur_bpe
 from modules.ingestion import analyser_fichiers_entree
+from modules.perimetre_mel import PERIMETRES as PERIMETRES_MAS
 from modules.lecture import EXTENSIONS_DONNEES
 
 
@@ -92,6 +93,7 @@ def _job_public(job: dict) -> dict:
         ],
         "erreur": job.get("erreur"),
         "classeur_disponible": bool(job.get("classeur") and Path(job["classeur"]).is_file()),
+        "perimetre": PERIMETRES_MAS[job.get("perimetre", "roubaix")],
     }
 
 
@@ -110,7 +112,7 @@ def _generer_classeur(job_id: str) -> None:
             return
         job["status"] = "processing"
 
-    chemin_sortie = Path(job["root"]) / "TAB_BDDMAS_Tout_perimetre.xlsx"
+    chemin_sortie = Path(job["root"]) / _nom_classeur(job)
     try:
         sortie_console = StringIO()
         with redirect_stdout(sortie_console):
@@ -125,6 +127,7 @@ def _generer_classeur(job_id: str) -> None:
                 afficher_messages=False,
                 # Copie du lot sans méta : millésimes validés, vocabulaire et cache lus dans le vrai dépôt
                 dossier_dicos_reference=str(DOSSIER_DICOS),
+                perimetre=job.get("perimetre", "roubaix"),
             )
         lignes = [ligne.strip() for ligne in sortie_console.getvalue().splitlines()]
         avertissements = [ligne for ligne in lignes if ligne.startswith("Erreur lors du calcul de")]
@@ -166,9 +169,16 @@ def etat_service():
     return {"status": "ok"}
 
 
+def _nom_classeur(job: dict) -> str:
+    """Nom du classeur téléchargé : le périmètre MEL a son propre fichier."""
+    return "TAB_BDDMAS_MEL_communes.xlsx" if job.get("perimetre") == "mel" else "TAB_BDDMAS_Tout_perimetre.xlsx"
+
+
 @app.post("/api/jobs", status_code=201)
-def creer_job(files: list[UploadFile] = File(...)):
+def creer_job(files: list[UploadFile] = File(...), perimetre: str = Form("roubaix")):
     _nettoyer_anciens_jobs()
+    if perimetre not in PERIMETRES_MAS:
+        raise HTTPException(status_code=400, detail=f"Périmètre inconnu : {perimetre}")
     if len(files) > NOMBRE_MAX_FICHIERS:
         raise HTTPException(status_code=413, detail=f"Maximum {NOMBRE_MAX_FICHIERS} fichiers par lot.")
 
@@ -202,13 +212,14 @@ def creer_job(files: list[UploadFile] = File(...)):
             _copier_televersement(fichier, destination)
             fichiers_recus.append({"nom": nom, "type": "métadonnée" if est_meta else "donnée"})
 
-        rapport = analyser_fichiers_entree(str(data_dir), str(dicos_dir))
+        rapport = analyser_fichiers_entree(str(data_dir), str(dicos_dir), perimetre=perimetre)
         status = "invalid" if rapport["erreurs"] else "ready"
         job = {
             "id": job_id,
             "root": str(racine),
             "data": str(data_dir),
             "dicos": str(dicos_dir),
+            "perimetre": perimetre,
             "created_at": time.time(),
             "status": status,
             "rapport": rapport,
@@ -255,7 +266,7 @@ def telecharger_classeur(job_id: str):
     return FileResponse(
         chemin,
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        filename="TAB_BDDMAS_Tout_perimetre.xlsx",
+        filename=_nom_classeur(job),
     )
 
 

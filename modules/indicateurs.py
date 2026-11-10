@@ -9,7 +9,7 @@ from .colonnes_auto import regle_colonne
 COLONNES_IDENTIFIANTS_TEXTE = {
     "iris", "com", "com 1", "codgeo", "typ_iris", "lab_iris", "libiris", "note",
     "code géographique", "code geographique", "commune ou arm", "type d'iris",
-    "label de l'iris", "libellé de l'iris",
+    "label de l'iris", "libellé de l'iris", "code insee", "commune",
 }
 
 
@@ -95,7 +95,7 @@ def arrondir_variables(fichiers: dict) -> dict:
             if precision is None:
                 if str(colonne).strip().casefold() in {
                     "com", "com 1", "codgeo", "code géographique", "code geographique",
-                    "typ_iris", "lab_iris", "libiris", "iris",
+                    "typ_iris", "lab_iris", "libiris", "iris", "code insee",
                 }:
                     resultat[colonne] = resultat[colonne].map(_convertir_identifiant_en_texte).astype("string")
                 else:
@@ -205,8 +205,9 @@ def ajouter_indicateurs_calcules(fichiers: dict, chemin_yaml: str) -> dict:
     return fichiers
 
 
-def calculer_repartition_enfants(blocs_individus) -> dict:
-    """Calcule les répartitions d'enfants par IRIS en pondérant par IPONDI."""
+def calculer_repartition_enfants(blocs_individus, codes_communes: set[str] | None = None) -> dict:
+    """Calcule les répartitions d'enfants par IRIS en pondérant par IPONDI (Roubaix, ou codes_communes)."""
+    communes_retenues = codes_communes or {"59512"}
     specifications = {
         "Enfants âge révolu": "AGEREV",
         "Enfants âge millésime": "AGED",
@@ -214,7 +215,7 @@ def calculer_repartition_enfants(blocs_individus) -> dict:
     groupes = {nom: [] for nom in specifications}
 
     for bloc in blocs_individus:
-        bloc = bloc.loc[bloc["IRIS"].astype(str).str.startswith("59512", na=False)]
+        bloc = bloc.loc[bloc["IRIS"].astype(str).str[:5].isin(communes_retenues)]
         for nom_table, colonne_age in specifications.items():
             enfants = bloc.loc[bloc[colonne_age].lt(18), ["IRIS", colonne_age, "IPONDI"]]
             enfants = enfants.dropna(subset=["IRIS", colonne_age])

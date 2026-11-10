@@ -99,6 +99,7 @@ Le projet contient :
 - un convertisseur des cubes Insee du recensement, valable pour 2023 et les millésimes suivants (`scripts/transformer_recensement.py`) ;
 - un guide pour intégrer un nouveau millésime sans toucher au code ([`doc/nouveau_millesime.md`](doc/nouveau_millesime.md)) ;
 - un module qui rattache automatiquement les colonnes inconnues d'un nouveau millésime Insee (`modules/colonnes_auto.py`, IA facultative) ;
+- un périmètre **MEL (95 communes)** dans le portail, qui produit la même base MAS avec une ligne par commune de la Métropole Européenne de Lille (`modules/perimetre_mel.py`) ;
 - une page **Équipements BPE** qui produit le classeur de la Base permanente des équipements, pour Roubaix ou la MEL (`modules/bpe.py`) ;
 - des lots d'exemple 2022 et 2023 (`exemples/`, avec RPLS 2025 et le FD_INDCVI 2023 filtré sur Roubaix) pour essayer le portail tout de suite ;
 - le dernier classeur généré, `TAB_BDDMAS_INSEE2023.xlsx`, à la racine.
@@ -130,7 +131,7 @@ ApplicationMAJ/
 │  ├─ superficies_iris_roubaix.yml Superficie de chaque IRIS (densités)
 │  ├─ liens_presentation.yml       Liens vers la documentation Insee de chaque source
 │  ├─ libelles_iris_roubaix.yml    Libellés Insee des IRIS
-│  ├─ communes_mel.yml             Communes de la MEL (classeur BPE)
+│  ├─ communes_mel.yml             Communes de la MEL (base MAS MEL et classeur BPE)
 │  ├─ bpe/                         Varmod BPE 2025 et quartiers historiques (classeur BPE)
 │  ├─ correspondances_auto.yml     Décisions du module colonnes (généré, corrigeable)
 │  └─ meta/                        Métadonnées meta_*.csv par millésime (local, ignoré par Git ; meta2023/ généré)
@@ -142,7 +143,8 @@ ApplicationMAJ/
 │  ├─ export_excel.py              Remplissage du modèle et mise en forme Excel
 │  ├─ mise_en_page.py              Formats, largeurs, hauteurs, centrage, ligne Total, ordre des colonnes
 │  ├─ pages_info.py                Pages Présentation et Détail calcul générées selon le lot
-│  ├─ portrait_roubaix.py          Onglet Portrait Roubaix (chiffres clés en formules Excel)
+│  ├─ portrait_roubaix.py          Onglet Portrait Roubaix ou Portrait MEL (chiffres clés en formules Excel)
+│  ├─ perimetre_mel.py             Périmètre MEL : somme des IRIS par commune, textes du classeur
 │  ├─ colonnes_auto.py             Colonnes inconnues d'un nouveau millésime (sans IA puis IA, cache YAML)
 │  ├─ llm_wrapper.py               Appel d'un modèle compatible OpenAI (Groq, Mistral, Ollama…)
 │  ├─ export_sig.py                Export des tables attributaires CSV pour les SIG
@@ -228,6 +230,8 @@ python main_bddmas.py
 ```
 Les sources sont lues à plat dans `data/` et les métadonnées dans `dictionnaires/meta/`. Le classeur `sorties/TAB_BDDMAS_INSEE_Tout_perimetre.xlsx` est généré à partir de `TAB_BDDMAS_INSEE2022_MODELE.xlsx`. Depuis le rangement des données par millésime (`data/dataAAAA/`), le portail est le mode recommandé. Le modèle d'origine n'est pas modifié. Les exports SIG et l'insertion SQL sont produits en plus (voir plus bas).
 
+Pour la MEL : `python main_bddmas.py --perimetre mel` (classeur `sorties/TAB_BDDMAS_INSEE_MEL_communes.xlsx`, sans exports SIG ni SQL, qui restent à l'IRIS de Roubaix).
+
 Pendant l'exécution, `tqdm` affiche la progression des étapes du pipeline, la lecture du recensement et l'écriture des lignes Excel. Pour le recensement, le nombre de lignes et le temps restant sont estimés à partir des 2 premiers Mo du fichier ; cette estimation est indicative.
 
 ## Constituer un lot (portail)
@@ -252,6 +256,19 @@ Pendant l'exécution, `tqdm` affiche la progression des étapes du pipeline, la 
 - Un seul fichier par thème dans un lot (ex. pas de POP 2022 et POP 2023 ensemble : erreur bloquante `versions_multiples_theme`).
 - Les années peuvent différer d'un thème à l'autre (recensement 2023 + CAF 2024 + CNAM 2025…).
 - Le classeur ne contient que ce qui est déposé : un onglet sans fichier dans le lot reste vide.
+
+## Périmètre MEL (une ligne par commune)
+
+En haut du portail, l'onglet **MEL (95 communes)** produit la base MAS sur les communes de `dictionnaires/communes_mel.yml`, avec les mêmes onglets et indicateurs que Roubaix. Le choix se fait avant **Analyser le lot** ; changer d'onglet après l'analyse oblige à la relancer (les fichiers déposés sont gardés).
+
+- **Fichiers :** les mêmes que pour Roubaix, mais non filtrés sur Roubaix (fichiers nationaux ou du Nord). `Périmètres_MAS.csv` n'est pas demandé.
+- **Calcul :** les sources restent lues à l'IRIS, puis les effectifs sont additionnés par commune (5 premiers caractères du code IRIS). Les indicateurs (parts, taux, indices) sont calculés ensuite, sur ces sommes : jamais une moyenne de taux. La ligne Total donne la MEL.
+- **Classeur :** deux colonnes grises, **Code Insee** et **Commune**, puis les données. L'onglet **Portrait MEL** remplace le Portrait Roubaix (sans les valeurs Filosofi figées, propres à Roubaix). Le fichier téléchargé s'appelle `TAB_BDDMAS_MEL_communes.xlsx`.
+- **Limites :**
+  - CAF, CNAM, DEFM et RPLS ne sont diffusés par l'Insee que pour les communes découpées en IRIS (42 communes de la MEL sur 95). Les autres restent vides dans ces onglets, et le pré-contrôle le signale. Les valeurs soumises au secret statistique ne sont pas comptées dans les sommes.
+  - Les taux et loyers moyens du RPLS ne s'additionnent pas : ils ne sont pas repris.
+  - Il n'y a pas de superficie par commune dans le dépôt : les densités ne sont pas calculées.
+  - La petite enfance n'est calculée que pour les communes présentes dans le FD_INDCVI déposé (l'exemple du dépôt ne contient que Roubaix).
 
 ## Classeur des équipements (BPE)
 
