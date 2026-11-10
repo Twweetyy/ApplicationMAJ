@@ -3,6 +3,7 @@
 .venv/
 venv/
 env/
+lancer VENV.txt
 __pycache__/
 *.pyc
 .env
