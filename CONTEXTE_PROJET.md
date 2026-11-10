@@ -8,11 +8,11 @@
 
 ## 1. Présentation du Projet
 
-**Nom** : BDDMAS Roubaix – ApplicationMAJ  
+**Nom** : BDDMAS Roubaix et MEL – ApplicationMAJ  
 **Dépôt Git** : GitHub (branche `main`)  
 **Langage** : Python 3.11 ou plus (3.14 sur le poste, 3.12 dans l'image Docker) + HTML/CSS/JS (vanilla)  
 **Serveur** : FastAPI + Uvicorn  
-**Usage** : Génération du classeur Excel BDDMAS (données infra-communales sur les 38 IRIS de Roubaix)
+**Usage** : Génération du classeur Excel BDDMAS : 38 IRIS de Roubaix, ou 95 communes de la MEL (onglet MEL du portail)
 
 ### Architecture simplifiée
 
@@ -171,6 +171,24 @@ ApplicationMAJ/
 ---
 
 ## 6. Historique des Sessions de Travail
+
+### 📅 10 novembre 2026 — Périmètre MEL de la base MAS
+
+#### Modifications effectuées
+- Portail : onglets de périmètre **Roubaix (IRIS)** / **MEL (95 communes)**, comme la page BPE ; en MEL, `Périmètres_MAS.csv` n'est pas demandé et le classeur téléchargé est `TAB_BDDMAS_MEL_communes.xlsx`
+- `modules/perimetre_mel.py` (nouveau) : filtre sur `communes_mel.yml`, somme des IRIS par commune avant les indicateurs (taux = somme / somme), communes absentes d'une source laissées vides, textes Présentation / Détail calcul / titres adaptés
+- Classeur MEL : colonnes grises Code Insee et Commune, ligne Total = MEL, onglet « Portrait MEL » (sans les valeurs Filosofi figées de Roubaix)
+- Pré-contrôle MEL : nombre de communes trouvées par source (ex. 42/95 pour CAF, CNAM, DEFM, RPLS et FD_INDCVI)
+- `scripts/transformer_recensement.py --perimetre mel|tous` : cubes 2023 sur la MEL dans `data/dataAAAA_mel/` (IRIS des communes découpées, ligne `code + 0000` pour les autres) ; `run_portal.bat` et Docker lancent `--perimetre tous`
+- `scripts/extraire_indcvi_roubaix.py --perimetre mel` : FD_INDCVI filtré MEL dans `data/indcvi_mel/` ; un `FD_INDCVI_…` suffixé est rapproché de son varmod
+- `run_portal.py` : attente du serveur portée à 3 minutes
+- Contrôle sur le lot 2023 MEL : 1 195 234 habitants, 542 033 ménages, taux cohérents ; classeur Roubaix inchangé
+
+#### Limites connues
+- CAF, CNAM, DEFM, RPLS et petite enfance : seulement les 42 communes découpées en IRIS (sources Insee à l'IRIS)
+- Pas de superficie communale : densités MEL non calculées
+- Taux et loyers moyens RPLS non additifs : non repris en MEL
+- Certains libellés d'indicateurs disent encore « IRIS » (hérités du modèle Roubaix)
 
 ### 📅 30 octobre 2026 (fin) — Mise à jour de la documentation
 
