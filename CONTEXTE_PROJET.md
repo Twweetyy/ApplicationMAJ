@@ -178,6 +178,7 @@ ApplicationMAJ/
 - Le classeur s'ouvre sur l'onglet **Accueil** (ex-Portrait Roubaix / Portrait MEL) : description agrandie et générale à tout le classeur (sources présentes, échelle, millésimes), puis les chiffres clés
 - L'onglet **Sources** (ex-Présentation) reprend à la suite le **détail des calculs** (indicateur, formule ; en rouge si non calculé) ; l'onglet Detail calcul disparaît
 - Ordre : Accueil, Sources, puis les onglets thématiques ; renommage et fusion en fin de pipeline (`modules/onglets_accueil_sources.py`), le modèle Excel garde ses noms d'origine
+- Classeur BPE, même logique : nouvel onglet **Accueil** de chiffres clés (`modules/bpe_accueil.py`, formules NB.SI sur l'onglet brut), l'ancien accueil devient **Sources**, l'onglet BPE devient **BPE_brut**
 
 ### 📅 10 novembre 2026 — Périmètre MEL de la base MAS
 

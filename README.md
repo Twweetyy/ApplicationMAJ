@@ -152,7 +152,8 @@ ApplicationMAJ/
 │  ├─ llm_wrapper.py               Appel d'un modèle compatible OpenAI (Groq, Mistral, Ollama…)
 │  ├─ export_sig.py                Export des tables attributaires CSV pour les SIG
 │  ├─ persistence.py               Insertion SQLAlchemy configurable
-│  └─ bpe.py                       Classeur de la Base permanente des équipements (page BPE du portail)
+│  ├─ bpe.py                       Classeur de la Base permanente des équipements (page BPE du portail)
+│  └─ bpe_accueil.py               Onglet Accueil du classeur BPE (chiffres clés par domaine)
 ├─ scripts/
 │  ├─ transformer_recensement.py   Conversion des cubes Insee (2023 et suivants)
 │  ├─ extraire_indcvi_roubaix.py   Extraction des lignes Roubaix (ou MEL, --perimetre mel) du FD_INDCVI
@@ -282,7 +283,7 @@ La page **Équipements BPE** du portail (menu de gauche, ou `/bpe`) produit le c
 3. Déposer le varmod (`BPE<AA>_anonymisee_varmod.csv`) si le millésime n'est pas 2025 ; sinon celui de `dictionnaires/bpe/` est utilisé.
 4. Cliquer sur **Générer le classeur BPE**, puis télécharger `BPE<AA>_<Périmètre>_equipements_officiel.xlsx`.
 
-Le classeur contient une page d'accueil, l'onglet **BPE** (tous les équipements, codes Insee traduits en libellés), l'onglet **Recap** (nombre d'équipements par type et par IRIS ou par commune, avec des totaux qui suivent les filtres), un onglet par domaine (A à G) et le **Dictionnaire Insee**.
+Le classeur s'ouvre sur l'onglet **Accueil** : description du classeur, quatre chiffres clés (équipements, types d'équipement, part géolocalisée, part localisée à l'IRIS ou nombre de communes) et un bloc par domaine (effectif, part, types les plus nombreux), en formules sur l'onglet BPE_brut (`modules/bpe_accueil.py`). Suivent l'onglet **Sources** (description des onglets, liens Insee, précisions), l'onglet **BPE_brut** (tous les équipements, codes Insee traduits en libellés), l'onglet **Recap** (nombre d'équipements par type et par IRIS ou par commune, avec des totaux qui suivent les filtres), un onglet par domaine (A à G) et le **Dictionnaire Insee**.
 
 Pour Roubaix, chaque équipement reçoit le libellé de son IRIS, son secteur de mairie (`secteurs_mairie.yml`), son quartier historique (`bpe/quartiers_historiques.yml`) et son grand quartier (`grand_quartier.yml`). Les équipements que l'Insee ne situe dans aucun IRIS (`59512_IND`) sont comptés dans la colonne « NON LOCALISÉ » du Recap.
 
@@ -290,7 +291,7 @@ Les nombres du Parquet sont écrits comme dans le CSV de l'Insee (`12` et non `1
 
 **Nouveau millésime (BPE 2026 et suivantes) :** L'année est lue dans la colonne `AN` (titre de l'accueil et nom du fichier). Il faut déposer le varmod du millésime, sinon les nouveaux codes restent non traduits. Si l'Insee change les colonnes :
 - une colonne **absente** reste dans le classeur, vide ;
-- une colonne **inconnue** est ajoutée en fin de l'onglet BPE, sous le libellé du varmod (`LIB_VAR`).
+- une colonne **inconnue** est ajoutée en fin de l'onglet BPE_brut, sous le libellé du varmod (`LIB_VAR`).
 
 La page liste les nouvelles colonnes et les colonnes absentes à la fin de la génération, pour vérifier avant de publier. Pour donner un libellé court et une place définitive à une nouvelle colonne, l'ajouter dans `LIBELLES_COLONNES` et `COLONNES_EXPORT` en tête de `modules/bpe.py`. La BPE 2024, dont le dictionnaire est un fichier `.xls`, n'est pas prise en charge.
 
