@@ -39,13 +39,13 @@ Avant tout calcul, l'application vérifie le lot : thème et millésime reconnus
 
 ### 3. Classeur généré
 
-La page **Présentation** est générée selon le lot : millésime de chaque source et lien vers sa documentation Insee.
+Le classeur s'ouvre sur l'onglet **Accueil** : une description générale du classeur (sources, échelle, millésimes), puis les chiffres clés de la ville en quatre blocs (démographie, emploi et formation, revenus et prestations, logement). Chaque valeur est une formule Excel qui pointe vers les onglets thématiques : un effectif est la somme des IRIS, une part est une somme divisée par une somme. Seuls le niveau de vie médian et le taux de pauvreté de Roubaix (Filosofi 2021) sont écrits en dur, pour comparaison : leurs onglets ne sont plus dans le classeur. Un lien renvoie vers l'onglet source.
 
-![Classeur : page Présentation](doc/img/excel-presentation.png)
+![Classeur : onglet Accueil (chiffres clés)](doc/img/excel-portrait.png)
 
-Juste après, l'onglet **Portrait Roubaix** donne les chiffres clés de la ville en quatre blocs (démographie, emploi et formation, revenus et prestations, logement). Chaque valeur est une formule Excel qui pointe vers les onglets thématiques : un effectif est la somme des IRIS, une part est une somme divisée par une somme. Seuls le niveau de vie médian et le taux de pauvreté de Roubaix (Filosofi 2021) sont écrits en dur, pour comparaison : leurs onglets ne sont plus dans le classeur. Un lien renvoie vers l'onglet source.
+Juste après, l'onglet **Sources** est généré selon le lot : millésime de chaque source et lien vers sa documentation Insee, précisions, puis le **détail des calculs** (formule de chaque indicateur calculé, en rouge s'il n'a pas pu l'être faute de variable).
 
-![Classeur : onglet Portrait Roubaix](doc/img/excel-portrait.png)
+![Classeur : onglet Sources](doc/img/excel-presentation.png)
 
 Chaque onglet thématique contient une ligne par IRIS. Trois colonnes grises situent l'IRIS : **Mairies de quartiers**, **Grands quartiers** (noms issus de `dictionnaires/grand_quartier.yml`) et **Libellé de l'Iris** (libellé Insee). Les en-têtes bleus sont les effectifs (avec ligne Total), les orange les indicateurs (taux, densités, indices), regroupés à droite. La mise en page est aérée : cellules centrées, lignes d'IRIS à 30 pt, colonnes dimensionnées selon leur contenu.
 
@@ -62,7 +62,7 @@ flowchart LR
     C --> D[Colonnes inconnues<br/>règles puis IA, cache YAML]
     D --> E[Indicateurs<br/>calculs, arrondis,<br/>enfants pondérés]
     E --> F[Référentiel géographique<br/>quartiers, superficies]
-    F --> G[Classeur Excel<br/>Présentation, Portrait Roubaix,<br/>onglets thématiques mis en forme]
+    F --> G[Classeur Excel<br/>Accueil, Sources,<br/>onglets thématiques mis en forme]
     B -->|erreur bloquante| H[Rapport à corriger]
 ```
 
@@ -144,14 +144,16 @@ ApplicationMAJ/
 │  ├─ indicateurs.py               Calculs dérivés, arrondis et répartitions pondérées des enfants
 │  ├─ export_excel.py              Remplissage du modèle et mise en forme Excel
 │  ├─ mise_en_page.py              Formats, largeurs, hauteurs, centrage, ligne Total, ordre des colonnes
-│  ├─ pages_info.py                Pages Présentation et Détail calcul générées selon le lot
-│  ├─ portrait_roubaix.py          Onglet Portrait Roubaix ou Portrait MEL (chiffres clés en formules Excel)
+│  ├─ pages_info.py                Pages Présentation et Détail calcul générées selon le lot (fusionnées ensuite dans Sources)
+│  ├─ portrait_roubaix.py          Chiffres clés de Roubaix ou de la MEL en formules Excel, avec la description du classeur
+│  ├─ onglets_accueil_sources.py   Onglets Accueil (chiffres clés) et Sources (présentation + détail des calculs) en tête
 │  ├─ perimetre_mel.py             Périmètre MEL : somme des IRIS par commune, textes du classeur
 │  ├─ colonnes_auto.py             Colonnes inconnues d'un nouveau millésime (sans IA puis IA, cache YAML)
 │  ├─ llm_wrapper.py               Appel d'un modèle compatible OpenAI (Groq, Mistral, Ollama…)
 │  ├─ export_sig.py                Export des tables attributaires CSV pour les SIG
 │  ├─ persistence.py               Insertion SQLAlchemy configurable
-│  └─ bpe.py                       Classeur de la Base permanente des équipements (page BPE du portail)
+│  ├─ bpe.py                       Classeur de la Base permanente des équipements (page BPE du portail)
+│  └─ bpe_accueil.py               Onglet Accueil du classeur BPE (chiffres clés par domaine)
 ├─ scripts/
 │  ├─ transformer_recensement.py   Conversion des cubes Insee (2023 et suivants)
 │  ├─ extraire_indcvi_roubaix.py   Extraction des lignes Roubaix (ou MEL, --perimetre mel) du FD_INDCVI
@@ -265,7 +267,7 @@ En haut du portail, l'onglet **MEL (95 communes)** produit la base MAS sur les c
 
 - **Fichiers :** les mêmes que pour Roubaix, mais non filtrés sur Roubaix (fichiers nationaux ou du Nord). `Périmètres_MAS.csv` n'est pas demandé. Recensement 2023 et suivants : déposer les CSV de `data/dataAAAA_mel/`, produits par `python scripts/transformer_recensement.py --perimetre mel` (ceux de `data/dataAAAA/` ne contiennent que Roubaix). Fichier enfants : produit par `scripts/extraire_indcvi_roubaix.py --perimetre mel`.
 - **Calcul :** les sources restent lues à l'IRIS, puis les effectifs sont additionnés par commune (5 premiers caractères du code IRIS). Les indicateurs (parts, taux, indices) sont calculés ensuite, sur ces sommes : jamais une moyenne de taux. La ligne Total donne la MEL.
-- **Classeur :** deux colonnes grises, **Code Insee** et **Commune**, puis les données. L'onglet **Portrait MEL** remplace le Portrait Roubaix (sans les valeurs Filosofi figées, propres à Roubaix). Le fichier téléchargé s'appelle `TAB_BDDMAS_MEL_communes.xlsx`.
+- **Classeur :** deux colonnes grises, **Code Insee** et **Commune**, puis les données. L'onglet **Accueil** donne les chiffres clés de la MEL (sans les valeurs Filosofi figées, propres à Roubaix). Le fichier téléchargé s'appelle `TAB_BDDMAS_MEL_communes.xlsx`.
 - **Limites :**
   - CAF, CNAM, DEFM et RPLS ne sont diffusés par l'Insee que pour les communes découpées en IRIS (42 communes de la MEL sur 95). Les autres restent vides dans ces onglets, et le pré-contrôle le signale. Les valeurs soumises au secret statistique ne sont pas comptées dans les sommes.
   - Les taux et loyers moyens du RPLS ne s'additionnent pas : ils ne sont pas repris.
@@ -281,7 +283,7 @@ La page **Équipements BPE** du portail (menu de gauche, ou `/bpe`) produit le c
 3. Déposer le varmod (`BPE<AA>_anonymisee_varmod.csv`) si le millésime n'est pas 2025 ; sinon celui de `dictionnaires/bpe/` est utilisé.
 4. Cliquer sur **Générer le classeur BPE**, puis télécharger `BPE<AA>_<Périmètre>_equipements_officiel.xlsx`.
 
-Le classeur contient une page d'accueil, l'onglet **BPE** (tous les équipements, codes Insee traduits en libellés), l'onglet **Recap** (nombre d'équipements par type et par IRIS ou par commune, avec des totaux qui suivent les filtres), un onglet par domaine (A à G) et le **Dictionnaire Insee**.
+Le classeur s'ouvre sur l'onglet **Accueil** : description du classeur, quatre chiffres clés (équipements, types d'équipement, part géolocalisée, part localisée à l'IRIS ou nombre de communes) et un bloc par domaine (effectif, part, types les plus nombreux), en formules sur l'onglet BPE_brut (`modules/bpe_accueil.py`). Suivent l'onglet **Sources** (description des onglets, liens Insee, précisions), l'onglet **BPE_brut** (tous les équipements, codes Insee traduits en libellés), l'onglet **Recap** (nombre d'équipements par type et par IRIS ou par commune, avec des totaux qui suivent les filtres), un onglet par domaine (A à G) et le **Dictionnaire Insee**.
 
 Pour Roubaix, chaque équipement reçoit le libellé de son IRIS, son secteur de mairie (`secteurs_mairie.yml`), son quartier historique (`bpe/quartiers_historiques.yml`) et son grand quartier (`grand_quartier.yml`). Les équipements que l'Insee ne situe dans aucun IRIS (`59512_IND`) sont comptés dans la colonne « NON LOCALISÉ » du Recap.
 
@@ -289,7 +291,7 @@ Les nombres du Parquet sont écrits comme dans le CSV de l'Insee (`12` et non `1
 
 **Nouveau millésime (BPE 2026 et suivantes) :** L'année est lue dans la colonne `AN` (titre de l'accueil et nom du fichier). Il faut déposer le varmod du millésime, sinon les nouveaux codes restent non traduits. Si l'Insee change les colonnes :
 - une colonne **absente** reste dans le classeur, vide ;
-- une colonne **inconnue** est ajoutée en fin de l'onglet BPE, sous le libellé du varmod (`LIB_VAR`).
+- une colonne **inconnue** est ajoutée en fin de l'onglet BPE_brut, sous le libellé du varmod (`LIB_VAR`).
 
 La page liste les nouvelles colonnes et les colonnes absentes à la fin de la génération, pour vérifier avant de publier. Pour donner un libellé court et une place définitive à une nouvelle colonne, l'ajouter dans `LIBELLES_COLONNES` et `COLONNES_EXPORT` en tête de `modules/bpe.py`. La BPE 2024, dont le dictionnaire est un fichier `.xls`, n'est pas prise en charge.
 
@@ -361,7 +363,7 @@ Avant les étapes ci-dessous, `analyser_fichiers_entree` vérifie les sources, l
 3. Deux répartitions sont produites : âge révolu (`AGEREV`) et âge au millésime (`AGED`). Elles alimentent les onglets `PETITE ENFANCE {année du FD_INDCVI}` et `PETITE ENFANCE MILLÉSIME`, avec les colonnes `Age : 0` à `Age : 17`. Les effectifs sont des estimations pondérées de l'échantillon du recensement. La colonne `Crèches` du modèle est retirée tant qu'aucune source de crèches n'est configurée.
 4. `modules/socle_geo.py` rattache le référentiel `Perimetres_MAS.csv` et les superficies par IRIS. Les indicateurs configurés dans `calculated_columns.yml` sont ensuite calculés.
 5. `modules/indicateurs.py` applique les règles de `r_gles_d_arrondis_compl_tes.md` à toutes les colonnes : volumes à l'entier (arrondi contrôlé pour les effectifs additifs : la somme des IRIS égale le total communal officiel, ex. 98 286 habitants en 2023 ; arrondi simple, demis vers le haut, pour les autres), parts/taux à 1 décimale, indices/densités/moyennes/superficies à 2 décimales, variables RPLS `TX…` et `…LOY` à 2 décimales. Les identifiants et libellés restent textuels ; toute autre colonne numérique est arrondie à l'entier.
-6. `modules/export_excel.py` remplit les onglets du classeur modèle en conservant leurs en-têtes et leur mise en forme, et écrit les formules de sous-totaux adaptées au nombre de lignes. Les onglets de données du modèle sont vidés avant écriture. Les colonnes du modèle absentes du lot sont supprimées sans laisser de colonnes vides ; les variables nouvelles sont insérées avant `Superficie en km²`, avec le style des colonnes de données. `modules/mise_en_page.py` applique ensuite les formats, largeurs et hauteurs, et `modules/portrait_roubaix.py` ajoute l'onglet Portrait Roubaix après la Présentation.
+6. `modules/export_excel.py` remplit les onglets du classeur modèle en conservant leurs en-têtes et leur mise en forme, et écrit les formules de sous-totaux adaptées au nombre de lignes. Les onglets de données du modèle sont vidés avant écriture. Les colonnes du modèle absentes du lot sont supprimées sans laisser de colonnes vides ; les variables nouvelles sont insérées avant `Superficie en km²`, avec le style des colonnes de données. `modules/mise_en_page.py` applique ensuite les formats, largeurs et hauteurs, `modules/portrait_roubaix.py` ajoute les chiffres clés, et `modules/onglets_accueil_sources.py` place en tête l'onglet **Accueil** (chiffres clés), puis **Sources** (ancienne Présentation, avec le détail des calculs à la suite ; l'onglet Detail calcul disparaît).
 7. `modules/export_sig.py` crée un CSV par thème dans `exports_sig/`, avec `IRIS` en première colonne sur 9 caractères. Ces exports contiennent des attributs à joindre aux couches IRIS existantes, sans géométrie. (Ligne de commande uniquement.)
 8. `modules/persistence.py` insère les tables dans la base configurée uniquement si `BDDMAS_DATABASE_URL` est définie. (Ligne de commande uniquement.)
 

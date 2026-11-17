@@ -8,7 +8,7 @@ from openpyxl.utils import get_column_letter, range_boundaries
 from .colonnes_auto import regle_colonne
 from .indicateurs import _precision_arrondi
 
-FEUILLES_FIXES = {"Présentation", "Detail calcul"}
+FEUILLES_FIXES = {"Présentation", "Detail calcul", "Accueil", "Sources"}
 FORMATS = {0: "#,##0", 1: "#,##0.0", 2: "#,##0.00"}
 LARGEUR_MIN, LARGEUR_MAX = 14, 34
 LARGEUR_TEXTE_MAX = 45

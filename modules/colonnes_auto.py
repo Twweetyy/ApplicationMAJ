@@ -31,7 +31,7 @@ ECART_AMBIGU = 0.02
 TAILLE_LOT_LLM = 40
 ESSAIS_LLM = 2
 CONFIANCE_SANS_LIBELLE = 0.95
-FEUILLES_FIXES = {"Présentation", "Detail calcul"}
+FEUILLES_FIXES = {"Présentation", "Detail calcul", "Accueil", "Sources"}
 # Colonnes ajoutées par le pipeline (périmètre, superficies, petite enfance) : jamais une cible
 ENTETES_HORS_SOURCE = {"Superficie en km²", "TOTAL 0-17", "Crèches"}
 COLONNES_GEO = {"IRIS", "COM", "TYP_IRIS", "LAB_IRIS", "CODGEO"}

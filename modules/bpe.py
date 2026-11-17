@@ -4,8 +4,9 @@ Entrée : le fichier BPE de l'Insee (national, départemental ou déjà filtré)
 et le fichier de métadonnées varmod (BPE<AA>_anonymisee_varmod.csv). Sans varmod fourni,
 celui de dictionnaires/bpe/ est utilisé.
 
-Sortie : un classeur Excel avec les onglets Accueil, BPE, Recap (comptages par IRIS ou par
-commune), un onglet par domaine d'équipement et le dictionnaire Insee.
+Sortie : un classeur Excel avec les onglets Accueil (chiffres clés), Sources (description des
+onglets et précisions), BPE_brut, Recap (comptages par IRIS ou par commune), un onglet par
+domaine d'équipement et le dictionnaire Insee.
 
 Périmètres :
   roubaix : équipements de Roubaix, avec libellé IRIS, secteur mairie, quartier historique
@@ -25,9 +26,11 @@ from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 from openpyxl.utils import get_column_letter
 from openpyxl.worksheet.table import Table, TableStyleInfo
 
+from .bpe_accueil import ecrire_accueil_chiffres_cles
 from .lecture import est_parquet, lire_par_blocs
 
 CODE_ROUBAIX = "59512"
+ONGLET_BRUT = "BPE_brut"
 PERIMETRES = {"roubaix": "Roubaix", "mel": "MEL"}
 TAILLE_BLOC = 200_000
 LIEN_INSEE = "https://www.insee.fr/fr/statistiques/8217525"
@@ -404,7 +407,7 @@ def _ecrire_table(writer, df: pd.DataFrame, nom_onglet: str, nom_table: str, sty
     feuille.freeze_panes = "A2"
 
 
-def _ecrire_accueil(feuille, annee: str, perimetre: str, onglets_domaines: list[tuple[str, str]]) -> None:
+def _ecrire_sources(feuille, annee: str, perimetre: str, onglets_domaines: list[tuple[str, str]]) -> None:
     feuille.sheet_view.showGridLines = False
     for colonne, largeur in zip("ABC", (35, 120, 60)):
         feuille.column_dimensions[colonne].width = largeur
@@ -428,7 +431,7 @@ def _ecrire_accueil(feuille, annee: str, perimetre: str, onglets_domaines: list[
 
     zone = "commune de la MEL" if perimetre == "mel" else "secteur géographique"
     lignes = [
-        ["BPE", "Base globale contenant l'intégralité des équipements avec leurs attributs Insee et données de géolocalisation."],
+        [ONGLET_BRUT, "Base globale contenant l'intégralité des équipements avec leurs attributs Insee et données de géolocalisation."],
         ["Recap", f"Tableau croisé dynamique de synthèse permettant de quantifier les équipements par type et par {zone}."],
         *[[nom_onglet, DESCRIPTIONS_DOMAINES.get(code, "Détail des équipements de ce domaine.")] for code, nom_onglet in onglets_domaines],
         ["Dictionnaire Insee", "Dictionnaire des codes Insee."],
@@ -534,13 +537,18 @@ def generer_classeur_bpe(
     ]
 
     with pd.ExcelWriter(chemin_sortie, engine="openpyxl") as writer:
-        _ecrire_accueil(writer.book.create_sheet("Accueil", 0), annee, perimetre, onglets_domaines)
-        _ecrire_table(writer, df_bpe, "BPE", "TableBPE")
+        _ecrire_sources(writer.book.create_sheet("Sources", 0), annee, perimetre, onglets_domaines)
+        _ecrire_table(writer, df_bpe, ONGLET_BRUT, "TableBPE")
         _ecrire_recap(writer, recap)
         for code, nom_onglet in onglets_domaines:
             df_domaine = df_bpe[df_bpe["Code Domaine d'appartenance"] == code]
             _ecrire_table(writer, df_domaine, nom_onglet, f"TableBPE_DOM_{code}")
         _ecrire_table(writer, df_meta, "Dictionnaire Insee", "TableMeta", style="TableStyleMedium2", couleur=None)
+        accueil = writer.book.create_sheet("Accueil", 0)
+        ecrire_accueil_chiffres_cles(accueil, df_bpe, annee, perimetre, onglets_domaines, dictionnaire, ONGLET_BRUT)
+        writer.book.active = 0
+        for feuille in writer.book.worksheets:
+            feuille.sheet_view.tabSelected = feuille is accueil
 
     zones_non_localisees = int((df_bpe["Code IRIS"].fillna("").str.endswith("_IND")).sum()) if perimetre == "roubaix" else 0
     return {

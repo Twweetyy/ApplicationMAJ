@@ -14,6 +14,7 @@ from tqdm.auto import tqdm
 from .pages_info import mettre_a_jour_pages_info
 from .mise_en_page import appliquer_mise_en_page
 from .portrait_roubaix import ajouter_portrait_roubaix
+from .onglets_accueil_sources import organiser_onglets_accueil_sources
 from .perimetre_mel import RENOMMAGES_ZONAGE_MEL, adapter_textes_mel
 
 # Dernière colonne grise d'un onglet : libellé IRIS (Roubaix) ou nom de commune (MEL)
@@ -556,6 +557,7 @@ def _generer_depuis_modele(
         ajouter_portrait_roubaix(workbook, territoire="MEL")
     else:
         ajouter_portrait_roubaix(workbook)
+    organiser_onglets_accueil_sources(workbook)
     os.makedirs(os.path.dirname(os.path.abspath(chemin_sortie)), exist_ok=True)
     workbook.save(chemin_sortie)
 
