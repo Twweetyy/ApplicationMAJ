@@ -1,4 +1,4 @@
-"""Onglet « Portrait Roubaix » : chiffres clés de la ville, juste après la Présentation.
+"""Onglet des chiffres clés (renommé « Accueil » et placé en premier en fin de pipeline).
 
 Chaque valeur est une formule Excel qui pointe vers les onglets thématiques du classeur :
 - effectif : somme des IRIS ;
@@ -175,6 +175,43 @@ def _formule(calcul: str, colonnes, plages: dict) -> str | None:
     return f"=SUM({ref})"
 
 
+# Contenu des onglets, pour la description générale du classeur (ordre d'affichage)
+CONTENUS_RP = [
+    ("POP", "population"), ("ACT RES", "activité et emploi"), ("COU FAM", "couples, familles et ménages"),
+    ("DIP FORMATION", "diplômes et formation"), ("LOG", "logement"), ("PETITE ENFANCE", "enfants de 0 à 17 ans"),
+]
+CONTENUS_AUTRES = [
+    ("CAF", "allocataires et prestations de la CAF"),
+    ("CNAM", "bénéficiaires de la complémentaire santé solidaire (CNAM)"),
+    ("DEFM", "demandeurs d'emploi (France Travail)"),
+    ("RPLS", "parc locatif social (RPLS)"),
+]
+
+
+def _enumeration(elements: list[str]) -> str:
+    return elements[0] if len(elements) == 1 else ", ".join(elements[:-1]) + " et " + elements[-1]
+
+
+def _description_classeur(onglets: dict, nom_territoire: str, mel: bool) -> str:
+    """Description de l'ensemble du classeur, selon les onglets réellement présents."""
+    echelle = "de la commune (95 communes de la Métropole Européenne de Lille)" if mel else "de l'IRIS"
+    contenus = []
+    rp = [libelle for theme, libelle in CONTENUS_RP if theme in onglets]
+    if rp:
+        contenus.append(f"le recensement de la population de l'Insee ({_enumeration(rp)})")
+    contenus += [libelle for theme, libelle in CONTENUS_AUTRES if theme in onglets]
+    millesimes = sorted({MOTIF_ANNEE.match(nom).group(2) for nom in onglets.values()})
+    periode = f"Millésimes {millesimes[0]} à {millesimes[-1]}. " if len(millesimes) > 1 else ""
+    return (
+        f"Ce classeur rassemble la base MAS de {nom_territoire} à l'échelle {echelle}, un onglet par thème : "
+        f"{' ; '.join(contenus) if contenus else 'données thématiques'}. {periode}\n"
+        f"Cette page résume les chiffres clés de {nom_territoire} entière "
+        f"(ensemble des {'communes' if mel else 'IRIS'}), toutes sources du classeur confondues. "
+        "Chaque indicateur indique sa source et son année ; un clic sur la source ouvre l'onglet. "
+        "Millésimes, liens vers la documentation et détail des calculs : onglet « Sources »."
+    )
+
+
 def _fusion(ws, plage, valeur=None, font=None, fill=None, align=None):
     ws.merge_cells(plage)
     cellule = ws[plage.split(":")[0]]
@@ -211,12 +248,9 @@ def ajouter_portrait_roubaix(workbook, territoire: str = "Roubaix") -> None:
     titre = f"Portrait de {nom_territoire}" + (f" · {annee.group(2)}" if annee else "")
     _fusion(ws, f"B2:{fin}2", titre, Font(bold=True, size=20, color=BLEU))
     ws.row_dimensions[2].height = 34
-    _fusion(ws, f"B3:{fin}3",
-            f"Chiffres clés de {nom_territoire} (ensemble des {'communes' if mel else 'IRIS'}), "
-            "toutes sources du classeur confondues. "
-            "Chaque indicateur indique sa source et son année.",
-            Font(italic=True, size=10, color=GRIS))
-    ws.row_dimensions[3].height = 22
+    _fusion(ws, f"B3:{fin}3", _description_classeur(onglets, nom_territoire, mel), Font(size=11, color=GRIS),
+            align=Alignment(wrap_text=True, vertical="top"))
+    ws.row_dimensions[3].height = 66
 
     plages = {theme: _plages(workbook[nom]) for theme, nom in onglets.items()}
     filet = Border(top=Side(style="hair", color="BFBFBF"))

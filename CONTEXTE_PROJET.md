@@ -31,7 +31,8 @@ ApplicationMAJ/
 │  ├─ export_excel.py          → Remplissage du modèle Excel, colonnes de zonage
 │  ├─ pages_info.py            → Pages Présentation et Detail calcul générées selon le lot
 │  ├─ mise_en_page.py          → Formats, largeurs, hauteurs, couleurs d'en-têtes, ordre des colonnes, volets figés
-│  ├─ portrait_roubaix.py      → Onglet Portrait Roubaix (chiffres clés en formules Excel)
+│  ├─ portrait_roubaix.py      → Chiffres clés (formules Excel) et description générale du classeur
+│  ├─ onglets_accueil_sources.py → Onglets Accueil puis Sources (présentation + détail des calculs) en tête
 │  ├─ bpe.py                   → Classeur de la Base permanente des équipements (Roubaix ou MEL)
 │  ├─ export_sig.py            → Export CSV pour SIG
 │  ├─ persistence.py           → Insertion SQLAlchemy
@@ -171,6 +172,12 @@ ApplicationMAJ/
 ---
 
 ## 6. Historique des Sessions de Travail
+
+### 📅 17 novembre 2026 — Onglets Accueil et Sources
+
+- Le classeur s'ouvre sur l'onglet **Accueil** (ex-Portrait Roubaix / Portrait MEL) : description agrandie et générale à tout le classeur (sources présentes, échelle, millésimes), puis les chiffres clés
+- L'onglet **Sources** (ex-Présentation) reprend à la suite le **détail des calculs** (indicateur, formule ; en rouge si non calculé) ; l'onglet Detail calcul disparaît
+- Ordre : Accueil, Sources, puis les onglets thématiques ; renommage et fusion en fin de pipeline (`modules/onglets_accueil_sources.py`), le modèle Excel garde ses noms d'origine
 
 ### 📅 10 novembre 2026 — Périmètre MEL de la base MAS
 
