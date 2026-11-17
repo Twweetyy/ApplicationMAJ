@@ -201,10 +201,10 @@ def _description_classeur(onglets: dict, nom_territoire: str, mel: bool) -> str:
         contenus.append(f"le recensement de la population de l'Insee ({_enumeration(rp)})")
     contenus += [libelle for theme, libelle in CONTENUS_AUTRES if theme in onglets]
     millesimes = sorted({MOTIF_ANNEE.match(nom).group(2) for nom in onglets.values()})
-    periode = f"Millésimes {millesimes[0]} à {millesimes[-1]}. " if len(millesimes) > 1 else ""
+    periode = f" Millésimes {millesimes[0]} à {millesimes[-1]}." if len(millesimes) > 1 else ""
     return (
         f"Ce classeur rassemble la base MAS de {nom_territoire} à l'échelle {echelle}, un onglet par thème : "
-        f"{' ; '.join(contenus) if contenus else 'données thématiques'}. {periode}\n"
+        f"{' ; '.join(contenus) if contenus else 'données thématiques'}.{periode}\n"
         f"Cette page résume les chiffres clés de {nom_territoire} entière "
         f"(ensemble des {'communes' if mel else 'IRIS'}), toutes sources du classeur confondues. "
         "Chaque indicateur indique sa source et son année ; un clic sur la source ouvre l'onglet. "
